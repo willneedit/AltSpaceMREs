@@ -34,7 +34,6 @@ export default class HelloWorld extends Applet {
         super.init(context, params, baseUrl);
         this.context.onStarted(this.started);
         this.context.onUserJoined(this.userjoined);
-        console.log(params);
     }
 
     /**

@@ -8,12 +8,14 @@ import Applet from "./Applet";
 import { single_param } from "./helpers";
 
 import HelloWorld from "./helloworld";
+import Stargate from "./stargate/main";
 
 /**
  * Contains the names and the factories for the given applets
  */
 const registry: { [key: string]: () => Applet } = {
     helloworld: (): Applet => new HelloWorld(),
+    stargate: (): Applet => new Stargate(),
 };
 
 /**
