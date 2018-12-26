@@ -26,6 +26,7 @@ export default class Stargate extends Applet {
     private gateRing: Actor = null;
     private gateRingAngle = 0;
     private gateChevrons: Actor[] = [ null, null, null, null, null, null, null, null, null ];
+    private chevronAngles: number[] = [ 240, 280, 320, 0, 40, 80, 120, 160, 200 ];
     private chevronLitPrefabs: AssetGroup = null;
     private chevronUnlitPrefabs: AssetGroup = null;
     private gateFramePrefabs: AssetGroup = null;
@@ -51,7 +52,8 @@ export default class Stargate extends Applet {
             {
                 actor: {
                     name: 'Gate Chevron ' + index,
-                    transform: { rotation: Quaternion.RotationAxis(Vector3.Forward(), Math.PI * index * 40 / 180) }
+                    transform: { rotation: Quaternion.RotationAxis(
+                        Vector3.Forward(), this.chevronAngles[index] * DegreesToRadians) }
                 }
             });
 
@@ -224,7 +226,7 @@ export default class Stargate extends Applet {
     private async dialChevron(chevron: number, symbol: number, dialDirection: boolean) {
 
         // target angle for the ring to show a specific symbol at a given chevron
-        const tgtAngle = chevron * 40 + (symbol * 360 / 39);
+        const tgtAngle = this.chevronAngles[chevron] + (symbol * 360 / 39);
         const srcAngle = this.gateRingAngle;
 
         const rotAnim = this.generateRotationKeyFrames(srcAngle, tgtAngle, dialDirection);
