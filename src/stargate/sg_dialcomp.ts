@@ -67,6 +67,10 @@ export default class SGDialComp extends Applet {
         this.listSequence();
     }
 
+    private makeKeyCallback(i: number): () => void {
+        return () => this.keypressed(i);
+    }
+
     private async makeKeyboard() {
         let i = 0;
         const rootNodePromise = Actor.CreateEmpty(this.context,
@@ -91,7 +95,7 @@ export default class SGDialComp extends Applet {
                         name: 'button ' + i
                     }
                 }).value;
-            key.setBehavior(ButtonBehavior).onClick('pressed', (userId: string) => this.keypressed(i));
+            key.setBehavior(ButtonBehavior).onClick('pressed', this.makeKeyCallback(i));
         }
     }
 
