@@ -13,7 +13,8 @@ import {
     ParameterSet,
     PrimitiveShape,
     Quaternion,
-    Vector3
+    User,
+    Vector3,
 } from "@microsoft/mixed-reality-extension-sdk";
 
 import Applet from "../Applet";
@@ -21,6 +22,8 @@ import { delay } from "../helpers";
 import Message from "../message";
 
 export default class Stargate extends Applet {
+
+    private initialized = false;
 
     private gateFrame: Actor = null;
     private gateRing: Actor = null;
@@ -35,7 +38,7 @@ export default class Stargate extends Applet {
 
     public init(context: Context, params: ParameterSet, baseUrl: string) {
         super.init(context, params, baseUrl);
-        this.context.onStarted(this.started);
+        this.context.onUserJoined(this.userjoined);
     }
 
     /**
@@ -47,7 +50,7 @@ export default class Stargate extends Applet {
 
         const oldChevron = this.gateChevrons[index];
 
-        const chevronPromise = Actor.CreateEmpty(
+        this.gateChevrons[index] = Actor.CreateEmpty(
             this.context,
             {
                 actor: {
@@ -55,9 +58,7 @@ export default class Stargate extends Applet {
                     transform: { rotation: Quaternion.RotationAxis(
                         Vector3.Forward(), this.chevronAngles[index] * DegreesToRadians) }
                 }
-            });
-
-        this.gateChevrons[index] = chevronPromise.value;
+            }).value;
 
         const chevronModel = Actor.CreateFromGLTF(this.context,
             {
@@ -82,7 +83,7 @@ export default class Stargate extends Applet {
     private async resetGate(): Promise<void> {
         let i = 0;
         for (i = 0; i < 9; ++i) {
-            await this.replaceChevron(i, false);
+            this.replaceChevron(i, false);
         }
     }
 
@@ -90,27 +91,25 @@ export default class Stargate extends Applet {
      * Initialize the gate and set up the models.
      */
     private async initGate(): Promise<void> {
-        const gateFramePromise = Actor.CreateFromGLTF(this.context,
+        this.gateFrame = Actor.CreateFromGLTF(this.context,
             {
                 resourceUrl: `${this.baseUrl}/stargate/Gate_Frame.glb`,
                 actor: {
                     name: 'Gate Frame'
                 }
             }
-        );
+        ).value;
 
-        const gateRingPromise = Actor.CreateFromGLTF(this.context,
+        this.gateRing = Actor.CreateFromGLTF(this.context,
             {
                 resourceUrl: `${this.baseUrl}/stargate/Gate_Ring.glb`,
                 actor: {
                     name: 'Gate Ring'
                 }
             }
-        );
+        ).value;
 
-        this.gateFrame = gateFramePromise.value;
-        this.gateRing = gateRingPromise.value;
-        await this.resetGate();
+        this.resetGate();
 
         const triggerPromise = Actor.CreatePrimitive(this.context,
             {
@@ -151,7 +150,17 @@ export default class Stargate extends Applet {
         msg.destroy();
     }
 
-    private started = async () => {
+    private userjoined = (user: User) => {
+        this.started();
+    }
+
+    private started = () => {
+        if (this.initialized) {
+            return;
+        }
+
+        this.initialized = true;
+
         // this.loadAssets().then(() => this.initGate());
         this.initGate();
     }

@@ -10,6 +10,7 @@ import { single_param } from "./helpers";
 import AssetPreloadTest from "./asset-preload";
 import HelloWorld from "./helloworld";
 import Stargate from "./stargate/main";
+import SGDialComp from "./stargate/sg_dialcomp";
 
 /**
  * Contains the names and the factories for the given applets
@@ -17,6 +18,7 @@ import Stargate from "./stargate/main";
 const registry: { [key: string]: () => Applet } = {
     helloworld: (): Applet => new HelloWorld(),
     stargate: (): Applet => new Stargate(),
+    sgdialcomp: (): Applet => new SGDialComp(),
     asset_preload: (): Applet => new AssetPreloadTest(),
 };
 
