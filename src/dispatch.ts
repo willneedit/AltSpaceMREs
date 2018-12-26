@@ -7,6 +7,7 @@ import { Context, ParameterSet } from "@microsoft/mixed-reality-extension-sdk";
 import Applet from "./Applet";
 import { single_param } from "./helpers";
 
+import AssetPreloadTest from "./asset-preload";
 import HelloWorld from "./helloworld";
 import Stargate from "./stargate/main";
 
@@ -16,6 +17,7 @@ import Stargate from "./stargate/main";
 const registry: { [key: string]: () => Applet } = {
     helloworld: (): Applet => new HelloWorld(),
     stargate: (): Applet => new Stargate(),
+    asset_preload: (): Applet => new AssetPreloadTest(),
 };
 
 /**
