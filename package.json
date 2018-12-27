@@ -1,10 +1,10 @@
 {
-  "name": "hello-world",
-  "version": "0.1.0",
+  "name": "altspace-mre-collection",
+  "version": "0.0.1",
   "private": true,
   "description": "",
   "main": "built/server.js",
-  "author": "Microsoft Corporation",
+  "author": "willneedit",
   "license": "MIT",
   "keywords": [
     "mixed reality",
