@@ -17,13 +17,23 @@ import {
     Vector3,
 } from "@microsoft/mixed-reality-extension-sdk";
 
-import Applet from "../Applet";
+import {
+    GateStatus,
+    StargateLike,
+} from "./types";
+
 import { delay } from "../helpers";
 import Message from "../message";
+import SGNetwork from "./sg_network";
 
-export default class Stargate extends Applet {
+export default class Stargate extends StargateLike {
 
     private initialized = false;
+
+    // tslint:disable:variable-name
+    private _gateStatus: GateStatus = GateStatus.idle;
+    private _gateID: string;
+    // tslint:enable:variable-name
 
     private gateFrame: Actor = null;
     private gateRing: Actor = null;
@@ -36,9 +46,14 @@ export default class Stargate extends Applet {
     private gateRingPrefabs: AssetGroup = null;
     private gateFullPrefabs: AssetGroup = null;
 
+    public get gateStatus() { return this._gateStatus; }
+    public get id() { return this._gateID; }
+
     public init(context: Context, params: ParameterSet, baseUrl: string) {
         super.init(context, params, baseUrl);
         this.context.onUserJoined(this.userjoined);
+        this.context.onStopped(this.stopped);
+        this._gateID = params.id as string;
     }
 
     /**
@@ -85,6 +100,8 @@ export default class Stargate extends Applet {
         for (i = 0; i < 9; ++i) {
             this.replaceChevron(i, false);
         }
+
+        this._gateStatus = GateStatus.idle;
     }
 
     /**
@@ -111,7 +128,7 @@ export default class Stargate extends Applet {
 
         this.resetGate();
 
-        const triggerPromise = Actor.CreatePrimitive(this.context,
+/*         const triggerPromise = Actor.CreatePrimitive(this.context,
             {
                 definition: { shape: PrimitiveShape.Box, dimensions: new Vector3(0.5, 0.5, 0.5)},
                 addCollider: true,
@@ -122,7 +139,7 @@ export default class Stargate extends Applet {
 
         const trigger = triggerPromise.value;
         trigger.setBehavior(ButtonBehavior).onClick('pressed', (userId: string) => this.demo());
-    }
+ */    }
 
     /**
      * Preload the assets.
@@ -163,6 +180,11 @@ export default class Stargate extends Applet {
 
         // this.loadAssets().then(() => this.initGate());
         this.initGate();
+        SGNetwork.registerGate(this.id, this);
+    }
+
+    private stopped = () => {
+        SGNetwork.deregisterGate(this.id);
     }
 
     private generateRotationKeyFrames(
@@ -274,5 +296,18 @@ export default class Stargate extends Applet {
 
         await delay(5000);
         await this.resetGate();
+    }
+
+    public disengaging = async () => {
+        this.resetGate();
+    }
+
+    public engaging = async () => {
+        this._gateStatus = GateStatus.engaged;
+        delay(5000).then(this.disengaging);
+    }
+    public async startDialing(sequence: number[]) {
+        this._gateStatus = GateStatus.dialing;
+        this.dialSequence(sequence).then(this.engaging);
     }
 }

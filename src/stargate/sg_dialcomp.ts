@@ -17,16 +17,21 @@ import {
 } from "@microsoft/mixed-reality-extension-sdk";
 
 import Applet from "../Applet";
+import SGNetwork from "./sg_network";
+import { GateStatus } from "./types";
 
 export default class SGDialComp extends Applet {
 
     private initialized = false;
     private sequence: number[] = [];
     private statusline: Actor = null;
+    private gateID: string;
 
     public init(context: Context, params: ParameterSet, baseUrl: string) {
         super.init(context, params, baseUrl);
+        this.gateID = params.id as string;
         this.context.onUserJoined(this.userjoined);
+        console.log(`Registered Dialing Computer for ID ${this.gateID}`);
     }
 
     private updateStatus(message: string) {
@@ -64,7 +69,24 @@ export default class SGDialComp extends Applet {
 
     private keypressed(key: number) {
         this.sequence.push(key);
-        this.listSequence();
+
+        if (this.sequence.length === 7) {
+            const gate = SGNetwork.getGate(this.gateID);
+
+            if (gate == null) {
+                this.updateStatus(`No gate registered for ID ${this.gateID}, check configuration`);
+            }
+
+            if (gate.gateStatus !== GateStatus.idle) {
+                this.updateStatus(`Gate is already busy`);
+            }
+
+            gate.startDialing([ 1, 2, 3, 4, 5, 6, 0 ]);
+            this.sequence = [];
+            this.listSequence();
+        } else {
+            this.listSequence();
+        }
     }
 
     private makeKeyCallback(i: number): () => void {
