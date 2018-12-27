@@ -1,4 +1,6 @@
-Shows a text that animates when highlighting or clicking on a cube.
+Contains a set of AltspaceVR MRE's, multiplexed and spawned from a single service, most prominently the 'Gate'.
+
+The list of apps is configured in `src/dispatch.ts` and a single app is instantiated in Altspace using `ws://location.of.the.mre.org/app?name=<nameofapplet>`, additional parameters in key/value URL encoded notation optional.
 
 ## Editing
 
