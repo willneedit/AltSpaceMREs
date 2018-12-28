@@ -31,6 +31,7 @@ import WebSocket from 'ws';
 export default class Stargate extends StargateLike {
 
     private initialized = false;
+    private resourceBaseURL = 'https://willneedit.github.io/MRE/stargate/';
 
     // tslint:disable:variable-name
     private _gateStatus: GateStatus = GateStatus.idle;
@@ -80,8 +81,8 @@ export default class Stargate extends StargateLike {
         const chevronModel = Actor.CreateFromGLTF(this.context,
             {
                 resourceUrl: (state
-                    ? `${this.baseUrl}/stargate/Chevron_Lit.glb`
-                    : `${this.baseUrl}/stargate/Chevron_Unlit.glb`),
+                    ? `${this.resourceBaseURL}/stargate/Chevron_Lit.glb`
+                    : `${this.resourceBaseURL}/stargate/Chevron_Unlit.glb`),
                 actor: {
                     parentId: this.gateChevrons[index].id
                 }
@@ -112,7 +113,7 @@ export default class Stargate extends StargateLike {
     private async initGate(): Promise<void> {
         this.gateFrame = Actor.CreateFromGLTF(this.context,
             {
-                resourceUrl: `${this.baseUrl}/stargate/Gate_Frame.glb`,
+                resourceUrl: `${this.resourceBaseURL}/stargate/Gate_Frame.glb`,
                 actor: {
                     name: 'Gate Frame'
                 }
@@ -121,7 +122,7 @@ export default class Stargate extends StargateLike {
 
         this.gateRing = Actor.CreateFromGLTF(this.context,
             {
-                resourceUrl: `${this.baseUrl}/stargate/Gate_Ring.glb`,
+                resourceUrl: `${this.resourceBaseURL}/stargate/Gate_Ring.glb`,
                 actor: {
                     name: 'Gate Ring'
                 }
@@ -151,19 +152,19 @@ export default class Stargate extends StargateLike {
         const msg = new Message(this.context, 'Loading...');
 
         const gateFramePrefabs =
-            this.context.assets.loadGltf('gateFrame', `${this.baseUrl}/stargate/Gate_Frame.glb`);
+            this.context.assets.loadGltf('gateFrame', `${this.resourceBaseURL}/stargate/Gate_Frame.glb`);
         this.gateFramePrefabs = await gateFramePrefabs;
 
         const gateRingPrefabs =
-            this.context.assets.loadGltf('gateRing', `${this.baseUrl}/stargate/Gate_Ring.glb`);
+            this.context.assets.loadGltf('gateRing', `${this.resourceBaseURL}/stargate/Gate_Ring.glb`);
         this.gateRingPrefabs = await gateRingPrefabs;
 
         const chevronLitPrefabs =
-            this.context.assets.loadGltf('chevronlit', `${this.baseUrl}/stargate/Chevron_lit.glb`);
+            this.context.assets.loadGltf('chevronlit', `${this.resourceBaseURL}/stargate/Chevron_lit.glb`);
         this.chevronLitPrefabs = await chevronLitPrefabs;
 
         const chevronUnlitPrefabs =
-            this.context.assets.loadGltf('chevronunlit', `${this.baseUrl}/stargate/Chevron_unlit.glb`);
+            this.context.assets.loadGltf('chevronunlit', `${this.resourceBaseURL}/stargate/Chevron_unlit.glb`);
         this.chevronUnlitPrefabs = await chevronUnlitPrefabs;
 
         msg.destroy();
