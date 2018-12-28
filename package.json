@@ -33,6 +33,11 @@
   },
   "dependencies": {
     "@microsoft/mixed-reality-extension-sdk": "^0.2.2",
-    "@types/ws": "^6.0.1"
+    "@types/http-proxy": "^1.16.2",
+    "@types/query-string": "^6.1.1",
+    "@types/ws": "^6.0.1",
+    "http-proxy": "^1.17.0",
+    "http-proxy-rules": "^1.1.3",
+    "query-string": "^6.2.0"
   }
 }
