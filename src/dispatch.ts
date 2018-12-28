@@ -12,6 +12,8 @@ import HelloWorld from "./helloworld";
 import Stargate from "./stargate/main";
 import SGDialComp from "./stargate/sg_dialcomp";
 
+import WebSocket from 'ws';
+
 /**
  * Contains the names and the factories for the given applets
  */
@@ -20,6 +22,13 @@ const registry: { [key: string]: () => Applet } = {
     stargate: (): Applet => new Stargate(),
     sgdialcomp: (): Applet => new SGDialComp(),
     asset_preload: (): Applet => new AssetPreloadTest(),
+};
+
+/**
+ * Contains the names and the static functions for the control connections to be routed to
+ */
+const registryControl: { [key: string]: (ws: WebSocket, data: object) => void } = {
+    stargate: (ws: WebSocket, data: object) => Stargate.control(ws, data),
 };
 
 /**
@@ -36,10 +45,29 @@ export function dispatch(context: Context, parameter: ParameterSet, baseUrl: str
         return;
     }
 
-    const applet = registry[name]();
+    const applet = registry[name];
     if (!applet) {
         console.error(`Unrecognized applet: ${name}`);
     } else {
-        applet.init(context, parameter, baseUrl);
+        applet().init(context, parameter, baseUrl);
+    }
+}
+
+export function dispatchControl(ws: WebSocket, payload: string) {
+    try {
+        const data = JSON.parse(payload);
+
+        if (!data.name) {
+            console.error(`Incoming request -- no name given`);
+        }
+
+        const cnt = registryControl[data.name];
+        if (!cnt) {
+            console.error(`Unrecognized control request for ${data.name}`);
+        } else {
+            cnt(ws, data);
+        }
+    } catch (e) {
+        console.error(e.message);
     }
 }

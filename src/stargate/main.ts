@@ -26,6 +26,8 @@ import { delay } from "../helpers";
 import Message from "../message";
 import SGNetwork from "./sg_network";
 
+import WebSocket from 'ws';
+
 export default class Stargate extends StargateLike {
 
     private initialized = false;
@@ -309,5 +311,9 @@ export default class Stargate extends StargateLike {
     public async startDialing(sequence: number[]) {
         this._gateStatus = GateStatus.dialing;
         this.dialSequence(sequence).then(this.engaging);
+    }
+
+    public static control(ws: WebSocket, data: object): void {
+        console.log(data);
     }
 }
