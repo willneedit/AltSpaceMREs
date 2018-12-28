@@ -45,11 +45,15 @@ export function dispatch(context: Context, parameter: ParameterSet, baseUrl: str
         return;
     }
 
-    const applet = registry[name];
-    if (!applet) {
-        console.error(`Unrecognized applet: ${name}`);
-    } else {
-        applet().init(context, parameter, baseUrl);
+    try {
+        const applet = registry[name];
+        if (!applet) {
+            console.error(`Unrecognized applet: ${name}`);
+        } else {
+            applet().init(context, parameter, baseUrl);
+        }
+    } catch (e) {
+        console.error(e.message);
     }
 }
 
