@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { StargateLike } from "./types";
+import { StargateDespawned, StargateLike } from "./types";
 
 export default class SGNetwork {
     private static gates: { [id: string]: StargateLike } = { };
@@ -14,7 +14,7 @@ export default class SGNetwork {
     }
 
     public static deregisterGate(id: string) {
-        this.gates[id] = null;
+        this.gates[id] = new StargateDespawned();
         console.log(`Unregistering gate for ID ${id}`);
     }
 

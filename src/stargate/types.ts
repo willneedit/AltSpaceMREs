@@ -9,10 +9,16 @@ import Applet from "../Applet";
 export enum GateStatus {
     idle,
     dialing,
-    engaged
+    engaged,
+    despawned
 }
 
 export abstract class StargateLike extends Applet {
     public abstract startDialing(sequence: number[]): void;
     public abstract get gateStatus(): GateStatus;
+}
+
+export class StargateDespawned extends Applet {
+    public startDialing(sequence: number[]): void { }
+    public get gateStatus(): GateStatus { return GateStatus.despawned; }
 }
