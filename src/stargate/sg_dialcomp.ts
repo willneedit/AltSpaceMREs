@@ -80,7 +80,7 @@ export default class SGDialComp extends SGDialCompLike {
         this.sequence.push(key);
 
         if (this.sequence.length === 7) {
-            gate.startDialing([ 1, 2, 3, 4, 5, 6, 0 ]);
+            gate.startDialing(this.sequence);
             this.sequence = [];
         } else {
             this.listSequence();
