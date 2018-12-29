@@ -29,8 +29,13 @@ export default class SGDialComp extends SGDialCompLike {
 
     public init(context: Context, params: ParameterSet, baseUrl: string) {
         super.init(context, params, baseUrl);
-        this.gateID = params.id as string;
         this.context.onUserJoined(this.userjoined);
+
+        if (params.id) {
+            this.gateID = params.id as string;
+        } else {
+            this.gateID = SGNetwork.getLocationId(params.location as string);
+        }
         SGNetwork.registerDialComp(this.gateID, this);
     }
 

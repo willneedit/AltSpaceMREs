@@ -6,6 +6,10 @@
 import WebSocket from 'ws';
 import { SGDialCompLike, StargateDespawned, StargateLike } from "./types";
 
+import SHA1 from 'sha1';
+
+import bigInt from 'big-integer';
+
 interface TargetReg {
     location: string;
     control: WebSocket;
@@ -37,6 +41,8 @@ export default class SGNetwork {
             oldws.close();
         }
 
+        id = this.getLocationId(loc);
+
         this.targets[id] = { location: loc, control: ws };
         console.info(`Registering portal endpoint for ID ${id} at location ${loc}`);
     }
@@ -56,5 +62,35 @@ export default class SGNetwork {
 
     public static getDialComp(id: string) {
         return this.dialcomps[id];
+    }
+
+    public static getLocationIdSequence(location: string): number[] {
+        const seq: number[] = [];
+        const sha1 = SHA1(location) as string;
+
+        let lid = bigInt(sha1, 16);
+        for (let i = 0; i < 6; i++) {
+            const res = lid.divmod(38);
+            seq.push(res.remainder.toJSNumber());
+            lid = res.quotient;
+        }
+
+        // Point of Origin is always 0.
+        seq.push(0);
+        return seq;
+    }
+
+    public static getLocationId(location: string): string {
+        const seq = this.getLocationIdSequence(location);
+        const lowerA = "a".charCodeAt(0);
+        const upperA = "A".charCodeAt(0);
+
+        let str = "";
+        for (const key of seq) {
+            if (key < 26) str = str + String.fromCharCode(key + lowerA);
+            else str = str + String.fromCharCode(key - 26 + upperA);
+        }
+
+        return str;
     }
 }

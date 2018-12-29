@@ -28,6 +28,7 @@ import SGNetwork from "./sg_network";
 
 import QueryString from 'query-string';
 import WebSocket from 'ws';
+import { gzipSync } from "zlib";
 
 export default class Stargate extends StargateLike {
 
@@ -57,7 +58,13 @@ export default class Stargate extends StargateLike {
         super.init(context, params, baseUrl);
         this.context.onUserJoined(this.userjoined);
         this.context.onStopped(this.stopped);
-        this._gateID = params.id as string;
+
+        if (params.id) {
+            this._gateID = params.id as string;
+        } else {
+            this._gateID = SGNetwork.getLocationId(params.location as string);
+        }
+        SGNetwork.registerGate(this.id, this);
     }
 
     /**
@@ -195,7 +202,6 @@ export default class Stargate extends StargateLike {
 
         // this.loadAssets().then(() => this.initGate());
         this.initGate();
-        SGNetwork.registerGate(this.id, this);
     }
 
     private stopped = () => {
