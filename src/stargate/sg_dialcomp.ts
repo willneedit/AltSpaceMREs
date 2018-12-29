@@ -76,6 +76,7 @@ export default class SGDialComp extends SGDialCompLike {
         const gate = SGNetwork.getGate(this.gateID);
         if (gate == null) {
             this.updateStatus(`Error: Dialing device ${this.gateID} disconnected`);
+            return; // No gate - dialer is locked
         }
 
         if (gate.gateStatus !== GateStatus.idle) {

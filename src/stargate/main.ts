@@ -293,6 +293,10 @@ export default class Stargate extends StargateLike {
         await delay(1000);
     }
 
+    /**
+     * Run the dialing sequence
+     * @param {number[]} symbols Sequence to dial.
+     */
     private async dialSequence(symbols: number[]): Promise<void> {
         let symbol = 0;
         let chevron = 0;
@@ -303,6 +307,7 @@ export default class Stargate extends StargateLike {
             await this.dialChevron(chevron, symbol, direction);
             direction = !direction;
             chevron++;
+            this.reportStatus(`Chevron ${chevron} encoded`);
         }
 
         // And light up the remaining chevrons.
@@ -311,14 +316,9 @@ export default class Stargate extends StargateLike {
         }
     }
 
-    private async demo(): Promise<void> {
-
-        await this.dialSequence([ 20, 15, 14, 13, 2, 33, 0]);
-
-        await delay(5000);
-        await this.resetGate();
-    }
-
+    /**
+     * Disengage the wormhole connection and reset the gate to its idle state
+     */
     public disengaging = async () => {
         const ws = SGNetwork.getControlSocket(this.id);
         if (ws) {
@@ -328,6 +328,10 @@ export default class Stargate extends StargateLike {
         this.resetGate();
     }
 
+    /**
+     * Dial sequence finished, try to establish connection.
+     * Report errors to the dialing device if it failed.
+     */
     public engaging = async () => {
         this._gateStatus = GateStatus.engaged;
         const ws = SGNetwork.getControlSocket(this.id);
@@ -347,12 +351,21 @@ export default class Stargate extends StargateLike {
         this.resetGate();
     }
 
+    /**
+     * Initiate dialing sequence and portal establishment.
+     * @param sequence Number sequence to dial
+     */
     public async startDialing(sequence: number[]) {
         this._gateStatus = GateStatus.dialing;
         this.dialSequence(sequence).then(this.engaging);
         this.reportStatus('Dialing...');
     }
 
+    /**
+     * Control connection endpoint as registered in dispatch.ts
+     * @param {WebSocket} ws Endpoint for the portal in the enclosure
+     * @param data Parameter (here: The init message)
+     */
     public static control(ws: WebSocket, data: ParameterSet): void {
 
         const params = QueryString.parseUrl(data.url as string).query;
