@@ -26,6 +26,7 @@ import { delay } from "../helpers";
 import Message from "../message";
 import SGNetwork from "./sg_network";
 
+import QueryString from 'query-string';
 import WebSocket from 'ws';
 
 export default class Stargate extends StargateLike {
@@ -57,6 +58,17 @@ export default class Stargate extends StargateLike {
         this.context.onUserJoined(this.userjoined);
         this.context.onStopped(this.stopped);
         this._gateID = params.id as string;
+    }
+
+    /**
+     * Report a status message back to the dialing computer
+     * @param message status message
+     */
+    private reportStatus(message: string) {
+        const dial = SGNetwork.getDialComp(this.id);
+        if (dial) {
+            dial.updateStatus(message);
+        }
     }
 
     /**
@@ -302,19 +314,44 @@ export default class Stargate extends StargateLike {
     }
 
     public disengaging = async () => {
+        const ws = SGNetwork.getControlSocket(this.id);
+        if (ws) {
+            ws.send(JSON.stringify({ command: 'disengage' }));
+            this.reportStatus('Wormhole disengaged');
+        }
         this.resetGate();
     }
 
     public engaging = async () => {
         this._gateStatus = GateStatus.engaged;
-        delay(5000).then(this.disengaging);
+        const ws = SGNetwork.getControlSocket(this.id);
+        const loc = SGNetwork.getTarget("0123456");
+        if (ws) {
+            if (loc) {
+                ws.send(JSON.stringify({ command: 'engage', location: loc }));
+                this.reportStatus('Wormhole active');
+                delay(5000).then(this.disengaging);
+                return;
+            } else {
+                this.reportStatus('Error: Cannot establish wormhole - no endpoint');
+            }
+        } else {
+            this.reportStatus('Error: Cannot establish wormhole - gate unpowered');
+        }
+        this.resetGate();
     }
+
     public async startDialing(sequence: number[]) {
         this._gateStatus = GateStatus.dialing;
         this.dialSequence(sequence).then(this.engaging);
+        this.reportStatus('Dialing...');
     }
 
-    public static control(ws: WebSocket, data: object): void {
-        console.log(data);
+    public static control(ws: WebSocket, data: ParameterSet): void {
+
+        const params = QueryString.parseUrl(data.url as string).query;
+        const id = params.id as string;
+        const loc = params.location as string;
+        SGNetwork.registerTarget(id, loc, ws);
     }
 }

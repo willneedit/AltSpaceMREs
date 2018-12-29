@@ -27,8 +27,8 @@ const registry: { [key: string]: () => Applet } = {
 /**
  * Contains the names and the static functions for the control connections to be routed to
  */
-const registryControl: { [key: string]: (ws: WebSocket, data: object) => void } = {
-    stargate: (ws: WebSocket, data: object) => Stargate.control(ws, data),
+const registryControl: { [key: string]: (ws: WebSocket, data: ParameterSet) => void } = {
+    stargate: (ws: WebSocket, data: ParameterSet) => Stargate.control(ws, data),
 };
 
 /**
@@ -59,15 +59,18 @@ export function dispatch(context: Context, parameter: ParameterSet, baseUrl: str
 
 export function dispatchControl(ws: WebSocket, payload: string) {
     try {
-        const data = JSON.parse(payload);
+        const data: ParameterSet = JSON.parse(payload);
 
         if (!data.name) {
             console.error(`Incoming request -- no name given`);
+            return;
         }
 
-        const cnt = registryControl[data.name];
+        const name = data.name as string;
+
+        const cnt = registryControl[name];
         if (!cnt) {
-            console.error(`Unrecognized control request for ${data.name}`);
+            console.error(`Unrecognized control request for ${name}`);
         } else {
             cnt(ws, data);
         }

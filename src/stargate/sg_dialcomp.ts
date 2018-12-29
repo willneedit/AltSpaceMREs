@@ -18,9 +18,9 @@ import {
 
 import Applet from "../Applet";
 import SGNetwork from "./sg_network";
-import { GateStatus } from "./types";
+import { GateStatus, SGDialCompLike } from "./types";
 
-export default class SGDialComp extends Applet {
+export default class SGDialComp extends SGDialCompLike {
 
     private initialized = false;
     private sequence: number[] = [];
@@ -31,10 +31,10 @@ export default class SGDialComp extends Applet {
         super.init(context, params, baseUrl);
         this.gateID = params.id as string;
         this.context.onUserJoined(this.userjoined);
-        console.log(`Registered Dialing Computer for ID ${this.gateID}`);
+        SGNetwork.registerDialComp(this.gateID, this);
     }
 
-    private updateStatus(message: string) {
+    public updateStatus(message: string) {
         const oldline = this.statusline;
 
         this.statusline = Actor.CreateEmpty(this.context, {
@@ -68,22 +68,20 @@ export default class SGDialComp extends Applet {
     }
 
     private keypressed(key: number) {
+        const gate = SGNetwork.getGate(this.gateID);
+        if (gate == null) {
+            this.updateStatus(`Error: Dialing device ${this.gateID} disconnected`);
+        }
+
+        if (gate.gateStatus !== GateStatus.idle) {
+            return; // Busy message already came from the 'gate
+        }
+
         this.sequence.push(key);
 
         if (this.sequence.length === 7) {
-            const gate = SGNetwork.getGate(this.gateID);
-
-            if (gate == null) {
-                this.updateStatus(`No gate registered for ID ${this.gateID}, check configuration`);
-            }
-
-            if (gate.gateStatus !== GateStatus.idle) {
-                this.updateStatus(`Gate is already busy`);
-            }
-
             gate.startDialing([ 1, 2, 3, 4, 5, 6, 0 ]);
             this.sequence = [];
-            this.listSequence();
         } else {
             this.listSequence();
         }

@@ -18,7 +18,11 @@ export abstract class StargateLike extends Applet {
     public abstract get gateStatus(): GateStatus;
 }
 
-export class StargateDespawned extends Applet {
+export abstract class SGDialCompLike extends Applet {
+    public abstract updateStatus(message: string): void;
+}
+
+export class StargateDespawned extends StargateLike {
     public startDialing(sequence: number[]): void { }
     public get gateStatus(): GateStatus { return GateStatus.despawned; }
 }
