@@ -25,8 +25,11 @@ function receiveCommand(message) {
 
 function main() {
     var el = document.querySelector('#portalcircle');
+    var baseurl = document.origin;
+    baseurl = baseurl.replace('http://', 'ws://');
+    baseurl = baseurl.replace('https://', 'ws://');
 
-    var controlSocket = new WebSocket('ws://localhost:3901/control');
+    var controlSocket = new WebSocket(baseurl+'/control');
     controlSocket.onopen = () => sendInitMessage(controlSocket);
     controlSocket.onmessage = (message) => receiveCommand(message);
 
