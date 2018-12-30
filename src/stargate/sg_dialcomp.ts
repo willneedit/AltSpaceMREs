@@ -55,9 +55,7 @@ export default class SGDialComp extends SGDialCompLike {
     private listSequence() {
         let seq = "";
         for (const key of this.sequence) {
-            if (seq !== "") seq = seq + ", ";
-
-            seq = seq + key;
+            seq = seq + this.getLetter(key);
         }
 
         this.updateStatus(seq);
@@ -142,5 +140,6 @@ export default class SGDialComp extends SGDialCompLike {
         this.initialized = true;
 
         this.makeKeyboard();
+        this.updateStatus(`Initialized, Address: ${this.gateID}`);
     }
 }
