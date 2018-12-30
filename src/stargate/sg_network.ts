@@ -41,7 +41,7 @@ export default class SGNetwork {
             oldws.close();
         }
 
-        id = this.getLocationId(loc);
+        if (!id) id = this.getLocationId(loc);
 
         this.targets[id] = { location: loc, control: ws };
         console.info(`Registering portal endpoint for ID ${id} at location ${loc}`);
