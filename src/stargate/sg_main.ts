@@ -20,7 +20,6 @@ import {
 } from "./sg_types";
 
 import { delay } from "../helpers";
-import Message from "../message";
 import SGNetwork from "./sg_network";
 
 import QueryString from 'query-string';
@@ -28,8 +27,11 @@ import WebSocket from 'ws';
 
 export default class Stargate extends StargateLike {
 
-    private initialized = false;
     private resourceBaseURL = 'https://willneedit.github.io/MRE/stargate';
+    private whTimeout = 20; // 20 seconds until the wormhole shuts off
+
+    private initialized = false;
+    private whCount = 0;
 
     // tslint:disable:variable-name
     private _gateStatus: GateStatus = GateStatus.idle;
@@ -260,30 +262,41 @@ export default class Stargate extends StargateLike {
 
     /**
      * Run the dialing sequence
-     * @param {number[]} symbols Sequence to dial.
+     * @param {number[]} sequence Sequence to dial.
      */
-    private async dialSequence(symbols: number[]): Promise<void> {
+    private async dialSequence(sequence: number[]): Promise<void> {
         let chevron = 0;
         let direction = true;
+        const tgtId = SGNetwork.stringifySequence(sequence);
 
         // Dial up the sequence, alternating directions
-        for (const symbol of symbols) {
+        for (const symbol of sequence) {
             await this.dialChevron(chevron, symbol, direction);
             direction = !direction;
             chevron++;
             this.reportStatus(`Chevron ${chevron} encoded`);
+
+            const tgtGate = SGNetwork.getGate(tgtId);
+            if (tgtGate) tgtGate.lightIncoming(chevron);
         }
 
         // And light up the remaining chevrons.
         for (chevron; chevron < 9; chevron++) {
             this.replaceChevron(chevron, true);
+
+            const tgtGate = SGNetwork.getGate(tgtId);
+            if (tgtGate) tgtGate.lightIncoming(chevron);
         }
     }
 
     /**
      * Disengage the wormhole connection and reset the gate to its idle state
      */
-    public disengaging = async () => {
+    private disengaging = async (disengageWh: number) => {
+        // If we come here because of an outdated timeout, disregard this request.
+        if (disengageWh !== 0 && disengageWh !== this.whCount) return;
+        if (this.gateStatus !== GateStatus.engaged) return;
+
         const ws = SGNetwork.getControlSocket(this.id);
         if (ws) {
             ws.send(JSON.stringify({ command: 'disengage' }));
@@ -295,16 +308,28 @@ export default class Stargate extends StargateLike {
     /**
      * Dial sequence finished, try to establish connection.
      * Report errors to the dialing device if it failed.
+     * @param tgtId ID to connect to
+     * @param direction true for outgoing connections, false otherwise
      */
-    public engaging = async () => {
-        this._gateStatus = GateStatus.engaged;
+    private engaging = async (tgtId: string, direction: boolean) => {
         const ws = SGNetwork.getControlSocket(this.id);
-        const loc = SGNetwork.getTarget("0123456");
+        const loc = SGNetwork.getTarget(tgtId);
         if (ws) {
             if (loc) {
+                // Ignore the error code (this one and the other 180 :) ) from the target gate
+                // saying it is already engaged with another connection
                 ws.send(JSON.stringify({ command: 'engage', location: loc }));
-                this.reportStatus('Wormhole active');
-                delay(5000).then(this.disengaging);
+
+                if (direction) {
+                    this.reportStatus('Wormhole active');
+
+                    const tgtGate = SGNetwork.getGate(tgtId);
+                    if (tgtGate) tgtGate.engageIncoming(this.id);
+                } else this.reportStatus('Incoming wormhole active');
+
+                this.whCount++;
+                this._gateStatus = GateStatus.engaged;
+                delay(this.whTimeout * 1000).then(() => this.disengaging(this.whCount));
                 return;
             } else this.reportStatus('Error: Cannot establish wormhole - no endpoint');
         } else this.reportStatus('Error: Cannot establish wormhole - gate unpowered');
@@ -317,8 +342,39 @@ export default class Stargate extends StargateLike {
      */
     public async startDialing(sequence: number[]) {
         this._gateStatus = GateStatus.dialing;
-        this.dialSequence(sequence).then(this.engaging);
+        this.dialSequence(sequence).then(
+            () => this.engaging(SGNetwork.stringifySequence(sequence), true)
+        );
         this.reportStatus('Dialing...');
+    }
+
+    /**
+     * Incoming connection: Light up the given chevron, place a status message
+     * @param {number} chevron Chevron to light up
+     */
+    public async lightIncoming(chevron: number) {
+        if (this.gateStatus === GateStatus.idle) this._gateStatus = GateStatus.incoming;
+
+        if (this.gateStatus !== GateStatus.incoming) return;
+        this.replaceChevron(chevron, true);
+        this.reportStatus(`Incoming! Chevron ${chevron} encoded`);
+    }
+
+    /**
+     * Incoming connection: Establish the portal
+     * @param {string} srcId Where the connection comes from
+     */
+    public async engageIncoming(srcId: string) {
+        if (this.gateStatus !== GateStatus.incoming) return;
+
+        this.engaging(srcId, false);
+    }
+
+    /**
+     * Outside call (from Dial Device) to disengage the wormhole.
+     */
+    public async disengage() {
+        this.disengaging(0);
     }
 
     /**

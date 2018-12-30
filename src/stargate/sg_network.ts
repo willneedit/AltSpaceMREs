@@ -68,10 +68,11 @@ export default class SGNetwork {
         const seq: number[] = [];
         const sha1 = SHA1(location) as string;
 
+        // Coordinate sequence is one of the 39 symbols, except the origin symbol at 0
         let lid = bigInt(sha1, 16);
         for (let i = 0; i < 6; i++) {
             const res = lid.divmod(38);
-            seq.push(res.remainder.toJSNumber());
+            seq.push(res.remainder.toJSNumber() + 1);
             lid = res.quotient;
         }
 
@@ -82,11 +83,15 @@ export default class SGNetwork {
 
     public static getLocationId(location: string): string {
         const seq = this.getLocationIdSequence(location);
+        return this.stringifySequence(seq);
+    }
+
+    public static stringifySequence(sequence: number[]): string {
         const lowerA = "a".charCodeAt(0);
         const upperA = "A".charCodeAt(0);
 
         let str = "";
-        for (const key of seq) {
+        for (const key of sequence) {
             if (key < 26) str = str + String.fromCharCode(key + lowerA);
             else str = str + String.fromCharCode(key - 26 + upperA);
         }

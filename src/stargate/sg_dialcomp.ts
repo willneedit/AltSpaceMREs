@@ -37,21 +37,19 @@ export default class SGDialComp extends SGDialCompLike {
     }
 
     public updateStatus(message: string) {
-        const oldline = this.statusline;
-
-        this.statusline = Actor.CreateEmpty(this.context, {
-            actor: {
-                transform: { position: { x: 0.0, y: 0.5, z: 0.0 } },
-                text: {
-                    contents: message,
-                    height: 0.2,
-                    anchor: TextAnchorLocation.BottomCenter,
-                    color: { r: 0.5, g: 1.0, b: 1.0 }
+        if (!this.statusline) {
+            this.statusline = Actor.CreateEmpty(this.context, {
+                actor: {
+                    transform: { position: { x: 0.0, y: 0.3, z: 0.0 } },
+                    text: {
+                        contents: message,
+                        height: 0.1,
+                        anchor: TextAnchorLocation.BottomCenter,
+                        color: { r: 0.5, g: 1.0, b: 1.0 }
+                    }
                 }
-            }
-        }).value;
-
-        if (oldline != null) oldline.destroy();
+            }).value;
+        } else this.statusline.text.contents = message;
     }
 
     private listSequence() {
@@ -86,14 +84,21 @@ export default class SGDialComp extends SGDialCompLike {
         return () => this.keypressed(i);
     }
 
+    private getLetter(key: number): string {
+        const lowerA = "a".charCodeAt(0);
+        const upperA = "A".charCodeAt(0);
+
+        if (key < 26) return String.fromCharCode(key + lowerA);
+        else return String.fromCharCode(key - 26 + upperA);
+    }
+
     private async makeKeyboard() {
-        const rootNodePromise = Actor.CreateEmpty(this.context,
+        const rootNode = Actor.CreateEmpty(this.context,
             {
                 actor: {
                     transform: { rotation: Quaternion.RotationAxis(Vector3.Right(), 45 * DegreesToRadians)}
                 }
-            });
-        const rootNode = rootNodePromise.value;
+            }).value;
 
         for (let i = 0; i < 39; i++) {
             const xpos = (i % 8) * 0.10 + -0.35;
@@ -109,6 +114,20 @@ export default class SGDialComp extends SGDialCompLike {
                         name: 'button ' + i
                     }
                 }).value;
+
+            const letter = Actor.CreateEmpty(this.context,
+                {
+                    actor: {
+                        parentId: key.id,
+                        transform: { position: { x: -0.002, y: 0.03, z: -0.011 }},
+                        text: {
+                            contents: this.getLetter(i),
+                            color: { r: 0.0, g: 0.0, b: 0.0 },
+                            height: 0.07
+                        }
+                    }
+                }).value;
+
             key.setBehavior(ButtonBehavior).onClick('pressed', this.makeKeyCallback(i));
         }
     }

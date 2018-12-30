@@ -10,11 +10,15 @@ export enum GateStatus {
     idle,
     dialing,
     engaged,
+    incoming,
     despawned
 }
 
 export abstract class StargateLike extends Applet {
     public abstract startDialing(sequence: number[]): void;
+    public abstract lightIncoming(chevron: number): void;
+    public abstract engageIncoming(srcId: string): void;
+    public abstract disengage(): void;
     public abstract get gateStatus(): GateStatus;
 }
 
@@ -24,5 +28,8 @@ export abstract class SGDialCompLike extends Applet {
 
 export class StargateDespawned extends StargateLike {
     public startDialing(sequence: number[]): void { }
+    public lightIncoming(chevron: number): void { }
+    public engageIncoming(srcId: string): void { }
+    public disengage(): void { }
     public get gateStatus(): GateStatus { return GateStatus.despawned; }
 }
