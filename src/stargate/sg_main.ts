@@ -311,8 +311,8 @@ export default class Stargate extends StargateLike {
      */
     private engaging = async (tgtId: string, direction: boolean) => {
         const loc = SGNetwork.getTarget(tgtId);
-        if (SGNetwork.emitPortalControlMsg(this.id, JSON.stringify({ command: 'engage', location: loc }))) {
-            if (loc) {
+        if (loc) {
+            if (SGNetwork.emitPortalControlMsg(this.id, JSON.stringify({ command: 'engage', location: loc }))) {
                 // Ignore the error code (this one and the other 180 :) ) from the target gate
                 // saying it is already engaged with another connection
                 if (direction) {
@@ -326,8 +326,8 @@ export default class Stargate extends StargateLike {
                 this._gateStatus = GateStatus.engaged;
                 delay(this.whTimeout * 1000).then(() => this.disengaging(this.whCount));
                 return;
-            } else this.reportStatus('Error: Cannot establish wormhole - no endpoint');
-        } else this.reportStatus('Error: Cannot establish wormhole - gate unpowered');
+            } else this.reportStatus('Error: Cannot establish wormhole - gate unpowered');
+        } else this.reportStatus('Error: Cannot establish wormhole - no endpoint');
         this.resetGate();
     }
 
