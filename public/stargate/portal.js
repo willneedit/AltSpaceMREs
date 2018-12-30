@@ -49,14 +49,36 @@ function receiveCommand(message) {
     }
 }
 
+function recoverFrom(baseUrl) {
+    var portalEl = document.createElement('a-circle');
+    portalEl.setAttribute('id', 'iris');
+    portalEl.setAttribute('color', '#222222');
+    portalEl.setAttribute('radius', '2.6');
+    portalEl.setAttribute('rotation', '0 0 0');
+    portalEl.setAttribute('position', '0 0 0');
+
+    var sceneEl = document.querySelector('a-scene');
+    sceneEl.appendChild(portalEl);
+
+    setTimeout(openConnection(baseUrl), 5000);
+}
+
+function openConnection(baseurl) {
+    var sceneEl = document.querySelector('a-scene');
+    var portalEl = document.querySelector('#iris');
+
+    if (portalEl) sceneEl.removeChild(portalEl);
+
+    var controlSocket = new WebSocket(baseurl + '/control');
+    controlSocket.onopen = () => sendInitMessage(controlSocket);
+    controlSocket.onmessage = (message) => receiveCommand(message);
+    controlSocket.onerror = (ev) => recoverfrom(baseurl);
+}
+
 function main() {
     var baseurl = document.origin;
     baseurl = baseurl.replace('http://', 'ws://');
     baseurl = baseurl.replace('https://', 'ws://');
-
-    var controlSocket = new WebSocket(baseurl+'/control');
-    controlSocket.onopen = () => sendInitMessage(controlSocket);
-    controlSocket.onmessage = (message) => receiveCommand(message);
 
     AFRAME.registerComponent('portal', {
         schema: {},
@@ -65,6 +87,7 @@ function main() {
         }
     });
 
+    openConnection(baseurl);
 }
 
 main();
