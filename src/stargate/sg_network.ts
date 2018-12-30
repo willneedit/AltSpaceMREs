@@ -4,7 +4,7 @@
  */
 
 import WebSocket from 'ws';
-import { SGDialCompLike, StargateDespawned, StargateLike } from "./types";
+import { SGDialCompLike, StargateDespawned, StargateLike } from "./sg_types";
 
 import SHA1 from 'sha1';
 

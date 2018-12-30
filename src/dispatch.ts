@@ -9,8 +9,8 @@ import { single_param } from "./helpers";
 
 import AssetPreloadTest from "./asset-preload";
 import HelloWorld from "./helloworld";
-import Stargate from "./stargate/main";
 import SGDialComp from "./stargate/sg_dialcomp";
+import Stargate from "./stargate/sg_main";
 
 import WebSocket from 'ws';
 

@@ -16,9 +16,8 @@ import {
     Vector3,
 } from "@microsoft/mixed-reality-extension-sdk";
 
-import Applet from "../Applet";
 import SGNetwork from "./sg_network";
-import { GateStatus, SGDialCompLike } from "./types";
+import { GateStatus, SGDialCompLike } from "./sg_types";
 
 export default class SGDialComp extends SGDialCompLike {
 
@@ -31,11 +30,9 @@ export default class SGDialComp extends SGDialCompLike {
         super.init(context, params, baseUrl);
         this.context.onUserJoined(this.userjoined);
 
-        if (params.id) {
-            this.gateID = params.id as string;
-        } else {
-            this.gateID = SGNetwork.getLocationId(params.location as string);
-        }
+        if (params.id) this.gateID = params.id as string;
+            else this.gateID = SGNetwork.getLocationId(params.location as string);
+
         SGNetwork.registerDialComp(this.gateID, this);
     }
 
@@ -54,18 +51,14 @@ export default class SGDialComp extends SGDialCompLike {
             }
         }).value;
 
-        if (oldline != null) {
-            oldline.destroy();
-        }
+        if (oldline != null) oldline.destroy();
     }
 
     private listSequence() {
         let seq = "";
-        let key = 0;
-        for (key of this.sequence) {
-            if (seq !== "") {
-                seq = seq + ", ";
-            }
+        for (const key of this.sequence) {
+            if (seq !== "") seq = seq + ", ";
+
             seq = seq + key;
         }
 
@@ -79,18 +72,14 @@ export default class SGDialComp extends SGDialCompLike {
             return; // No gate - dialer is locked
         }
 
-        if (gate.gateStatus !== GateStatus.idle) {
-            return; // Busy message already came from the 'gate
-        }
+        if (gate.gateStatus !== GateStatus.idle) return; // Busy message already came from the 'gate
 
         this.sequence.push(key);
 
         if (this.sequence.length === 7) {
             gate.startDialing(this.sequence);
             this.sequence = [];
-        } else {
-            this.listSequence();
-        }
+        } else this.listSequence();
     }
 
     private makeKeyCallback(i: number): () => void {
@@ -98,7 +87,6 @@ export default class SGDialComp extends SGDialCompLike {
     }
 
     private async makeKeyboard() {
-        let i = 0;
         const rootNodePromise = Actor.CreateEmpty(this.context,
             {
                 actor: {
@@ -107,7 +95,7 @@ export default class SGDialComp extends SGDialCompLike {
             });
         const rootNode = rootNodePromise.value;
 
-        for (i = 0; i < 39; i++) {
+        for (let i = 0; i < 39; i++) {
             const xpos = (i % 8) * 0.10 + -0.35;
             const ypos = Math.trunc(i / 8) * -0.10 + 0.20;
 
@@ -130,9 +118,8 @@ export default class SGDialComp extends SGDialCompLike {
     }
 
     private started = () => {
-        if (this.initialized) {
-            return;
-        }
+        if (this.initialized) return;
+
         this.initialized = true;
 
         this.makeKeyboard();

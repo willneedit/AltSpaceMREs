@@ -7,11 +7,9 @@ import {
     Actor,
     AnimationKeyframe,
     AssetGroup,
-    ButtonBehavior,
     Context,
     DegreesToRadians,
     ParameterSet,
-    PrimitiveShape,
     Quaternion,
     User,
     Vector3,
@@ -20,7 +18,7 @@ import {
 import {
     GateStatus,
     StargateLike,
-} from "./types";
+} from "./sg_types";
 
 import { delay } from "../helpers";
 import Message from "../message";
@@ -28,7 +26,6 @@ import SGNetwork from "./sg_network";
 
 import QueryString from 'query-string';
 import WebSocket from 'ws';
-import { gzipSync } from "zlib";
 
 export default class Stargate extends StargateLike {
 
@@ -40,16 +37,10 @@ export default class Stargate extends StargateLike {
     private _gateID: string;
     // tslint:enable:variable-name
 
-    private gateFrame: Actor = null;
     private gateRing: Actor = null;
     private gateRingAngle = 0;
     private gateChevrons: Actor[] = [ null, null, null, null, null, null, null, null, null ];
     private chevronAngles: number[] = [ 240, 280, 320, 0, 40, 80, 120, 160, 200 ];
-    private chevronLitPrefabs: AssetGroup = null;
-    private chevronUnlitPrefabs: AssetGroup = null;
-    private gateFramePrefabs: AssetGroup = null;
-    private gateRingPrefabs: AssetGroup = null;
-    private gateFullPrefabs: AssetGroup = null;
 
     public get gateStatus() { return this._gateStatus; }
     public get id() { return this._gateID; }
@@ -59,11 +50,9 @@ export default class Stargate extends StargateLike {
         this.context.onUserJoined(this.userjoined);
         this.context.onStopped(this.stopped);
 
-        if (params.id) {
-            this._gateID = params.id as string;
-        } else {
-            this._gateID = SGNetwork.getLocationId(params.location as string);
-        }
+        if (params.id) this._gateID = params.id as string;
+            else this._gateID = SGNetwork.getLocationId(params.location as string);
+
         SGNetwork.registerGate(this.id, this);
     }
 
@@ -73,9 +62,7 @@ export default class Stargate extends StargateLike {
      */
     private reportStatus(message: string) {
         const dial = SGNetwork.getDialComp(this.id);
-        if (dial) {
-            dial.updateStatus(message);
-        }
+        if (dial) dial.updateStatus(message);
     }
 
     /**
@@ -109,17 +96,14 @@ export default class Stargate extends StargateLike {
 
         await chevronModel;
 
-        if (oldChevron != null) {
-            oldChevron.destroy();
-        }
+        if (oldChevron != null) oldChevron.destroy();
     }
 
     /**
      * Reset the gate to its idle state
      */
     private async resetGate(): Promise<void> {
-        let i = 0;
-        for (i = 0; i < 9; ++i) {
+        for (let i = 0; i < 9; ++i) {
             this.replaceChevron(i, false);
         }
 
@@ -130,14 +114,15 @@ export default class Stargate extends StargateLike {
      * Initialize the gate and set up the models.
      */
     private async initGate(): Promise<void> {
-        this.gateFrame = Actor.CreateFromGLTF(this.context,
+        /* this.gateFrame = */
+        Actor.CreateFromGLTF(this.context,
             {
                 resourceUrl: `${this.resourceBaseURL}/Gate_Frame.glb`,
                 actor: {
                     name: 'Gate Frame'
                 }
             }
-        ).value;
+        );
 
         this.gateRing = Actor.CreateFromGLTF(this.context,
             {
@@ -150,23 +135,12 @@ export default class Stargate extends StargateLike {
 
         this.resetGate();
 
-/*         const triggerPromise = Actor.CreatePrimitive(this.context,
-            {
-                definition: { shape: PrimitiveShape.Box, dimensions: new Vector3(0.5, 0.5, 0.5)},
-                addCollider: true,
-                actor: {
-                    name: 'trigger'
-                }
-            });
-
-        const trigger = triggerPromise.value;
-        trigger.setBehavior(ButtonBehavior).onClick('pressed', (userId: string) => this.demo());
- */    }
+    }
 
     /**
      * Preload the assets.
      */
-    public async loadAssets(): Promise<void> {
+/*     public async loadAssets(): Promise<void> {
 
         const msg = new Message(this.context, 'Loading...');
 
@@ -188,15 +162,13 @@ export default class Stargate extends StargateLike {
 
         msg.destroy();
     }
-
+*/
     private userjoined = (user: User) => {
         this.started();
     }
 
     private started = () => {
-        if (this.initialized) {
-            return;
-        }
+        if (this.initialized) return;
 
         this.initialized = true;
 
@@ -212,20 +184,14 @@ export default class Stargate extends StargateLike {
         srcAngle: number, tgtAngle: number, direction: boolean): AnimationKeyframe[] {
 
         // Sort the angles in a linear fashion, according to the intended movement direction
-        if (direction && tgtAngle < srcAngle) {
-            tgtAngle = tgtAngle + 360;
-        }
+        if (direction && tgtAngle < srcAngle) tgtAngle = tgtAngle + 360;
 
-        if (!direction && tgtAngle > srcAngle) {
-            tgtAngle = tgtAngle - 360;
-        }
+        if (!direction && tgtAngle > srcAngle) tgtAngle = tgtAngle - 360;
 
         // Take six seconds for a full revolution, calculate the time needed to travel the
         // given distance.
         let duration = 6 * (tgtAngle - srcAngle) / 360;
-        if (duration < 0) {
-            duration = -duration;
-        }
+        if (duration < 0) duration = -duration;
 
         const angles = [
             srcAngle * 1.0 + tgtAngle * 0.0,
@@ -243,11 +209,11 @@ export default class Stargate extends StargateLike {
 
         // Limit the spin up to one second from the start
         let spinupt = 0.3 * duration;
-        if (spinupt > 1) { spinupt = 1; }
+        if (spinupt > 1) spinupt = 1;
 
         // And the spin down to one second from the end
         let spindownt = 0.7 * duration;
-        if (spindownt < duration - 1) { spindownt = duration - 1; }
+        if (spindownt < duration - 1) spindownt = duration - 1;
 
         return [
             {
@@ -298,12 +264,11 @@ export default class Stargate extends StargateLike {
      * @param {number[]} symbols Sequence to dial.
      */
     private async dialSequence(symbols: number[]): Promise<void> {
-        let symbol = 0;
         let chevron = 0;
         let direction = true;
 
         // Dial up the sequence, alternating directions
-        for (symbol of symbols) {
+        for (const symbol of symbols) {
             await this.dialChevron(chevron, symbol, direction);
             direction = !direction;
             chevron++;
@@ -342,12 +307,8 @@ export default class Stargate extends StargateLike {
                 this.reportStatus('Wormhole active');
                 delay(5000).then(this.disengaging);
                 return;
-            } else {
-                this.reportStatus('Error: Cannot establish wormhole - no endpoint');
-            }
-        } else {
-            this.reportStatus('Error: Cannot establish wormhole - gate unpowered');
-        }
+            } else this.reportStatus('Error: Cannot establish wormhole - no endpoint');
+        } else this.reportStatus('Error: Cannot establish wormhole - gate unpowered');
         this.resetGate();
     }
 
