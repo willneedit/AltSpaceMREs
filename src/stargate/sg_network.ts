@@ -10,9 +10,14 @@ import SHA1 from 'sha1';
 
 import bigInt from 'big-integer';
 
+interface ControlSockets {
+    [id: string]: WebSocket;
+}
+
 interface TargetReg {
     location: string;
-    control: WebSocket;
+    lastid: 0;
+    control: ControlSockets;
 }
 
 export default class SGNetwork {
@@ -27,6 +32,19 @@ export default class SGNetwork {
 
     public static deregisterGate(id: string) {
         this.gates[id] = new StargateDespawned();
+
+        if (this.targets[id] && this.targets[id].control) {
+            // Close and deregister the control connections.
+            Object.keys(this.targets[id].control).forEach(
+                (key) => {
+                    const ws = this.targets[id].control[key];
+                    if (ws) ws.close();
+                }
+            );
+            this.targets[id].control = { };
+            this.targets[id].lastid = 0;
+        }
+
         console.info(`Unregistering gate for ID ${id}`);
     }
 
@@ -35,23 +53,20 @@ export default class SGNetwork {
     }
 
     public static registerTarget(id: string, loc: string, ws: WebSocket) {
-        // Explicitely close an old socket if we reload the space to free up resources
-        const oldws = this.getControlSocket(id);
-        if (oldws) {
-            oldws.close();
-        }
-
         if (!id) id = this.getLocationId(loc);
+        if (!this.targets[id]) this.targets[id] = { location: loc, lastid: 0, control: { } };
 
-        this.targets[id] = { location: loc, control: ws };
-        console.info(`Registering portal endpoint for ID ${id} at location ${loc}`);
+        const cid = this.targets[id].lastid++;
+
+        this.targets[id].control[cid] = ws;
+        console.info(`Registering portal endpoint for ID ${id} at location ${loc}, endpoint number ${cid}`);
     }
 
     public static getTarget(id: string): string {
         return this.targets[id] && this.targets[id].location;
     }
 
-    public static getControlSocket(id: string): WebSocket {
+    public static getControlSockets(id: string): ControlSockets {
         return this.targets[id] && this.targets[id].control;
     }
 
@@ -97,5 +112,27 @@ export default class SGNetwork {
         }
 
         return str;
+    }
+
+    public static emitPortalControlMsg(id: string, msg: string): boolean {
+        const css = SGNetwork.getControlSockets(id);
+
+        if (!css) return false;
+
+        // Broadcast the control message, remove stale sockets from list (from clients of users who have left)
+        Object.keys(css).forEach(
+            (key) => {
+                if (css[key]) {
+                    css[key].send(msg, (err) => {
+                        if (err) {
+                            this.targets[id].control[key] = null;
+                            console.info(`Removed stale endpoint for ID ${id}, endpoint number ${key}`);
+                        }
+                    });
+                }
+            }
+        );
+
+        return true;
     }
 }

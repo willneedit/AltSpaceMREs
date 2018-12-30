@@ -274,7 +274,7 @@ export default class Stargate extends StargateLike {
             await this.dialChevron(chevron, symbol, direction);
             direction = !direction;
             chevron++;
-            this.reportStatus(`Chevron ${chevron} encoded`);
+            this.reportStatus(`Chevron ${chevron} locked in`);
 
             const tgtGate = SGNetwork.getGate(tgtId);
             if (tgtGate) tgtGate.lightIncoming(chevron);
@@ -297,9 +297,7 @@ export default class Stargate extends StargateLike {
         if (disengageWh !== 0 && disengageWh !== this.whCount) return;
         if (this.gateStatus !== GateStatus.engaged) return;
 
-        const ws = SGNetwork.getControlSocket(this.id);
-        if (ws) {
-            ws.send(JSON.stringify({ command: 'disengage' }));
+        if (SGNetwork.emitPortalControlMsg(this.id, JSON.stringify({ command: 'disengage' }))) {
             this.reportStatus('Wormhole disengaged');
         }
         this.resetGate();
@@ -312,14 +310,11 @@ export default class Stargate extends StargateLike {
      * @param direction true for outgoing connections, false otherwise
      */
     private engaging = async (tgtId: string, direction: boolean) => {
-        const ws = SGNetwork.getControlSocket(this.id);
         const loc = SGNetwork.getTarget(tgtId);
-        if (ws) {
+        if (SGNetwork.emitPortalControlMsg(this.id, JSON.stringify({ command: 'engage', location: loc }))) {
             if (loc) {
                 // Ignore the error code (this one and the other 180 :) ) from the target gate
                 // saying it is already engaged with another connection
-                ws.send(JSON.stringify({ command: 'engage', location: loc }));
-
                 if (direction) {
                     this.reportStatus('Wormhole active');
 
@@ -357,7 +352,7 @@ export default class Stargate extends StargateLike {
 
         if (this.gateStatus !== GateStatus.incoming) return;
         this.replaceChevron(chevron, true);
-        this.reportStatus(`Incoming! Chevron ${chevron} encoded`);
+        this.reportStatus(`Incoming! Chevron ${chevron} locked in`);
     }
 
     /**
