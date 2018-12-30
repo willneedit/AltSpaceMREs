@@ -6,7 +6,6 @@
 import {
     Actor,
     AnimationKeyframe,
-    AssetGroup,
     Context,
     DegreesToRadians,
     ParameterSet,
