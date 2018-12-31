@@ -181,59 +181,66 @@ export default class Stargate extends StargateLike {
         SGNetwork.deregisterGate(this.id);
     }
 
+    /**
+     * Generate the rotation animation for the ring. Calculate the keyframes for the uniform
+     * acceleration of the angular speed to a given max speed and its slowing down to a stop
+     * at the target angle, then integrate over the speed to get the actual angle values
+     * for the given time indices.
+     *
+     * Same as we'd done that on the good old C64 when smoothly moving sprites along a curve.
+     * @param srcAngle Angle the ring rotates from
+     * @param tgtAngle Angle the ring rotates to
+     * @param direction Direction of rotation, true for counter-clockwise
+     */
     private generateRotationKeyFrames(
+
         srcAngle: number, tgtAngle: number, direction: boolean): AnimationKeyframe[] {
+
+        tgtAngle = tgtAngle % 360;
+        srcAngle = srcAngle % 360;
 
         // Sort the angles in a linear fashion, according to the intended movement direction
         if (direction && tgtAngle < srcAngle) tgtAngle = tgtAngle + 360;
 
         if (!direction && tgtAngle > srcAngle) tgtAngle = tgtAngle - 360;
+        const kf: AnimationKeyframe[] = [];
 
-        // Take six seconds for a full revolution, calculate the time needed to travel the
+        // Take six seconds for a full revolution at full speed, calculate the time needed to travel the
         // given distance.
-        let duration = 6 * (tgtAngle - srcAngle) / 360;
-        if (duration < 0) duration = -duration;
-
-        const angles = [
-            srcAngle * 1.0 + tgtAngle * 0.0,
-            srcAngle * 0.8 + tgtAngle * 0.2,
-            srcAngle * 0.5 + tgtAngle * 0.5,
-            srcAngle * 0.2 + tgtAngle * 0.8,
-            srcAngle * 0.0 + tgtAngle * 1.0 ];
-
-        const quats: Quaternion[] = [];
-
-        let angle = 0;
-        for (angle of angles) {
-            quats.push(Quaternion.RotationAxis(Vector3.Forward(), angle * DegreesToRadians));
+        const timescale = 5;
+        const angularMaxSpeed = 360 / (6 * timescale); // Angular max speed in degrees/timescale of seconds
+        const accelStep = angularMaxSpeed / timescale; // Number of timescale steps (one second) to get to top speed
+        let currentAngularSpeed = 0;
+        let accelDist = 0;
+        let t = 0;
+        const angleDistance = Math.abs(tgtAngle - srcAngle);
+        for (let angle = 0; angle <= angleDistance; angle += currentAngularSpeed) {
+            // The same distance we covered to accelerate we need to decelerate to a full stop
+            if (angle + accelDist >= angleDistance) {
+                currentAngularSpeed -= accelStep;
+                if (currentAngularSpeed <= accelStep) currentAngularSpeed = accelStep;
+            } else if (currentAngularSpeed + accelStep < angularMaxSpeed) {
+                currentAngularSpeed += accelStep;
+                accelDist = angle;
+            }
+            const rAngle = srcAngle + angle * (direction ? 1 : -1);
+            const rot =  Quaternion.RotationAxis(Vector3.Forward(), rAngle * DegreesToRadians);
+            kf.push(
+                {
+                    time: (t++) / timescale,
+                    value: { transform: { rotation: rot } }
+                });
         }
 
-        // Limit the spin up to one second from the start
-        let spinupt = 0.3 * duration;
-        if (spinupt > 1) spinupt = 1;
-
-        // And the spin down to one second from the end
-        let spindownt = 0.7 * duration;
-        if (spindownt < duration - 1) spindownt = duration - 1;
-
-        return [
+        kf.push(
             {
-                time: 0.0 * duration,
-                value: { transform: { rotation: quats[0] } }
-            }, {
-                time: spinupt,
-                value: { transform: { rotation: quats[1] } }
-            }, {
-                time: 0.5 * duration,
-                value: { transform: { rotation: quats[2] } }
-            }, {
-                time: spindownt,
-                value: { transform: { rotation: quats[3] } }
-            }, {
-                time: 1.0 * duration,
-                value: { transform: { rotation: quats[4] } }
-            }
-        ];
+                time: (t++) / timescale,
+                value: { transform: {
+                    rotation: Quaternion.RotationAxis(Vector3.Forward(), tgtAngle * DegreesToRadians)
+                } }
+            });
+
+        return kf;
     }
 
     /**
@@ -245,7 +252,7 @@ export default class Stargate extends StargateLike {
     private async dialChevron(chevron: number, symbol: number, dialDirection: boolean) {
 
         // target angle for the ring to show a specific symbol at a given chevron
-        const tgtAngle = this.chevronAngles[chevron] + (symbol * 360 / 39);
+        const tgtAngle = (this.chevronAngles[chevron] + (symbol * 360 / 39));
         const srcAngle = this.gateRingAngle;
 
         const rotAnim = this.generateRotationKeyFrames(srcAngle, tgtAngle, dialDirection);
@@ -253,7 +260,7 @@ export default class Stargate extends StargateLike {
         await this.gateRing.stopAnimation('rotation');
         await this.gateRing.createAnimation({animationName: 'rotation', keyframes: rotAnim, events: []});
         this.gateRing.startAnimation('rotation');
-        await delay(rotAnim[4].time * 1000);
+        await delay(rotAnim[rotAnim.length - 1].time * 1000);
 
         this.gateRingAngle = tgtAngle;
         await this.replaceChevron(chevron, true);
