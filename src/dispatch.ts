@@ -7,12 +7,14 @@ import { Context, ParameterSet } from "@microsoft/mixed-reality-extension-sdk";
 import Applet from "./Applet";
 import { single_param } from "./helpers";
 
+import WebSocket from 'ws';
+
 import AssetPreloadTest from "./asset-preload";
 import HelloWorld from "./helloworld";
 import SGDialComp from "./stargate/sg_dialcomp";
 import Stargate from "./stargate/sg_main";
 
-import WebSocket from 'ws';
+import ShowGLTF from "./gltf/gltf_main";
 
 /**
  * Contains the names and the factories for the given applets
@@ -22,6 +24,7 @@ const registry: { [key: string]: () => Applet } = {
     stargate: (): Applet => new Stargate(),
     sgdialcomp: (): Applet => new SGDialComp(),
     asset_preload: (): Applet => new AssetPreloadTest(),
+    gltf: (): Applet => new ShowGLTF(),
 };
 
 /**
