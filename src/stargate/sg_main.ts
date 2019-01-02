@@ -52,9 +52,17 @@ export default class Stargate extends StargateLike {
         this.context.onStopped(this.stopped);
 
         if (params.id) this._gateID = params.id as string;
-            else this._gateID = SGNetwork.getLocationId(params.location as string);
+            else if (params.location) this._gateID = SGNetwork.getLocationId(params.location as string);
+            else console.info('Neither ID nor Location given - deferring Stargate registration');
 
-        SGNetwork.registerGate(this.id, this);
+        if (this.id) SGNetwork.registerGate(this.id, this);
+    }
+
+    public registerGate(id: string) {
+        if (!this.id) {
+            this._gateID = id;
+            SGNetwork.registerGate(this.id, this);
+        } else if (this.id !== id) console.info(`Gate alread registered with ID ${id}`);
     }
 
     /**
@@ -165,6 +173,7 @@ export default class Stargate extends StargateLike {
     }
 */
     private userjoined = (user: User) => {
+        if (!this.initialized) SGNetwork.registerGateForUser(user.name, this);
         this.started();
     }
 
@@ -207,10 +216,11 @@ export default class Stargate extends StargateLike {
 
         // Take six seconds for a full revolution at full speed, calculate the time needed to travel the
         // given distance.
-        const timescale = 5;
+        const timescale = 3;
         const angularMaxSpeed = 360 / (6 * timescale); // Angular max speed in degrees/timescale of seconds
         const accelStep = angularMaxSpeed / timescale; // Number of timescale steps (one second) to get to top speed
         let currentAngularSpeed = 0;
+        let lastAngularSpeed = 0;
         let accelDist = 0;
         let t = 0;
         const angleDistance = Math.abs(tgtAngle - srcAngle);
@@ -223,13 +233,19 @@ export default class Stargate extends StargateLike {
                 currentAngularSpeed += accelStep;
                 accelDist = angle;
             }
-            const rAngle = srcAngle + angle * (direction ? 1 : -1);
-            const rot =  Quaternion.RotationAxis(Vector3.Forward(), rAngle * DegreesToRadians);
-            kf.push(
-                {
-                    time: (t++) / timescale,
-                    value: { transform: { rotation: rot } }
+
+            // Add a keyframe if the angular speed did change.
+            if (lastAngularSpeed !== currentAngularSpeed) {
+                const rAngle = srcAngle + angle * (direction ? 1 : -1);
+                const rot =  Quaternion.RotationAxis(Vector3.Forward(), rAngle * DegreesToRadians);
+                kf.push({
+                        time: t / timescale,
+                        value: { transform: { rotation: rot } }
                 });
+            }
+            t++;
+
+            lastAngularSpeed = currentAngularSpeed;
         }
 
         kf.push(
@@ -387,8 +403,33 @@ export default class Stargate extends StargateLike {
     public static control(ws: WebSocket, data: ParameterSet): void {
 
         const params = QueryString.parseUrl(data.url as string).query;
-        const id = params.id as string;
-        const loc = params.location as string;
+        const loc = (params.location || data.sid) as string;
+        const id = (params.id || SGNetwork.getLocationId(loc)) as string;
         SGNetwork.registerTarget(id, loc, ws);
+
+        const mreUserName = `Player [${data.userName as string}]`;
+        Stargate.doDeferredRegistration(mreUserName, id);
+    }
+
+    private static async doDeferredRegistration(mreUserName: string, id: string) {
+        const userMeetup = SGNetwork.getInfoForUser(mreUserName);
+        let again = false;
+        if (userMeetup) {
+            const gate = userMeetup.gate;
+            if (!gate) {
+                again = true;
+                console.error(`Gate should already be pre-registered for ${mreUserName}`);
+            } else gate.registerGate(id);
+            const dcomp = userMeetup.comp;
+            if (!dcomp) {
+                again = true;
+                console.error(`Dial Computer should already be pre-registered for ${mreUserName}`);
+            } else dcomp.registerDC(id);
+        } else {
+            again = true;
+            console.error(`Error: No info retrievable for ${mreUserName}`);
+        }
+
+        if (again) delay(1000).then(() => this.doDeferredRegistration(mreUserName, id));
     }
 }

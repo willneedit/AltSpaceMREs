@@ -31,9 +31,18 @@ export default class SGDialComp extends SGDialCompLike {
         this.context.onUserJoined(this.userjoined);
 
         if (params.id) this.gateID = params.id as string;
-            else this.gateID = SGNetwork.getLocationId(params.location as string);
+            else if (params.location) this.gateID = SGNetwork.getLocationId(params.location as string);
+            else console.info('Neither ID nor Location given - deferring Dial Computer registration');
 
-        SGNetwork.registerDialComp(this.gateID, this);
+        if (this.gateID) SGNetwork.registerDialComp(this.gateID, this);
+    }
+
+    public registerDC(id: string) {
+        if (!this.gateID) {
+            this.gateID = id;
+            SGNetwork.registerDialComp(this.gateID, this);
+            this.updateStatus(`Initialized, Address: ${this.gateID}`);
+        }
     }
 
     public updateStatus(message: string) {
@@ -131,6 +140,7 @@ export default class SGDialComp extends SGDialCompLike {
     }
 
     private userjoined = (user: User) => {
+        if (!this.initialized) SGNetwork.registerDCForUser(user.name, this);
         this.started();
     }
 
@@ -140,6 +150,7 @@ export default class SGDialComp extends SGDialCompLike {
         this.initialized = true;
 
         this.makeKeyboard();
-        this.updateStatus(`Initialized, Address: ${this.gateID}`);
+        if (this.gateID) this.updateStatus(`Initialized, Address: ${this.gateID}`);
+        else this.updateStatus(`Awaiting gate address...`);
     }
 }

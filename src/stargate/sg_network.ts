@@ -20,10 +20,16 @@ interface TargetReg {
     control: ControlSockets;
 }
 
+interface UserMeetup {
+    gate: StargateLike;
+    comp: SGDialCompLike;
+}
+
 export default class SGNetwork {
     private static gates: { [id: string]: StargateLike } = { };
     private static targets: { [id: string]: TargetReg } = { };
     private static dialcomps: {  [id: string]: SGDialCompLike } = { };
+    private static userMeetup: { [id: string]: UserMeetup } = { };
 
     public static registerGate(id: string, gate: StargateLike) {
         this.gates[id] = gate;
@@ -53,7 +59,6 @@ export default class SGNetwork {
     }
 
     public static registerTarget(id: string, loc: string, ws: WebSocket) {
-        if (!id) id = this.getLocationId(loc);
         if (!this.targets[id]) this.targets[id] = { location: loc, lastid: 0, control: { } };
 
         const cid = this.targets[id].lastid++;
@@ -94,6 +99,23 @@ export default class SGNetwork {
         // Point of Origin is always 0.
         seq.push(0);
         return seq;
+    }
+
+    public static registerGateForUser(user: string, gate: StargateLike) {
+        if (!this.userMeetup[user]) this.userMeetup[user] = { gate: null, comp: null };
+        this.userMeetup[user].gate = gate;
+        console.info(`Deferred registration: Stargate found by ${user}`);
+    }
+
+    public static registerDCForUser(user: string, comp: SGDialCompLike) {
+        if (!this.userMeetup[user]) this.userMeetup[user] = { gate: null, comp: null };
+        this.userMeetup[user].comp = comp;
+        console.info(`Deferred registration: Dialing computer found by ${user}`);
+    }
+
+    public static getInfoForUser(user: string): UserMeetup {
+        console.log(`Retrieving information for ${user}`);
+        return this.userMeetup[user];
     }
 
     public static getLocationId(location: string): string {

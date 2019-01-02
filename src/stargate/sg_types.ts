@@ -20,10 +20,12 @@ export abstract class StargateLike extends Applet {
     public abstract engageIncoming(srcId: string): void;
     public abstract disengage(): void;
     public abstract get gateStatus(): GateStatus;
+    public abstract registerGate(id: string): void;
 }
 
 export abstract class SGDialCompLike extends Applet {
     public abstract updateStatus(message: string): void;
+    public abstract registerDC(id: string): void;
 }
 
 export class StargateDespawned extends StargateLike {
@@ -32,4 +34,5 @@ export class StargateDespawned extends StargateLike {
     public engageIncoming(srcId: string): void { }
     public disengage(): void { }
     public get gateStatus(): GateStatus { return GateStatus.despawned; }
+    public registerGate(id: string): void { }
 }

@@ -83,8 +83,15 @@ async function despawnPortal() {
     sceneEl.removeChild(portal2El);
 }
 
-function sendInitMessage(socket) {
-    socket.send(JSON.stringify({ name: 'stargate', url: document.URL }));
+async function sendInitMessage(socket) {
+    var user = await altspace.getUser();
+    var space = await altspace.getSpace();
+    socket.send(JSON.stringify({ name: 'stargate', 
+        url: document.URL,
+        sid: space.sid,
+        userId: user.userId,
+        userName: user.displayName
+    }));
 }
 
 function receiveCommand(message) {
