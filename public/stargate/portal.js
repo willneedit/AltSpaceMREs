@@ -61,7 +61,7 @@ async function spawnPortal(target) {
 
     var portal2AnimationEl = document.createElement('a-animation');
     portal2AnimationEl.setAttribute('attribute', 'rotation');
-    portal2AnimationEl.setAttribute('dur', '17000');
+    portal2AnimationEl.setAttribute('dur', '13000');
     portal2AnimationEl.setAttribute('to', '0 0 360');
     portal2AnimationEl.setAttribute('easing', 'linear');
     portal2AnimationEl.setAttribute('repeat', 'indefinite');
