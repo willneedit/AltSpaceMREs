@@ -83,6 +83,15 @@ async function despawnPortal() {
     sceneEl.removeChild(portal2El);
 }
 
+async function socketHeartbeat(socket) {
+    if (socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({ name: 'hb'}));
+
+        // Send minute heartbeats as long as we're alive
+        setTimeout(() => socketHeartbeat(socket), 60 * 1000);
+    }
+}
+
 async function sendInitMessage(socket) {
     var user = await altspace.getUser();
     var space = await altspace.getSpace();
@@ -92,6 +101,8 @@ async function sendInitMessage(socket) {
         userId: user.userId,
         userName: user.displayName
     }));
+
+    socketHeartbeat(socket);
 }
 
 function receiveCommand(message) {
@@ -116,13 +127,12 @@ function recoverFrom(baseUrl) {
     portalEl.setAttribute('id', 'iris');
     portalEl.setAttribute('color', '#222222');
     portalEl.setAttribute('radius', '2.6');
-    portalEl.setAttribute('rotation', '0 0 0');
     portalEl.setAttribute('position', '0 0 0');
 
     var sceneEl = document.querySelector('a-scene');
     sceneEl.appendChild(portalEl);
 
-    setTimeout(openConnection(baseUrl), 5000);
+    setTimeout(openConnection(baseUrl), 10000);
 }
 
 function openConnection(baseurl) {
@@ -134,7 +144,8 @@ function openConnection(baseurl) {
     var controlSocket = new WebSocket(baseurl + '/control');
     controlSocket.onopen = () => sendInitMessage(controlSocket);
     controlSocket.onmessage = (message) => receiveCommand(message);
-    controlSocket.onerror = (ev) => recoverFrom(baseurl);
+    // controlSocket.onerror = (ev) => recoverFrom(baseurl);
+    controlSocket.onclose = () => recoverFrom(baseurl);
 }
 
 function main() {

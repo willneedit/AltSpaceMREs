@@ -418,16 +418,16 @@ export default class Stargate extends StargateLike {
             const gate = userMeetup.gate;
             if (!gate) {
                 again = true;
-                console.error(`Gate should already be pre-registered for ${mreUserName}`);
+                console.debug(`Data yet incomplete: Gate should already be pre-registered for ${mreUserName}`);
             } else gate.registerGate(id);
             const dcomp = userMeetup.comp;
             if (!dcomp) {
                 again = true;
-                console.error(`Dial Computer should already be pre-registered for ${mreUserName}`);
+                console.debug(`Data yet incomplete: Dial Computer should already be pre-registered for ${mreUserName}`);
             } else dcomp.registerDC(id);
         } else {
             again = true;
-            console.error(`Error: No info retrievable for ${mreUserName}`);
+            console.debug(`Data yet incomplete: No info retrievable for ${mreUserName}`);
         }
 
         if (again) delay(1000).then(() => this.doDeferredRegistration(mreUserName, id));
