@@ -134,7 +134,7 @@ function openConnection(baseurl) {
     var controlSocket = new WebSocket(baseurl + '/control');
     controlSocket.onopen = () => sendInitMessage(controlSocket);
     controlSocket.onmessage = (message) => receiveCommand(message);
-    controlSocket.onerror = (ev) => recoverfrom(baseurl);
+    controlSocket.onerror = (ev) => recoverFrom(baseurl);
 }
 
 function main() {
