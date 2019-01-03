@@ -15,6 +15,7 @@ import SGDialComp from "./stargate/sg_dialcomp";
 import Stargate from "./stargate/sg_main";
 
 import ShowGLTF from "./gltf/gltf_main";
+import SGNetwork from "./stargate/sg_network";
 
 /**
  * Contains the names and the factories for the given applets
@@ -32,6 +33,14 @@ const registry: { [key: string]: () => Applet } = {
  */
 const registryControl: { [key: string]: (ws: WebSocket, data: ParameterSet) => void } = {
     stargate: (ws: WebSocket, data: ParameterSet) => Stargate.control(ws, data),
+    hb: (ws: WebSocket, data: ParameterSet) => { }
+};
+
+/**
+ * Contains a list of functions needed to call before the service goes online.
+ */
+const registryStartup: { [key: string]: () => void } = {
+    sgnetwork: () => SGNetwork.loadNetwork(),
 };
 
 /**
@@ -79,5 +88,13 @@ export function dispatchControl(ws: WebSocket, payload: string) {
         }
     } catch (e) {
         console.error(e.message);
+    }
+}
+
+export function dispatchStartup() {
+    for ( const key in registryStartup) {
+        if (registryStartup.hasOwnProperty(key)) {
+            registryStartup[key]();
+        }
     }
 }

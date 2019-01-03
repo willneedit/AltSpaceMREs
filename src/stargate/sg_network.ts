@@ -9,6 +9,7 @@ import { SGDialCompLike, StargateDespawned, StargateLike } from "./sg_types";
 import SHA1 from 'sha1';
 
 import bigInt from 'big-integer';
+import FS from 'fs';
 
 interface ControlSockets {
     [id: string]: WebSocket;
@@ -30,6 +31,61 @@ export default class SGNetwork {
     private static targets: { [id: string]: TargetReg } = { };
     private static dialcomps: {  [id: string]: SGDialCompLike } = { };
     private static userMeetup: { [id: string]: UserMeetup } = { };
+
+    private static nextUpdate = 0;
+    private static updateInterval = 60;
+
+    private static async doUpdate() {
+        const list: { [id: string]: string } = { };
+
+        for (const key in this.targets) {
+            if (SGNetwork.targets.hasOwnProperty(key)) {
+                list[key] = this.targets[key].location;
+            }
+        }
+
+        FS.writeFile('public/SGNetwork.json',
+            JSON.stringify(list), (err) => {
+                if (!err) {
+                    console.log(`Portal network saved.`);
+                }
+            }
+        );
+    }
+
+    private static scheduleUpdate() {
+        // Aim for one minute after this trigger.
+        const proposed = Math.round((new Date()).getTime() / 1000) + this.updateInterval;
+
+        // Do not schedule an update if it'd be still too soon after the next pending one.
+        if (proposed < this.nextUpdate + this.updateInterval) return;
+
+        this.nextUpdate = proposed;
+        setTimeout(() => this.doUpdate(), this.updateInterval * 1000);
+    }
+
+    public static parseNetworkData(data: Buffer) {
+        try {
+            const list = JSON.parse(data.toString());
+
+            for (const key in list) {
+                if (list.hasOwnProperty(key)) {
+                    this.registerTarget(key, list[key]);
+                }
+            }
+
+        } catch (e) {
+            console.error(`Error encountered in SG Network data, message: ${e.message}`);
+        }
+
+    }
+
+    public static loadNetwork() {
+        FS.readFile('public/SGNetwork.json', (err, data) => {
+            if (err) console.log(`Cannot read stargate network bootstrap info.`);
+            else this.parseNetworkData(data);
+        });
+    }
 
     public static registerGate(id: string, gate: StargateLike) {
         this.gates[id] = gate;
@@ -58,13 +114,18 @@ export default class SGNetwork {
         return this.gates[id];
     }
 
-    public static registerTarget(id: string, loc: string, ws: WebSocket) {
+    public static registerTarget(id: string, loc: string, ws?: WebSocket) {
         if (!this.targets[id]) this.targets[id] = { location: loc, lastid: 0, control: { } };
 
-        const cid = this.targets[id].lastid++;
+        if (ws) {
+            const cid = this.targets[id].lastid++;
 
-        this.targets[id].control[cid] = ws;
-        console.info(`Registering portal endpoint for ID ${id} at location ${loc}, endpoint number ${cid}`);
+            this.targets[id].control[cid] = ws;
+            console.info(`Registering portal endpoint for ID ${id} at location ${loc}, endpoint number ${cid}`);
+
+            // This is a new one rather than a reload, schedule an update.
+            this.scheduleUpdate();
+        } else console.info(`Registering portal endpoint for ID ${id} at location ${loc}`);
     }
 
     public static getTarget(id: string): string {

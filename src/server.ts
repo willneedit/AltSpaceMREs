@@ -5,7 +5,7 @@
 
 import { WebHost } from '@microsoft/mixed-reality-extension-sdk';
 import { resolve as resolvePath } from 'path';
-import { dispatch, dispatchControl } from './dispatch';
+import { dispatch, dispatchControl, dispatchStartup } from './dispatch';
 
 import Http from 'http';
 import HttpProxy from 'http-proxy';
@@ -20,6 +20,9 @@ process.on('unhandledRejection', reason => console.log('unhandledRejection', rea
 const publicPort = Number(process.env.PORT || 3901);
 const mrePort = publicPort + 1;
 const controlPort = publicPort + 2;
+
+// Initialize the submodules
+dispatchStartup();
 
 // Start listening for connections, and serve static files
 const server = new WebHost({
@@ -63,3 +66,5 @@ proxyServer.on('upgrade',
 // Listen to the given port (as defined per environment like Heroku)
 // or the usual default one of 3901
 proxyServer.listen(publicPort);
+
+// ... now everything's good to go!
