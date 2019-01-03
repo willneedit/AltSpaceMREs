@@ -411,7 +411,12 @@ export default class Stargate extends StargateLike {
         Stargate.doDeferredRegistration(mreUserName, id);
     }
 
-    private static async doDeferredRegistration(mreUserName: string, id: string) {
+    private static async doDeferredRegistration(mreUserName: string, id: string, retry?: number) {
+        if (!retry) retry = 1;
+
+        // Server restarted, and maybe some stale connections from users who are already gone, give up.
+        if (retry > 10) return;
+
         const userMeetup = SGNetwork.getInfoForUser(mreUserName);
         let again = false;
         if (userMeetup) {
@@ -430,6 +435,6 @@ export default class Stargate extends StargateLike {
             console.debug(`Data yet incomplete: No info retrievable for ${mreUserName}`);
         }
 
-        if (again) delay(1000).then(() => this.doDeferredRegistration(mreUserName, id));
+        if (again) delay(1000).then(() => this.doDeferredRegistration(mreUserName, id, retry + 1 ));
     }
 }
