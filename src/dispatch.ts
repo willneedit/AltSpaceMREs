@@ -11,7 +11,7 @@ import WebSocket from 'ws';
 
 import AssetPreloadTest from "./asset-preload";
 import HelloWorld from "./helloworld";
-import SGDialComp from "./stargate/sg_dialcomp";
+import SGDCDebug from "./stargate/sg_dc_debug";
 import Stargate from "./stargate/sg_main";
 
 import ShowGLTF from "./gltf/gltf_main";
@@ -23,7 +23,7 @@ import SGNetwork from "./stargate/sg_network";
 const registry: { [key: string]: () => Applet } = {
     helloworld: (): Applet => new HelloWorld(),
     stargate: (): Applet => new Stargate(),
-    sgdialcomp: (): Applet => new SGDialComp(),
+    sgdialcomp: (): Applet => new SGDCDebug(),
     asset_preload: (): Applet => new AssetPreloadTest(),
     gltf: (): Applet => new ShowGLTF(),
 };
