@@ -84,8 +84,14 @@ export abstract class SGDCBase extends SGDialCompLike {
     private keypressed(key: number) {
         const gate = SGNetwork.getGate(this.gateID);
         if (gate == null) {
-            this.updateStatus(`Error: Dialing device ${this.gateID} disconnected`);
+            this.updateStatus(`Error: Dialing device ${this.gateID || "(unconfigured)"} disconnected`);
             return; // No gate - dialer is locked
+        }
+
+        // 'a' (or big red button) cuts the wormhole if it's engaged
+        if (gate.gateStatus === GateStatus.engaged && key === 0) {
+            gate.disengage();
+            return;
         }
 
         if (gate.gateStatus !== GateStatus.idle) return; // Busy message already came from the 'gate
@@ -95,7 +101,12 @@ export abstract class SGDCBase extends SGDialCompLike {
         if (this.sequence.length === 7) {
             gate.startDialing(this.sequence);
             this.sequence = [];
-        } else this.listSequence();
+        } else if (key === 0) {
+            // 'a' (or big red button) acts as a delete button for an incomplete sequence
+            this.sequence = [];
+        }
+
+        this.listSequence();
     }
 
     protected makeKeyCallback(i: number): () => void {

@@ -28,7 +28,7 @@ import WebSocket from 'ws';
 export default class Stargate extends StargateLike {
 
     private resourceBaseURL = 'https://willneedit.github.io/MRE/stargate';
-    private whTimeout = 20; // 20 seconds until the wormhole shuts off
+    private whTimeout = 120; // 120 seconds until the wormhole shuts off. Cut it off by hitting 'a'.
 
     private initialized = false;
     private whCount = 0;
@@ -268,15 +268,15 @@ export default class Stargate extends StargateLike {
     private async dialChevron(chevron: number, symbol: number, dialDirection: boolean) {
 
         // target angle for the ring to show a specific symbol at a given chevron
-        const tgtAngle = (this.chevronAngles[chevron] + (symbol * 360 / 39));
+        const tgtAngle = (this.chevronAngles[chevron] + (symbol * 360 / 39)) % 360;
         const srcAngle = this.gateRingAngle;
 
         const rotAnim = this.generateRotationKeyFrames(srcAngle, tgtAngle, dialDirection);
 
-        await this.gateRing.stopAnimation('rotation');
         await this.gateRing.createAnimation({animationName: 'rotation', keyframes: rotAnim, events: []});
         this.gateRing.startAnimation('rotation');
-        await delay(rotAnim[rotAnim.length - 1].time * 1000);
+        await delay(rotAnim[rotAnim.length - 1].time * 1000 + 200);
+        await this.gateRing.stopAnimation('rotation');
 
         this.gateRingAngle = tgtAngle;
         await this.replaceChevron(chevron, true);
