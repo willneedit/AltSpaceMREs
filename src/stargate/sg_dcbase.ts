@@ -46,18 +46,22 @@ export abstract class SGDCBase extends SGDialCompLike {
 
     public updateStatus(message: string) {
         if (!this.statusline) {
-            this.statusline = Actor.CreateEmpty(this.context, {
-                actor: {
-                    transform: { position: { x: 0.0, y: 0.3, z: 0.0 } },
-                    text: {
-                        contents: message,
-                        height: 0.1,
-                        anchor: TextAnchorLocation.BottomCenter,
-                        color: { r: 0.5, g: 1.0, b: 1.0 }
-                    }
-                }
-            }).value;
+            this.statusline = this.createStatusLine(message);
         } else this.statusline.text.contents = message;
+    }
+
+    protected createStatusLine(message: string): Actor {
+        return Actor.CreateEmpty(this.context, {
+            actor: {
+                transform: { position: { x: 0.0, y: 0.3, z: 0.0 } },
+                text: {
+                    contents: message,
+                    height: 0.1,
+                    anchor: TextAnchorLocation.BottomCenter,
+                    color: { r: 0.5, g: 1.0, b: 1.0 }
+                }
+            }
+        }).value;
     }
 
     protected getLetter(key: number): string {
