@@ -22,9 +22,9 @@ interface TierDefinition {
 
 export default class SGDCDHD extends SGDCBase {
     private tiers: TierDefinition[] = [
-        { letterRadius: -0.30, letterHeight: 0.13, letterElevation: 0.27 }, // Inner Circle
-        { letterRadius: -0.55, letterHeight: 0.15, letterElevation: 0.15 }, // Middle Circle
-        { letterRadius: -0.78, letterHeight: 0.18, letterElevation: 0.05 }, // Outer Circle
+        { letterRadius: -0.34, letterHeight: 0.13, letterElevation: 0.27 }, // Inner Circle
+        { letterRadius: -0.59, letterHeight: 0.15, letterElevation: 0.15 }, // Middle Circle
+        { letterRadius: -0.83, letterHeight: 0.18, letterElevation: 0.05 }, // Outer Circle
     ];
 
     private keyStart = 0;
@@ -68,7 +68,7 @@ export default class SGDCDHD extends SGDCBase {
                 }
             }).value;
 
-        const letterRotation = Quaternion.RotationAxis(Vector3.Right(), 79 * DegreesToRadians);
+        const letterRotation = Quaternion.RotationAxis(Vector3.Right(), 76 * DegreesToRadians);
 
         const frame = Actor.CreateFromGLTF(this.context,
             {
@@ -96,14 +96,29 @@ export default class SGDCDHD extends SGDCBase {
                     }
                 }).value;
 
-            const letter = Actor.CreateEmpty(this.context,
+            const letterRotRoot = Actor.CreateEmpty(this.context,
                 {
                     actor: {
                         parentId: letterRotOffset.id,
                         transform: {
                             rotation: letterRotation,
                             position: { x: 0, y: 0.03, z: letterRadius }},
+                    }
+                }).value;
+
+            const letterOrientation = (keySlot < 3 || keySlot > 9)
+                ? Quaternion.RotationAxis(Vector3.Forward(), 180 * DegreesToRadians)
+                : Quaternion.RotationAxis(Vector3.Forward(), 0);
+
+            const letter = Actor.CreateEmpty(this.context,
+                {
+                    actor: {
+                        parentId: letterRotRoot.id,
+                        transform: {
+                            rotation: letterOrientation,
+                        },
                         text: {
+                            anchor: TextAnchorLocation.MiddleCenter,
                             contents: this.getLetter(i),
                             color: { r: 1.0, g: 1.0, b: 1.0 },
                             height: letterHeight
@@ -118,9 +133,9 @@ export default class SGDCDHD extends SGDCBase {
                     colliderType: 'box',
                     resourceUrl: 'https://willneedit.github.io/MRE/VolumeUnit.glb',
                     actor: {
-                        parentId: letter.id,
+                        parentId: letterRotRoot.id,
                         transform: {
-                            position: { x: 0, y: -0.06, z: 0.05 },
+                            position: { x: 0, y: -0.03, z: 0.05 },
                             scale: { x: letterHeight, y: letterHeight, z: 0.002 }
                         }
                     }
