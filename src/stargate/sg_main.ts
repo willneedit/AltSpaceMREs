@@ -50,20 +50,28 @@ export default class Stargate extends StargateLike {
     public init(context: Context, params: ParameterSet, baseUrl: string) {
         super.init(context, params, baseUrl);
         this.context.onUserJoined(this.userjoined);
+        this.context.onUserLeft((user: User) => SGNetwork.removeUser(user.name));
         this.context.onStopped(this.stopped);
 
-        if (params.id) this._gateID = params.id as string;
-            else if (params.location) this._gateID = SGNetwork.getLocationId(params.location as string);
-            else console.info('Neither ID nor Location given - deferring Stargate registration');
+        // Try by ID and location, in this order
+        if (!this.id && params.id) this._gateID = params.id as string;
+        if (!this.id && params.location) this._gateID = SGNetwork.getLocationId(params.location as string);
 
+        // Try by gate's session ID
+        this._gateID = SGNetwork.getIdBySessId(this.sessID);
+
+        // Register if found, else wait for the A-Frame component to announce itself.
         if (this.id) SGNetwork.registerGate(this);
+        else console.info('Neither ID nor Location given - deferring Stargate registration');
     }
 
     public registerGate(id: string) {
         if (!this.id) {
             this._gateID = id;
             SGNetwork.registerGate(this);
-        } else if (this.id !== id) console.info(`Gate alread registered with ID ${id}`);
+        } else if (this.id !== id) {
+            console.error(`Gate: ID COLLISION: ${this.id} vs. retrieved ID ${id}`);
+        }
     }
 
     /**
@@ -426,7 +434,7 @@ export default class Stargate extends StargateLike {
             else again = true;
 
             const dcomp = userMeetup.comp;
-            if (!dcomp) dcomp.registerDC(id);
+            if (dcomp) dcomp.registerDC(id);
             else again = true;
         } else again = true;
 

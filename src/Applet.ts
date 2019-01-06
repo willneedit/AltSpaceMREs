@@ -15,6 +15,7 @@ export default abstract class Applet {
     public get context() { return this._context; }
     public get parameter() { return this._parameter; }
     public get baseUrl() { return this._baseUrl; }
+    public get sessID() { return this.context.sessionId; }
 
     public init(context: Context, parameter: ParameterSet, baseUrl: string): void {
         this._context = context;

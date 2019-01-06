@@ -22,14 +22,12 @@ export abstract class StargateLike extends Applet {
     public abstract get gateStatus(): GateStatus;
     public abstract registerGate(id: string): void;
     public abstract get id(): string;
-    public abstract get sessID(): string;
 }
 
 export abstract class SGDialCompLike extends Applet {
     public abstract updateStatus(message: string): void;
     public abstract registerDC(id: string): void;
     public abstract get id(): string;
-    public abstract get sessID(): string;
 }
 
 export class StargateDespawned extends StargateLike {

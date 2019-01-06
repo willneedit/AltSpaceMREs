@@ -30,11 +30,16 @@ export abstract class SGDCBase extends SGDialCompLike {
         super.init(context, params, baseUrl);
         this.context.onUserJoined(this.userjoined);
 
-        if (params.id) this._gateID = params.id as string;
-            else if (params.location) this._gateID = SGNetwork.getLocationId(params.location as string);
-            else console.info('Neither ID nor Location given - deferring Dial Computer registration');
+        // Try by ID and location, in this order
+        if (!this.id && params.id) this._gateID = params.id as string;
+        if (!this.id && params.location) this._gateID = SGNetwork.getLocationId(params.location as string);
 
-        if (this._gateID) SGNetwork.registerDialComp(this);
+        // Try by gate's session ID
+        this._gateID = SGNetwork.getIdBySessId(this.sessID);
+
+        // Register if found, else wait for the A-Frame component to announce itself.
+        if (this.id) SGNetwork.registerDialComp(this);
+        else console.info('Neither ID nor Location given - deferring Dial Computer registration');
     }
 
     public registerDC(id: string) {
@@ -42,6 +47,8 @@ export abstract class SGDCBase extends SGDialCompLike {
             this._gateID = id;
             SGNetwork.registerDialComp(this);
             this.updateStatus(`Initialized, Address: ${this._gateID}`);
+        } else if (this.id !== id) {
+            console.error(`Dial computer: ID COLLISION: ${this.id} vs. retrieved ID ${id}`);
         }
     }
 

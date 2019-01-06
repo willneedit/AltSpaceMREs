@@ -193,9 +193,19 @@ export default class SGNetwork {
         console.info(`Deferred registration: Dialing computer found by ${user}`);
     }
 
+    public static removeUser(user: string) {
+        // Unhook old data when user leaves to avoid stale data messing things up when he transitions
+        // to a new space with a stargate
+        this.userMeetup[user] = { gate: null, comp: null };
+    }
+
     public static getInfoForUser(user: string): UserMeetup {
         console.log(`Retrieving information for ${user}`);
         return this.userMeetup[user];
+    }
+
+    public static getIdBySessId(sessid: string) {
+        return this.sessionIDs[sessid];
     }
 
     public static getLocationId(location: string): string {
