@@ -22,9 +22,9 @@ interface TierDefinition {
 
 export default class SGDCDHD extends SGDCBase {
     private tiers: TierDefinition[] = [
-        { letterRadius: -0.34, letterHeight: 0.13, letterElevation: 0.27 }, // Inner Circle
-        { letterRadius: -0.59, letterHeight: 0.15, letterElevation: 0.15 }, // Middle Circle
-        { letterRadius: -0.82, letterHeight: 0.18, letterElevation: 0.05 }, // Outer Circle
+        { letterRadius: -0.30, letterHeight: 0.13, letterElevation: 0.27 }, // Inner Circle
+        { letterRadius: -0.55, letterHeight: 0.15, letterElevation: 0.15 }, // Middle Circle
+        { letterRadius: -0.78, letterHeight: 0.18, letterElevation: 0.05 }, // Outer Circle
     ];
 
     private keyStart = 0;
