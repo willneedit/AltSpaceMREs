@@ -68,7 +68,7 @@ export default class SGDCDHD extends SGDCBase {
                 }
             }).value;
 
-        const letterRotation = Quaternion.RotationAxis(Vector3.Right(), 75 * DegreesToRadians);
+        const letterRotation = Quaternion.RotationAxis(Vector3.Right(), 79 * DegreesToRadians);
 
         const frame = Actor.CreateFromGLTF(this.context,
             {
@@ -120,7 +120,7 @@ export default class SGDCDHD extends SGDCBase {
                     actor: {
                         parentId: letter.id,
                         transform: {
-                            position: { x: 0, y: 0, z: 0.05 },
+                            position: { x: 0, y: -0.06, z: 0.05 },
                             scale: { x: letterHeight, y: letterHeight, z: 0.002 }
                         }
                     }
