@@ -45,6 +45,7 @@ export default class Stargate extends StargateLike {
 
     public get gateStatus() { return this._gateStatus; }
     public get id() { return this._gateID; }
+    public get sessID() { return this.context.sessionId; }
 
     public init(context: Context, params: ParameterSet, baseUrl: string) {
         super.init(context, params, baseUrl);
@@ -55,13 +56,13 @@ export default class Stargate extends StargateLike {
             else if (params.location) this._gateID = SGNetwork.getLocationId(params.location as string);
             else console.info('Neither ID nor Location given - deferring Stargate registration');
 
-        if (this.id) SGNetwork.registerGate(this.id, this);
+        if (this.id) SGNetwork.registerGate(this);
     }
 
     public registerGate(id: string) {
         if (!this.id) {
             this._gateID = id;
-            SGNetwork.registerGate(this.id, this);
+            SGNetwork.registerGate(this);
         } else if (this.id !== id) console.info(`Gate alread registered with ID ${id}`);
     }
 

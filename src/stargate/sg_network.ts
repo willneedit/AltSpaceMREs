@@ -16,8 +16,10 @@ interface ControlSockets {
 }
 
 interface TargetReg {
+    gate: StargateLike;
+    comp: SGDialCompLike;
     location: string;
-    lastid: 0;
+    lastcid: 0;
     control: ControlSockets;
 }
 
@@ -27,10 +29,9 @@ interface UserMeetup {
 }
 
 export default class SGNetwork {
-    private static gates: { [id: string]: StargateLike } = { };
     private static targets: { [id: string]: TargetReg } = { };
-    private static dialcomps: {  [id: string]: SGDialCompLike } = { };
     private static userMeetup: { [id: string]: UserMeetup } = { };
+    private static sessionIDs: { [sessId: string]: string } = { };
 
     private static nextUpdate = 0;
     private static updateInterval = 60;
@@ -87,13 +88,23 @@ export default class SGNetwork {
         });
     }
 
-    public static registerGate(id: string, gate: StargateLike) {
-        this.gates[id] = gate;
+    private static createDBEntry(id: string) {
+        if (!this.targets[id]) this.targets[id] = { location: null, lastcid: 0, control: {}, gate: null, comp: null };
+    }
+
+    public static registerGate(gate: StargateLike) {
+        const id = gate.id;
+        const sessid = gate.sessID;
+
+        SGNetwork.createDBEntry(id);
+
+        this.targets[id].gate = gate;
+        this.sessionIDs[sessid] = id;
         console.info(`Registering gate for ID ${id}`);
     }
 
     public static deregisterGate(id: string) {
-        this.gates[id] = new StargateDespawned();
+        this.targets[id].gate = new StargateDespawned();
 
         if (this.targets[id] && this.targets[id].control) {
             // Close and deregister the control connections.
@@ -104,21 +115,19 @@ export default class SGNetwork {
                 }
             );
             this.targets[id].control = { };
-            this.targets[id].lastid = 0;
+            this.targets[id].lastcid = 0;
         }
 
         console.info(`Unregistering gate for ID ${id}`);
     }
 
-    public static getGate(id: string): StargateLike {
-        return this.gates[id];
-    }
-
     public static registerTarget(id: string, loc: string, ws?: WebSocket) {
-        if (!this.targets[id]) this.targets[id] = { location: loc, lastid: 0, control: { } };
+        SGNetwork.createDBEntry(id);
+
+        this.targets[id].location = loc;
 
         if (ws) {
-            const cid = this.targets[id].lastid++;
+            const cid = this.targets[id].lastcid++;
 
             this.targets[id].control[cid] = ws;
             console.info(`Registering portal endpoint for ID ${id} at location ${loc}, endpoint number ${cid}`);
@@ -128,21 +137,31 @@ export default class SGNetwork {
         } else console.info(`Registering portal endpoint for ID ${id} at location ${loc}`);
     }
 
+    public static registerDialComp(dial: SGDialCompLike) {
+        const id = dial.id;
+        const sessid = dial.sessID;
+
+        SGNetwork.createDBEntry(id);
+
+        this.targets[id].comp = dial;
+        this.sessionIDs[sessid] = id;
+        console.info(`Registering dial computer for ID ${id}`);
+    }
+
+    public static getGate(id: string): StargateLike {
+        return this.targets[id] && this.targets[id].gate;
+    }
+
     public static getTarget(id: string): string {
         return this.targets[id] && this.targets[id].location;
     }
 
+    public static getDialComp(id: string) {
+        return this.targets[id] && this.targets[id].comp;
+    }
+
     public static getControlSockets(id: string): ControlSockets {
         return this.targets[id] && this.targets[id].control;
-    }
-
-    public static registerDialComp(id: string, dial: SGDialCompLike) {
-        this.dialcomps[id] = dial;
-        console.info(`Registering dial computer for ID ${id}`);
-    }
-
-    public static getDialComp(id: string) {
-        return this.dialcomps[id];
     }
 
     public static getLocationIdSequence(location: string): number[] {

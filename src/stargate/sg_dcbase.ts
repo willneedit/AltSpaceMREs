@@ -23,7 +23,8 @@ export abstract class SGDCBase extends SGDialCompLike {
     private statusline: Actor = null;
     private initialized = false;
 
-    public get gateID() { return this._gateID; }
+    public get id() { return this._gateID; }
+    public get sessID() { return this.context.sessionId; }
 
     public init(context: Context, params: ParameterSet, baseUrl: string) {
         super.init(context, params, baseUrl);
@@ -33,13 +34,13 @@ export abstract class SGDCBase extends SGDialCompLike {
             else if (params.location) this._gateID = SGNetwork.getLocationId(params.location as string);
             else console.info('Neither ID nor Location given - deferring Dial Computer registration');
 
-        if (this._gateID) SGNetwork.registerDialComp(this._gateID, this);
+        if (this._gateID) SGNetwork.registerDialComp(this);
     }
 
     public registerDC(id: string) {
         if (!this._gateID) {
             this._gateID = id;
-            SGNetwork.registerDialComp(this._gateID, this);
+            SGNetwork.registerDialComp(this);
             this.updateStatus(`Initialized, Address: ${this._gateID}`);
         }
     }
@@ -82,9 +83,9 @@ export abstract class SGDCBase extends SGDialCompLike {
     }
 
     private keypressed(key: number) {
-        const gate = SGNetwork.getGate(this.gateID);
+        const gate = SGNetwork.getGate(this.id);
         if (gate == null) {
-            this.updateStatus(`Error: Dialing device ${this.gateID || "(unconfigured)"} disconnected`);
+            this.updateStatus(`Error: Dialing device ${this.id || "(unconfigured)"} disconnected`);
             return; // No gate - dialer is locked
         }
 
@@ -124,7 +125,7 @@ export abstract class SGDCBase extends SGDialCompLike {
         this.initialized = true;
 
         this.makeKeyboard();
-        if (this.gateID) this.updateStatus(`Initialized, Address: ${this.gateID}`);
+        if (this.id) this.updateStatus(`Initialized, Address: ${this.id}`);
         else this.updateStatus(`Awaiting gate address...`);
     }
 
