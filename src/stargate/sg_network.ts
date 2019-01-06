@@ -258,7 +258,7 @@ export default class SGNetwork {
             tgtGate.startSequence(srcId, index, true);
         } else if (command === GateOperation.lightChevron) {
             await srcGate.lightChevron(index, silent);
-            await tgtGate.lightChevron(index, silent);
+            tgtGate.lightChevron(index, silent);
         } else if (command === GateOperation.connect) {
             srcGate.connect();
             tgtGate.connect();
