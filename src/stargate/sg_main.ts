@@ -297,11 +297,11 @@ export default class Stargate extends StargateLike {
         for (const symbol of sequence) {
             await this.dialChevron(chevron, symbol, direction);
             direction = !direction;
-            chevron++;
-            this.reportStatus(`Chevron ${chevron} locked in`);
+            this.reportStatus(`Chevron ${chevron + 1} locked in`);
 
             const tgtGate = SGNetwork.getGate(tgtId);
             if (tgtGate) tgtGate.lightIncoming(chevron);
+            chevron++;
         }
 
         // And light up the remaining chevrons.
@@ -375,8 +375,8 @@ export default class Stargate extends StargateLike {
         if (this.gateStatus === GateStatus.idle) this._gateStatus = GateStatus.incoming;
 
         if (this.gateStatus !== GateStatus.incoming) return;
-        this.replaceChevron(chevron, true);
-        this.reportStatus(`Incoming! Chevron ${chevron} locked in`);
+        await this.replaceChevron(chevron, true);
+        this.reportStatus(`Incoming! Chevron ${chevron + 1} locked in`);
     }
 
     /**
