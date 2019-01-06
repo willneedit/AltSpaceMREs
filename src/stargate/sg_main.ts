@@ -244,14 +244,14 @@ export default class Stargate extends StargateLike {
             }
 
             // Add a keyframe if the angular speed did change.
-            if (lastAngularSpeed !== currentAngularSpeed) {
-                const rAngle = srcAngle + angle * (direction ? 1 : -1);
-                const rot =  Quaternion.RotationAxis(Vector3.Forward(), rAngle * DegreesToRadians);
-                kf.push({
-                        time: t / timescale,
-                        value: { transform: { rotation: rot } }
-                });
-            }
+//            if (lastAngularSpeed !== currentAngularSpeed) {
+            const rAngle = srcAngle + angle * (direction ? 1 : -1);
+            const rot =  Quaternion.RotationAxis(Vector3.Forward(), rAngle * DegreesToRadians);
+            kf.push({
+                    time: t / timescale,
+                    value: { transform: { rotation: rot } }
+            });
+//            }
             t++;
 
             lastAngularSpeed = currentAngularSpeed;
