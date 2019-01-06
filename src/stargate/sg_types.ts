@@ -10,18 +10,27 @@ export enum GateStatus {
     idle,
     dialing,
     engaged,
-    incoming,
     despawned
+}
+
+export enum GateOperation {
+    startSequence,
+    lightChevron,
+    connect,
+    disconnect
 }
 
 export abstract class StargateLike extends Applet {
     public abstract startDialing(sequence: number[]): void;
-    public abstract lightIncoming(chevron: number): void;
-    public abstract engageIncoming(srcId: string): void;
-    public abstract disengage(): void;
     public abstract get gateStatus(): GateStatus;
     public abstract registerGate(id: string): void;
     public abstract get id(): string;
+    public abstract get currentTarget(): string;
+
+    public abstract startSequence(to: string, direction: boolean): void;
+    public abstract lightChevron(index: number, silent: boolean): void;
+    public abstract connect(): void;
+    public abstract disconnect(): void;
 }
 
 export abstract class SGDialCompLike extends Applet {
@@ -32,11 +41,15 @@ export abstract class SGDialCompLike extends Applet {
 
 export class StargateDespawned extends StargateLike {
     public startDialing(sequence: number[]): void { }
-    public lightIncoming(chevron: number): void { }
-    public engageIncoming(srcId: string): void { }
-    public disengage(): void { }
+
     public get gateStatus(): GateStatus { return GateStatus.despawned; }
     public registerGate(id: string): void { }
     public get id(): string { return undefined; }
     public get sessID(): string { return undefined; }
+    public get currentTarget() { return 'invalid-target'; }
+
+    public startSequence(to: string, direction: boolean) { }
+    public lightChevron(index: number) { }
+    public connect() { }
+    public disconnect() { }
 }

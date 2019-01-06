@@ -15,6 +15,7 @@ import {
 } from "@microsoft/mixed-reality-extension-sdk";
 
 import {
+    GateOperation,
     GateStatus,
     StargateLike,
 } from "./sg_types";
@@ -36,6 +37,8 @@ export default class Stargate extends StargateLike {
     // tslint:disable:variable-name
     private _gateStatus: GateStatus = GateStatus.idle;
     private _gateID: string;
+    private _currentTarget: string;
+    private _currentDirection: boolean;
     // tslint:enable:variable-name
 
     private gateRing: Actor = null;
@@ -46,9 +49,10 @@ export default class Stargate extends StargateLike {
     public get gateStatus() { return this._gateStatus; }
     public get id() { return this._gateID; }
     public get sessID() { return this.context.sessionId; }
+    public get currentTarget() { return this._currentTarget; }
+    public get currentDirection() { return this._currentDirection; }
 
     private abortRequested = false;
-    private tgtId = '';
 
     public init(context: Context, params: ParameterSet, baseUrl: string) {
         super.init(context, params, baseUrl);
@@ -273,7 +277,88 @@ export default class Stargate extends StargateLike {
     }
 
     /**
-     * Dials to one chevron and locks it in.
+     * Start the dialing up/incoming sequence
+     * @param to Where to connect to
+     */
+    public async startSequence(to: string, direction: boolean) {
+
+        // Reject request if we're not in idle state
+        if (this.gateStatus !== GateStatus.idle) return;
+
+        this._gateStatus = GateStatus.dialing;
+        this.whCount++;
+        this._currentTarget = to;
+        this._currentDirection = direction;
+    }
+
+    /**
+     * Locks in the given chevron
+     * @param index Number of Chevron (0-8)
+     * @param direction true for incoming
+     */
+    public async lightChevron(index: number, silent: boolean) {
+
+        // Reject request if we're not dialing
+        if (this.gateStatus !== GateStatus.dialing) return;
+
+        await this.replaceChevron(index, true);
+        await delay(1000);
+
+        if (!silent) this.reportStatus(`${this.currentDirection ? 'Incoming! ' : ''} Chevron ${index + 1} locked in.`);
+    }
+
+    /**
+     * Establishes a connection to the other side
+     */
+    public async connect() {
+        if (this.gateStatus !== GateStatus.dialing) return;
+
+        this._gateStatus = GateStatus.engaged;
+
+        const loc = SGNetwork.getTarget(this.currentTarget);
+        if (loc) {
+            if (SGNetwork.emitPortalControlMsg(this.id, JSON.stringify({ command: 'engage', location: loc }))) {
+                // Ignore the error code (this one and the other 180 :) ) from the target gate
+                // saying it is already engaged with another connection
+                this.reportStatus(`${this.currentDirection ? 'Incoming w' : 'W'}ormhole active`);
+                if (!this.currentDirection) {
+                    delay(this.whTimeout * 1000).then(
+                        () => this.timeOutGate(this.whCount));
+                }
+                return;
+            } else this.reportStatus('Error: Cannot establish wormhole - gate unpowered');
+        } else this.reportStatus('Error: Cannot establish wormhole - no endpoint');
+        this.resetGate();
+    }
+
+    /**
+     * Time out a wormhole, only if it's not manually disconnected.
+     * @param oldWhCount Local whCount of the connection the timeout is going to
+     */
+    private timeOutGate(oldWhCount: number) {
+
+        // We've already been superseded. Perhaps someone killed the connection and dialed a new one.
+        if (this.whCount !== oldWhCount) return;
+
+        return SGNetwork.controlGateOperation(this.id, this.currentTarget, GateOperation.disconnect);
+    }
+
+    public async disconnect() {
+        if (this.gateStatus === GateStatus.dialing) {
+            // If it's incoming, reset. If it's outgoing, request to abort the dialing sequence.
+            if (this.currentDirection) this.resetGate();
+            else this.abortRequested = true;
+        }
+
+        if (this.gateStatus === GateStatus.engaged) {
+            SGNetwork.emitPortalControlMsg(this.id, JSON.stringify({ command: 'disengage' }));
+            this.reportStatus('Wormhole disengaged');
+            this.resetGate();
+        }
+    }
+
+    /**
+     * Dials to one chevron.
      * @param chevron Chevron which needs to be locked in
      * @param symbol Symbol the chevron needs to be locked to
      * @param dialDirection Direction of the rotation
@@ -292,8 +377,6 @@ export default class Stargate extends StargateLike {
         await this.gateRing.stopAnimation('rotation');
 
         this.gateRingAngle = tgtAngle;
-        await this.replaceChevron(chevron, true);
-        await delay(1000);
     }
 
     /**
@@ -303,82 +386,23 @@ export default class Stargate extends StargateLike {
     private async dialSequence(sequence: number[]): Promise<void> {
         let chevron = 0;
         let direction = true;
-        const tgtId = SGNetwork.stringifySequence(sequence);
 
         // Dial up the sequence, alternating directions
         for (const symbol of sequence) {
-            if (this.abortRequested) return Promise.reject("Dialing sequence aborted");
-
             await this.dialChevron(chevron, symbol, direction);
             direction = !direction;
-            this.reportStatus(`Chevron ${chevron + 1} locked in`);
+            await SGNetwork.controlGateOperation(this.id, this.currentTarget, GateOperation.lightChevron, chevron++);
 
-            const tgtGate = SGNetwork.getGate(tgtId);
-            if (tgtGate) tgtGate.lightIncoming(chevron);
-            chevron++;
+            if (this.abortRequested) {
+                return Promise.reject("Dialing sequence aborted");
+            }
         }
 
         // And light up the remaining chevrons.
         for (chevron; chevron < 9; chevron++) {
-            this.replaceChevron(chevron, true);
-
-            const tgtGate = SGNetwork.getGate(tgtId);
-            if (tgtGate) tgtGate.lightIncoming(chevron);
+            await SGNetwork.controlGateOperation(
+                this.id, this.currentTarget, GateOperation.lightChevron, chevron, true);
         }
-    }
-
-    /**
-     * Disengage the wormhole connection and reset the gate to its idle state
-     */
-    private disengaging = async (disengageWh: number) => {
-        // If we come here because of an outdated timeout, disregard this request.
-        if (disengageWh !== 0 && disengageWh !== this.whCount) return;
-
-        if (this.gateStatus === GateStatus.dialing) {
-            this.reportStatus('Dialing sequence aborted');
-            const tgtGate = SGNetwork.getGate(this.tgtId);
-            if (tgtGate) tgtGate.lightIncoming(-1);
-
-            this.resetGate();
-        }
-        if (this.gateStatus === GateStatus.engaged) {
-            SGNetwork.emitPortalControlMsg(this.id, JSON.stringify({ command: 'disengage' }));
-
-            this.reportStatus('Wormhole disengaged');
-            const tgtGate = SGNetwork.getGate(this.tgtId);
-            if (tgtGate) tgtGate.lightIncoming(-1);
-
-            this.resetGate();
-        }
-    }
-
-    /**
-     * Dial sequence finished, try to establish connection.
-     * Report errors to the dialing device if it failed.
-     * @param tgtId ID to connect to
-     * @param direction true for outgoing connections, false otherwise
-     */
-    private engaging = async (tgtId: string, direction: boolean) => {
-        this.tgtId = tgtId;
-        const loc = SGNetwork.getTarget(this.tgtId);
-        if (loc) {
-            if (SGNetwork.emitPortalControlMsg(this.id, JSON.stringify({ command: 'engage', location: loc }))) {
-                // Ignore the error code (this one and the other 180 :) ) from the target gate
-                // saying it is already engaged with another connection
-                if (direction) {
-                    this.reportStatus('Wormhole active');
-
-                    const tgtGate = SGNetwork.getGate(tgtId);
-                    if (tgtGate) tgtGate.engageIncoming(this.id);
-                } else this.reportStatus('Incoming wormhole active');
-
-                this.whCount++;
-                this._gateStatus = GateStatus.engaged;
-                delay(this.whTimeout * 1000).then(() => this.disengaging(this.whCount));
-                return;
-            } else this.reportStatus('Error: Cannot establish wormhole - gate unpowered');
-        } else this.reportStatus('Error: Cannot establish wormhole - no endpoint');
-        this.resetGate();
     }
 
     /**
@@ -389,50 +413,15 @@ export default class Stargate extends StargateLike {
         this._gateStatus = GateStatus.dialing;
         this.dialSequence(sequence)
             .then(
-                () => this.engaging(SGNetwork.stringifySequence(sequence), true)
+                () => SGNetwork.controlGateOperation(this.id, this.currentTarget, GateOperation.connect)
             ).catch(
                 (reason) => {
-                    if (reason === 'Dialing sequence aborted') this.disengaging(0);
-                    else this.resetGate();
+                    SGNetwork.controlGateOperation(this.id, this.currentTarget, GateOperation.disconnect);
+                    this.reportStatus(reason);
+                    this.resetGate();
                 }
             );
         this.reportStatus('Dialing...');
-    }
-
-    /**
-     * Incoming connection: Light up the given chevron, place a status message
-     * @param {number} chevron Chevron to light up, -1 to switch them all off
-     */
-    public async lightIncoming(chevron: number) {
-        if (this.gateStatus === GateStatus.idle) this._gateStatus = GateStatus.incoming;
-
-        if (chevron === -1) {
-            this.resetGate();
-            return;
-        }
-
-        if (this.gateStatus !== GateStatus.incoming) return;
-
-        await this.replaceChevron(chevron, true);
-        this.reportStatus(`Incoming! Chevron ${chevron + 1} locked in`);
-    }
-
-    /**
-     * Incoming connection: Establish the portal
-     * @param {string} srcId Where the connection comes from
-     */
-    public async engageIncoming(srcId: string) {
-        if (this.gateStatus !== GateStatus.incoming) return;
-
-        this.engaging(srcId, false);
-    }
-
-    /**
-     * Outside call (from Dial Device) to disengage the wormhole.
-     */
-    public async disengage() {
-        if (this.gateStatus === GateStatus.dialing) this.abortRequested = true;
-        else this.disengaging(0);
     }
 
     /**
