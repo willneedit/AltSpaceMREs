@@ -128,7 +128,7 @@ export default class SGDCDHD extends SGDCBase {
 
             // HACK: Primitives aren't displayed for all users (issue submitted), so create and scale a unit
             // volume box to provide the collider.
-            const collider = Actor.CreateFromGLTF(this.context,
+            const collider = await Actor.CreateFromGLTF(this.context,
                 {
                     colliderType: 'box',
                     resourceUrl: 'https://willneedit.github.io/MRE/VolumeUnit.glb',
@@ -139,12 +139,12 @@ export default class SGDCDHD extends SGDCBase {
                             scale: { x: letterHeight, y: letterHeight, z: 0.002 }
                         }
                     }
-                }).value;
+                });
 
             collider.setBehavior(ButtonBehavior).onClick('pressed', this.makeKeyCallback(i));
         }
 
-        const button = Actor.CreateFromGLTF(this.context,
+        const button = await Actor.CreateFromGLTF(this.context,
             {
                 colliderType: 'box',
                 resourceUrl: 'https://willneedit.github.io/MRE/VolumeUnit.glb',
@@ -155,7 +155,7 @@ export default class SGDCDHD extends SGDCBase {
                         scale: { x: 0.24, y: 0.1, z: 0.24 }
                     }
                 }
-            }).value;
+            });
 
         button.setBehavior(ButtonBehavior).onClick('pressed', this.makeKeyCallback(0));
 
