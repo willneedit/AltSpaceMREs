@@ -26,6 +26,7 @@ export abstract class StargateLike extends Applet {
     public abstract registerGate(id: string): void;
     public abstract get id(): string;
     public abstract get currentTarget(): string;
+    public abstract get currentDirection(): boolean;
 
     public abstract startSequence(to: string, timestamp: number, direction: boolean): void;
     public abstract lightChevron(index: number, silent: boolean): void;
@@ -47,6 +48,7 @@ export class StargateDespawned extends StargateLike {
     public get id(): string { return undefined; }
     public get sessID(): string { return undefined; }
     public get currentTarget() { return 'invalid-target'; }
+    public get currentDirection() { return false; }
 
     public startSequence(to: string, timestamp: number, direction: boolean) { }
     public lightChevron(index: number) { }

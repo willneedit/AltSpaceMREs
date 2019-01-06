@@ -118,8 +118,8 @@ export abstract class SGDCBase extends SGDialCompLike {
         this.lasttyped = timestamp;
 
         if (gate.gateStatus !== GateStatus.idle) {
-            // 'a' (or big red button) cuts the wormhole if it's engaged
-            if (key === 0) { SGNetwork.controlGateOperation(
+            // 'a' (or big red button) cuts the wormhole if it's engaged - only when outgoing.
+            if (key === 0 && !gate.currentDirection) { SGNetwork.controlGateOperation(
                 gate.id, gate.currentTarget, GateOperation.disconnect, this.openTime);
             }
 
