@@ -416,25 +416,19 @@ export default class Stargate extends StargateLike {
         if (!retry) retry = 1;
 
         // Server restarted, and maybe some stale connections from users who are already gone, give up.
-        if (retry > 10) return;
+        if (retry > 5) return;
 
         const userMeetup = SGNetwork.getInfoForUser(mreUserName);
         let again = false;
         if (userMeetup) {
             const gate = userMeetup.gate;
-            if (!gate) {
-                again = true;
-                console.debug(`Data yet incomplete: Gate should already be pre-registered for ${mreUserName}`);
-            } else gate.registerGate(id);
+            if (gate) gate.registerGate(id);
+            else again = true;
+
             const dcomp = userMeetup.comp;
-            if (!dcomp) {
-                again = true;
-                console.debug(`Data yet incomplete: Dial Computer should already be pre-registered for ${mreUserName}`);
-            } else dcomp.registerDC(id);
-        } else {
-            again = true;
-            console.debug(`Data yet incomplete: No info retrievable for ${mreUserName}`);
-        }
+            if (!dcomp) dcomp.registerDC(id);
+            else again = true;
+        } else again = true;
 
         if (again) delay(1000).then(() => this.doDeferredRegistration(mreUserName, id, retry + 1 ));
     }
