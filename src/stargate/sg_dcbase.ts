@@ -4,11 +4,12 @@
  */
 
 import {
+    ActionHandler,
     Actor,
     Context,
     ParameterSet,
     TextAnchorLocation,
-    User
+    User,
 } from "@microsoft/mixed-reality-extension-sdk";
 
 import { GateStatus, SGDialCompLike } from "./sg_types";
@@ -22,6 +23,9 @@ export abstract class SGDCBase extends SGDialCompLike {
     protected sequence: number[] = [];
     private statusline: Actor = null;
     private initialized = false;
+
+    private lastuserid = '';
+    private lasttyped = 0;
 
     public get id() { return this._gateID; }
     public get sessID() { return this.context.sessionId; }
@@ -89,12 +93,27 @@ export abstract class SGDCBase extends SGDialCompLike {
         this.updateStatus(seq);
     }
 
-    private keypressed(key: number) {
+    private keypressed(userid: string, key: number) {
         const gate = SGNetwork.getGate(this.id);
         if (gate == null) {
             this.updateStatus(`Error: Dialing device ${this.id || "(unconfigured)"} disconnected`);
             return; // No gate - dialer is locked
         }
+
+        const timestamp = new Date().getTime() / 1000;
+
+        // Preevent crosstyping if someone's busy with the gate.
+        if (userid !== this.lastuserid) {
+
+            // Sixty seconds timeout since the last authorized keypress if the gate is connected
+            if (gate.gateStatus === GateStatus.engaged && timestamp < this.lasttyped + 60) return;
+
+            // Twenty seconds timeout otherwise
+            if (timestamp < this.lasttyped + 20) return;
+        }
+
+        this.lastuserid = userid;
+        this.lasttyped = timestamp;
 
         // 'a' (or big red button) cuts the wormhole if it's engaged
         if (gate.gateStatus === GateStatus.engaged && key === 0) {
@@ -102,7 +121,9 @@ export abstract class SGDCBase extends SGDialCompLike {
             return;
         }
 
-        if (gate.gateStatus !== GateStatus.idle) return; // Busy message already came from the 'gate
+        if (gate.gateStatus !== GateStatus.idle) {
+            return; // Busy message already came from the 'gate
+        }
 
         this.sequence.push(key);
 
@@ -117,8 +138,8 @@ export abstract class SGDCBase extends SGDialCompLike {
         this.listSequence();
     }
 
-    protected makeKeyCallback(i: number): () => void {
-        return () => this.keypressed(i);
+    protected makeKeyCallback(i: number): ActionHandler {
+        return (userid: string) => this.keypressed(userid, i);
     }
 
     private userjoined = (user: User) => {
