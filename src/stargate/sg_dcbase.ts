@@ -27,6 +27,8 @@ export abstract class SGDCBase extends SGDialCompLike {
     private lastuserid = '';
     private lasttyped = 0;
 
+    private openTime = 0;
+
     public get id() { return this._gateID; }
     public get sessID() { return this.context.sessionId; }
 
@@ -39,7 +41,7 @@ export abstract class SGDCBase extends SGDialCompLike {
         if (!this.id && params.location) this._gateID = SGNetwork.getLocationId(params.location as string);
 
         // Try by gate's session ID
-        this._gateID = SGNetwork.getIdBySessId(this.sessID);
+        if (!this.id) this._gateID = SGNetwork.getIdBySessId(this.sessID);
 
         // Register if found, else wait for the A-Frame component to announce itself.
         if (this.id) SGNetwork.registerDialComp(this);
@@ -117,7 +119,9 @@ export abstract class SGDCBase extends SGDialCompLike {
 
         if (gate.gateStatus !== GateStatus.idle) {
             // 'a' (or big red button) cuts the wormhole if it's engaged
-            if (key === 0) SGNetwork.controlGateOperation(gate.id, gate.currentTarget, GateOperation.disconnect);
+            if (key === 0) { SGNetwork.controlGateOperation(
+                gate.id, gate.currentTarget, GateOperation.disconnect, this.openTime);
+            }
 
             return; // Busy message already came from the 'gate
         }
@@ -125,10 +129,13 @@ export abstract class SGDCBase extends SGDialCompLike {
         this.sequence.push(key);
 
         if (this.sequence.length === 7) {
+            this.openTime = timestamp;
+
             SGNetwork.controlGateOperation(
                 gate.id,
                 SGNetwork.stringifySequence(this.sequence),
-                GateOperation.startSequence);
+                GateOperation.startSequence,
+                this.openTime);
             gate.startDialing(this.sequence);
             this.sequence = [];
         } else if (key === 0) {

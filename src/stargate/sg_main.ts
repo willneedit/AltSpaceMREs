@@ -32,13 +32,13 @@ export default class Stargate extends StargateLike {
     private whTimeout = 120; // 120 seconds until the wormhole shuts off. Cut it off by hitting 'a'.
 
     private initialized = false;
-    private whCount = 0;
 
     // tslint:disable:variable-name
     private _gateStatus: GateStatus = GateStatus.idle;
     private _gateID: string;
     private _currentTarget: string;
     private _currentDirection: boolean;
+    private _connectionTimeStamp: number;
     // tslint:enable:variable-name
 
     private gateRing: Actor = null;
@@ -51,6 +51,7 @@ export default class Stargate extends StargateLike {
     public get sessID() { return this.context.sessionId; }
     public get currentTarget() { return this._currentTarget; }
     public get currentDirection() { return this._currentDirection; }
+    public get currentTimeStamp() { return this._connectionTimeStamp; }
 
     private abortRequested = false;
 
@@ -65,7 +66,7 @@ export default class Stargate extends StargateLike {
         if (!this.id && params.location) this._gateID = SGNetwork.getLocationId(params.location as string);
 
         // Try by gate's session ID
-        this._gateID = SGNetwork.getIdBySessId(this.sessID);
+        if (!this.id) this._gateID = SGNetwork.getIdBySessId(this.sessID);
 
         // Register if found, else wait for the A-Frame component to announce itself.
         if (this.id) SGNetwork.registerGate(this);
@@ -280,13 +281,13 @@ export default class Stargate extends StargateLike {
      * Start the dialing up/incoming sequence
      * @param to Where to connect to
      */
-    public async startSequence(to: string, direction: boolean) {
+    public async startSequence(to: string, ts: number, direction: boolean) {
 
         // Reject request if we're not in idle state
         if (this.gateStatus !== GateStatus.idle) return;
 
         this._gateStatus = GateStatus.dialing;
-        this.whCount++;
+        this._connectionTimeStamp = ts;
         this._currentTarget = to;
         this._currentDirection = direction;
     }
@@ -323,7 +324,7 @@ export default class Stargate extends StargateLike {
                 this.reportStatus(`${this.currentDirection ? 'Incoming w' : 'W'}ormhole active`);
                 if (!this.currentDirection) {
                     delay(this.whTimeout * 1000).then(
-                        () => this.timeOutGate(this.whCount));
+                        () => this.timeOutGate());
                 }
                 return;
             } else this.reportStatus('Error: Cannot establish wormhole - gate unpowered');
@@ -333,17 +334,17 @@ export default class Stargate extends StargateLike {
 
     /**
      * Time out a wormhole, only if it's not manually disconnected.
-     * @param oldWhCount Local whCount of the connection the timeout is going to
      */
-    private timeOutGate(oldWhCount: number) {
-
-        // We've already been superseded. Perhaps someone killed the connection and dialed a new one.
-        if (this.whCount !== oldWhCount) return;
-
-        return SGNetwork.controlGateOperation(this.id, this.currentTarget, GateOperation.disconnect);
+    private timeOutGate() {
+        return SGNetwork.controlGateOperation(
+            this.id, this.currentTarget, GateOperation.disconnect, this.currentTimeStamp);
     }
 
-    public async disconnect() {
+    public async disconnect(oldTs: number) {
+
+        // Stale request, discard
+        if (this.currentTimeStamp !== oldTs) return;
+
         if (this.gateStatus === GateStatus.dialing) {
             // If it's incoming, reset. If it's outgoing, request to abort the dialing sequence.
             if (this.currentDirection) this.resetGate();
@@ -413,10 +414,11 @@ export default class Stargate extends StargateLike {
         this._gateStatus = GateStatus.dialing;
         this.dialSequence(sequence)
             .then(
-                () => SGNetwork.controlGateOperation(this.id, this.currentTarget, GateOperation.connect)
+                () => SGNetwork.controlGateOperation(this.id, this.currentTarget, GateOperation.connect, 0)
             ).catch(
                 (reason) => {
-                    SGNetwork.controlGateOperation(this.id, this.currentTarget, GateOperation.disconnect);
+                    SGNetwork.controlGateOperation(
+                        this.id, this.currentTarget, GateOperation.disconnect, this.currentTimeStamp);
                     this.reportStatus(reason);
                     this.resetGate();
                 }

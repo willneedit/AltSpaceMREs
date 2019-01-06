@@ -249,13 +249,13 @@ export default class SGNetwork {
     }
 
     public static async controlGateOperation(
-        srcId: string, tgtId: string, command: GateOperation, index?: number, silent?: boolean) {
+        srcId: string, tgtId: string, command: GateOperation, index: number, silent?: boolean) {
         const srcGate = this.getGate(srcId) || new StargateDespawned();
         const tgtGate = this.getGate(tgtId) || new StargateDespawned();
 
         if (command === GateOperation.startSequence) {
-            srcGate.startSequence(tgtId, false);
-            tgtGate.startSequence(srcId, true);
+            srcGate.startSequence(tgtId, index, false);
+            tgtGate.startSequence(srcId, index, true);
         } else if (command === GateOperation.lightChevron) {
             await srcGate.lightChevron(index, silent);
             await tgtGate.lightChevron(index, silent);
@@ -263,8 +263,8 @@ export default class SGNetwork {
             srcGate.connect();
             tgtGate.connect();
         } else if (command === GateOperation.disconnect) {
-            srcGate.disconnect();
-            tgtGate.disconnect();
+            srcGate.disconnect(index);
+            tgtGate.disconnect(index);
         }
     }
 }

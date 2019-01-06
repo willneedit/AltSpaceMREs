@@ -27,10 +27,10 @@ export abstract class StargateLike extends Applet {
     public abstract get id(): string;
     public abstract get currentTarget(): string;
 
-    public abstract startSequence(to: string, direction: boolean): void;
+    public abstract startSequence(to: string, timestamp: number, direction: boolean): void;
     public abstract lightChevron(index: number, silent: boolean): void;
     public abstract connect(): void;
-    public abstract disconnect(): void;
+    public abstract disconnect(oldTs: number): void;
 }
 
 export abstract class SGDialCompLike extends Applet {
@@ -48,7 +48,7 @@ export class StargateDespawned extends StargateLike {
     public get sessID(): string { return undefined; }
     public get currentTarget() { return 'invalid-target'; }
 
-    public startSequence(to: string, direction: boolean) { }
+    public startSequence(to: string, timestamp: number, direction: boolean) { }
     public lightChevron(index: number) { }
     public connect() { }
     public disconnect() { }
