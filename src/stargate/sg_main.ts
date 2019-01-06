@@ -47,6 +47,9 @@ export default class Stargate extends StargateLike {
     public get id() { return this._gateID; }
     public get sessID() { return this.context.sessionId; }
 
+    private abortRequested = false;
+    private tgtId = '';
+
     public init(context: Context, params: ParameterSet, baseUrl: string) {
         super.init(context, params, baseUrl);
         this.context.onUserJoined(this.userjoined);
@@ -126,6 +129,7 @@ export default class Stargate extends StargateLike {
         }
 
         this._gateStatus = GateStatus.idle;
+        this.abortRequested = false;
     }
 
     /**
@@ -303,6 +307,8 @@ export default class Stargate extends StargateLike {
 
         // Dial up the sequence, alternating directions
         for (const symbol of sequence) {
+            if (this.abortRequested) return Promise.reject("Dialing sequence aborted");
+
             await this.dialChevron(chevron, symbol, direction);
             direction = !direction;
             this.reportStatus(`Chevron ${chevron + 1} locked in`);
@@ -327,12 +333,23 @@ export default class Stargate extends StargateLike {
     private disengaging = async (disengageWh: number) => {
         // If we come here because of an outdated timeout, disregard this request.
         if (disengageWh !== 0 && disengageWh !== this.whCount) return;
-        if (this.gateStatus !== GateStatus.engaged) return;
 
-        if (SGNetwork.emitPortalControlMsg(this.id, JSON.stringify({ command: 'disengage' }))) {
-            this.reportStatus('Wormhole disengaged');
+        if (this.gateStatus === GateStatus.dialing) {
+            this.reportStatus('Dialing sequence aborted');
+            const tgtGate = SGNetwork.getGate(this.tgtId);
+            if (tgtGate) tgtGate.lightIncoming(-1);
+
+            this.resetGate();
         }
-        this.resetGate();
+        if (this.gateStatus === GateStatus.engaged) {
+            SGNetwork.emitPortalControlMsg(this.id, JSON.stringify({ command: 'disengage' }));
+
+            this.reportStatus('Wormhole disengaged');
+            const tgtGate = SGNetwork.getGate(this.tgtId);
+            if (tgtGate) tgtGate.lightIncoming(-1);
+
+            this.resetGate();
+        }
     }
 
     /**
@@ -342,7 +359,8 @@ export default class Stargate extends StargateLike {
      * @param direction true for outgoing connections, false otherwise
      */
     private engaging = async (tgtId: string, direction: boolean) => {
-        const loc = SGNetwork.getTarget(tgtId);
+        this.tgtId = tgtId;
+        const loc = SGNetwork.getTarget(this.tgtId);
         if (loc) {
             if (SGNetwork.emitPortalControlMsg(this.id, JSON.stringify({ command: 'engage', location: loc }))) {
                 // Ignore the error code (this one and the other 180 :) ) from the target gate
@@ -369,20 +387,32 @@ export default class Stargate extends StargateLike {
      */
     public async startDialing(sequence: number[]) {
         this._gateStatus = GateStatus.dialing;
-        this.dialSequence(sequence).then(
-            () => this.engaging(SGNetwork.stringifySequence(sequence), true)
-        );
+        this.dialSequence(sequence)
+            .then(
+                () => this.engaging(SGNetwork.stringifySequence(sequence), true)
+            ).catch(
+                (reason) => {
+                    if (reason === 'Dialing sequence aborted') this.disengaging(0);
+                    else this.resetGate();
+                }
+            );
         this.reportStatus('Dialing...');
     }
 
     /**
      * Incoming connection: Light up the given chevron, place a status message
-     * @param {number} chevron Chevron to light up
+     * @param {number} chevron Chevron to light up, -1 to switch them all off
      */
     public async lightIncoming(chevron: number) {
         if (this.gateStatus === GateStatus.idle) this._gateStatus = GateStatus.incoming;
 
+        if (chevron === -1) {
+            this.resetGate();
+            return;
+        }
+
         if (this.gateStatus !== GateStatus.incoming) return;
+
         await this.replaceChevron(chevron, true);
         this.reportStatus(`Incoming! Chevron ${chevron + 1} locked in`);
     }
@@ -401,7 +431,8 @@ export default class Stargate extends StargateLike {
      * Outside call (from Dial Device) to disengage the wormhole.
      */
     public async disengage() {
-        this.disengaging(0);
+        if (this.gateStatus === GateStatus.dialing) this.abortRequested = true;
+        else this.disengaging(0);
     }
 
     /**

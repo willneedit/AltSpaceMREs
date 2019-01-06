@@ -115,13 +115,10 @@ export abstract class SGDCBase extends SGDialCompLike {
         this.lastuserid = userid;
         this.lasttyped = timestamp;
 
-        // 'a' (or big red button) cuts the wormhole if it's engaged
-        if (gate.gateStatus === GateStatus.engaged && key === 0) {
-            gate.disengage();
-            return;
-        }
-
         if (gate.gateStatus !== GateStatus.idle) {
+            // 'a' (or big red button) cuts the wormhole if it's engaged
+            if (key === 0) gate.disengage();
+
             return; // Busy message already came from the 'gate
         }
 
