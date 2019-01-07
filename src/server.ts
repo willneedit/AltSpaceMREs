@@ -11,18 +11,22 @@ import Http from 'http';
 import HttpProxy from 'http-proxy';
 import QueryString from 'query-string';
 import WebSocket from 'ws';
+import PGBackend from './pg_backend';
 
 process.on('uncaughtException', err => console.log('uncaughtException', err));
 process.on('unhandledRejection', reason => console.log('unhandledRejection', reason));
+
+// Initialize the database backend
+const db = PGBackend.instance;
+
+// Initialize the submodules
+dispatchStartup();
 
 // The port number we make available. Either use the PORT environment variable
 // (Heroku defines one) or take the standard 3901.
 const publicPort = Number(process.env.PORT || 3901);
 const mrePort = publicPort + 1;
 const controlPort = publicPort + 2;
-
-// Initialize the submodules
-dispatchStartup();
 
 // Start listening for connections, and serve static files
 const server = new WebHost({

@@ -10,6 +10,7 @@ import SHA1 from 'sha1';
 
 import bigInt from 'big-integer';
 import FS from 'fs';
+import SGDB from './sg_database';
 
 interface ControlSockets {
     [id: string]: WebSocket;
@@ -65,7 +66,8 @@ export default class SGNetwork {
         setTimeout(() => this.doUpdate(), this.updateInterval * 1000);
     }
 
-    public static parseNetworkData(data: Buffer) {
+    public static bootstrapNetwork(data: Buffer) {
+        // Try to cope with the file's data....
         try {
             const list = JSON.parse(data.toString());
 
@@ -76,20 +78,35 @@ export default class SGNetwork {
             }
 
         } catch (e) {
-            console.error(`Error encountered in SG Network data, message: ${e.message}`);
+            console.error(`Error encountered in SG Bootstrap data, message: ${e.message}`);
         }
 
-    }
-
-    public static loadNetwork() {
-        FS.readFile('public/SGNetwork.json', (err, data) => {
-            if (err) console.log(`Cannot read stargate network bootstrap info.`);
-            else this.parseNetworkData(data);
+        // ... and then add the database data on top of it.
+        SGDB.registerLocationList((id: string, location: string) => {
+            const res = SGNetwork.createDBEntry(id);
+            if (this.targets[id].location !== location) {
+                console.log(`Updating portal endpoint for ID ${id} to location ${location}`);
+            }
+            this.targets[id].location = location;
         });
     }
 
-    private static createDBEntry(id: string) {
-        if (!this.targets[id]) this.targets[id] = { location: null, lastcid: 0, control: {}, gate: null, comp: null };
+    public static loadNetwork() {
+        SGDB.init().then(() => {
+            FS.readFile('public/SGNetwork.json', (err, data) => {
+                if (err) console.log(`Cannot read stargate network bootstrap info.`);
+                else this.bootstrapNetwork(data);
+            });
+        });
+    }
+
+    private static createDBEntry(id: string): boolean {
+        if (!this.targets[id]) {
+            this.targets[id] = { location: null, lastcid: 0, control: {}, gate: null, comp: null };
+            return true;
+        }
+
+        return false;
     }
 
     public static registerGate(gate: StargateLike) {
@@ -122,7 +139,7 @@ export default class SGNetwork {
     }
 
     public static registerTarget(id: string, loc: string, ws?: WebSocket) {
-        SGNetwork.createDBEntry(id);
+        const res = SGNetwork.createDBEntry(id);
 
         this.targets[id].location = loc;
 
@@ -135,6 +152,8 @@ export default class SGNetwork {
             // This is a new one rather than a reload, schedule an update.
             this.scheduleUpdate();
         } else console.info(`Registering portal endpoint for ID ${id} at location ${loc}`);
+
+        if (res && !!ws) SGDB.updateLocation(id, loc);
     }
 
     public static registerDialComp(dial: SGDialCompLike) {
