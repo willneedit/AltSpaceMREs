@@ -151,9 +151,8 @@ export default class SGNetwork {
 
             // This is a new one rather than a reload, schedule an update.
             this.scheduleUpdate();
+            SGDB.updateLocation(id, loc);
         } else console.info(`Registering portal endpoint for ID ${id} at location ${loc}`);
-
-        if (res && !!ws) SGDB.updateLocation(id, loc);
     }
 
     public static registerDialComp(dial: SGDialCompLike) {
