@@ -87,8 +87,8 @@ async function socketHeartbeat(socket) {
     if (socket.readyState === WebSocket.OPEN) {
         socket.send(JSON.stringify({ name: 'hb'}));
 
-        // Send minute heartbeats as long as we're alive
-        setTimeout(() => socketHeartbeat(socket), 60 * 1000);
+        // Send half-minute heartbeats as long as we're alive
+        setTimeout(() => socketHeartbeat(socket), 30 * 1000);
     }
 }
 

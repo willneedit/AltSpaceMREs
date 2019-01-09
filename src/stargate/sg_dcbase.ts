@@ -35,6 +35,7 @@ export abstract class SGDCBase extends SGDialCompLike {
     public init(context: Context, params: ParameterSet, baseUrl: string) {
         super.init(context, params, baseUrl);
         this.context.onUserJoined(this.userjoined);
+        this.context.onUserLeft(this.userLeft);
 
         // Try by ID and location, in this order
         if (!this.id && params.id) this._gateID = params.id as string;
@@ -95,8 +96,16 @@ export abstract class SGDCBase extends SGDialCompLike {
         this.updateStatus(seq);
     }
 
+    private userLeft = (user: User) => {
+        if (user.id === this.lastuserid) {
+            this.lasttyped = 0;
+        }
+    }
+
     private keypressed(userid: string, key: number) {
         const gate = SGNetwork.getGate(this.id);
+        const gateStatus = gate.gateStatus;
+
         if (gate == null) {
             this.updateStatus(`Error: Dialing device ${this.id || "(unconfigured)"} disconnected`);
             return; // No gate - dialer is locked
@@ -107,11 +116,12 @@ export abstract class SGDCBase extends SGDialCompLike {
         // Preevent crosstyping if someone's busy with the gate.
         if (userid !== this.lastuserid) {
 
-            // Sixty seconds timeout since the last authorized keypress if the gate is connected
-            if (gate.gateStatus === GateStatus.engaged && timestamp < this.lasttyped + 60) return;
+            // 180 seconds timeout since the last authorized keypress if the gate is connected or dialing up
+            if ((gateStatus === GateStatus.engaged || gateStatus === GateStatus.dialing)
+                && timestamp < this.lasttyped + 180) return;
 
-            // Twenty seconds timeout otherwise
-            if (timestamp < this.lasttyped + 20) return;
+            // Thirty seconds timeout otherwise
+            if (timestamp < this.lasttyped + 30) return;
         }
 
         this.lastuserid = userid;
@@ -155,7 +165,7 @@ export abstract class SGDCBase extends SGDialCompLike {
         this.started();
     }
 
-    private started = () => {
+    private started = async () => {
         if (this.initialized) return;
 
         this.initialized = true;

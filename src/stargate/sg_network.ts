@@ -141,6 +141,7 @@ export default class SGNetwork {
     public static registerTarget(id: string, loc: string, ws?: WebSocket) {
         const res = SGNetwork.createDBEntry(id);
 
+        const oldloc = this.targets[id].location;
         this.targets[id].location = loc;
 
         if (ws) {
@@ -150,8 +151,8 @@ export default class SGNetwork {
             console.info(`Registering portal endpoint for ID ${id} at location ${loc}, endpoint number ${cid}`);
 
             // This is a new one rather than a reload, schedule an update.
-            this.scheduleUpdate();
-            SGDB.updateLocation(id, loc);
+            // this.scheduleUpdate();
+            if (loc !== oldloc) SGDB.updateLocation(id, loc);
         } else console.info(`Registering portal endpoint for ID ${id} at location ${loc}`);
     }
 
@@ -218,7 +219,6 @@ export default class SGNetwork {
     }
 
     public static getInfoForUser(user: string): UserMeetup {
-        console.log(`Retrieving information for ${user}`);
         return this.userMeetup[user];
     }
 

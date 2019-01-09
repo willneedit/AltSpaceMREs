@@ -195,7 +195,7 @@ export default class Stargate extends StargateLike {
         this.started();
     }
 
-    private started = () => {
+    private started = async () => {
         if (this.initialized) return;
 
         this.initialized = true;
