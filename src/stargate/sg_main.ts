@@ -206,8 +206,12 @@ export default class Stargate extends StargateLike {
 
     private stopped = () => {
         if (this.gateStatus !== GateStatus.idle) {
-            console.debug(`World with active gate falls empty, stopping gate operation`);
-            this.timeOutGate();
+            if (!this.currentDirection) {
+                console.debug(`World with active gate falls empty, stopping gate operation`);
+                this.timeOutGate();
+            } else {
+                console.debug("World with incoming gate falls empty. Deregistering gate, leaving operations untouched");
+            }
         }
         SGNetwork.deregisterGate(this.id);
     }
