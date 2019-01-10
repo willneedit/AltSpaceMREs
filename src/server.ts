@@ -71,9 +71,9 @@ const proxyServer = Http.createServer(
     });
 
 proxyServer.on('upgrade',
-    (req: Http.IncomingMessage, socket, head) => {
+    (req, socket, head) => {
         const query = QueryString.parseUrl(req.url);
-        DoorGuard.isAdmitted(req.connection.remoteAddress).then(() => {
+        DoorGuard.isAdmitted(req.client.remoteAddress).then(() => {
             if ((query.url as string) === '/control') {
                 proxy.ws(req, socket, head, { target: `ws://localhost:${controlPort}` });
             } else {
