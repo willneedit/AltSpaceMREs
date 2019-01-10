@@ -12,7 +12,12 @@ import {
     User,
 } from "@microsoft/mixed-reality-extension-sdk";
 
-import { GateOperation, GateStatus, SGDialCompLike } from "./sg_types";
+import {
+    GateOperation,
+    GateStatus,
+    InitStatus,
+    SGDialCompLike,
+} from "./sg_types";
 
 import SGNetwork from "./sg_network";
 
@@ -22,7 +27,7 @@ export abstract class SGDCBase extends SGDialCompLike {
     private _gateID: string;
     protected sequence: number[] = [];
     private statusline: Actor = null;
-    private initialized = false;
+    private initstatus = InitStatus.uninitialized;
 
     private lastuserid = '';
     private lasttyped = 0;
@@ -34,6 +39,7 @@ export abstract class SGDCBase extends SGDialCompLike {
 
     public init(context: Context, params: ParameterSet, baseUrl: string) {
         super.init(context, params, baseUrl);
+        this.context.onStarted(this.started);
         this.context.onUserJoined(this.userjoined);
         this.context.onUserLeft(this.userLeft);
 
@@ -161,20 +167,20 @@ export abstract class SGDCBase extends SGDialCompLike {
     }
 
     private userjoined = (user: User) => {
-        if (!this.initialized) {
-            this.initialized = true;
+        if (this.initstatus === InitStatus.initializing) {
+            this.initstatus = InitStatus.initialized;
 
             if (!SGNetwork.requestSession(this.sessID)) return;
             SGNetwork.registerDCForUser(user.name, this);
-            this.started();
+
+            this.makeKeyboard();
+            if (this.id) this.updateStatus(`Initialized, Address: ${this.id}`);
+            else this.updateStatus(`Awaiting gate address...`);
         }
     }
 
-    private started = async () => {
-
-        this.makeKeyboard();
-        if (this.id) this.updateStatus(`Initialized, Address: ${this.id}`);
-        else this.updateStatus(`Awaiting gate address...`);
+    private started = () => {
+        this.initstatus = InitStatus.initializing;
     }
 
     protected abstract async makeKeyboard(): Promise<void>;

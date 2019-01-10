@@ -17,6 +17,7 @@ import {
 import {
     GateOperation,
     GateStatus,
+    InitStatus,
     StargateLike,
 } from "./sg_types";
 
@@ -31,7 +32,7 @@ export default class Stargate extends StargateLike {
     private resourceBaseURL = 'https://willneedit.github.io/MRE/stargate';
     private whTimeout = 120; // 120 seconds until the wormhole shuts off. Cut it off by hitting 'a'.
 
-    private initialized = false;
+    private initstatus = InitStatus.uninitialized;
 
     // tslint:disable:variable-name
     private _gateStatus: GateStatus = GateStatus.idle;
@@ -58,6 +59,7 @@ export default class Stargate extends StargateLike {
     public init(context: Context, params: ParameterSet, baseUrl: string) {
         super.init(context, params, baseUrl);
         this.context.onUserJoined(this.userjoined);
+        this.context.onStarted(this.started);
         this.context.onUserLeft((user: User) => SGNetwork.removeUser(user.name));
         this.context.onStopped(this.stopped);
 
@@ -191,19 +193,18 @@ export default class Stargate extends StargateLike {
     }
 */
     private userjoined = (user: User) => {
-        if (!this.initialized) {
-            this.initialized = true;
+        if (this.initstatus === InitStatus.initializing) {
+            this.initstatus = InitStatus.initialized;
 
             if (!SGNetwork.requestSession(this.sessID)) return;
 
             SGNetwork.registerGateForUser(user.name, this);
-            this.started();
+            this.initGate();
         }
     }
 
-    private started = async () => {
-        // this.loadAssets().then(() => this.initGate());
-        this.initGate();
+    private started = () => {
+        this.initstatus = InitStatus.initializing;
     }
 
     private stopped = () => {

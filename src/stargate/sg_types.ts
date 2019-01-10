@@ -20,6 +20,12 @@ export enum GateOperation {
     disconnect
 }
 
+export enum InitStatus {
+    uninitialized,
+    initializing,
+    initialized
+}
+
 export abstract class StargateLike extends Applet {
     public abstract startDialing(sequence: number[]): void;
     public abstract get gateStatus(): GateStatus;
