@@ -161,14 +161,16 @@ export abstract class SGDCBase extends SGDialCompLike {
     }
 
     private userjoined = (user: User) => {
-        if (!this.initialized) SGNetwork.registerDCForUser(user.name, this);
-        this.started();
+        if (!this.initialized) {
+            this.initialized = true;
+
+            if (!SGNetwork.requestSession(this.sessID)) return;
+            SGNetwork.registerDCForUser(user.name, this);
+            this.started();
+        }
     }
 
     private started = async () => {
-        if (this.initialized) return;
-
-        this.initialized = true;
 
         this.makeKeyboard();
         if (this.id) this.updateStatus(`Initialized, Address: ${this.id}`);

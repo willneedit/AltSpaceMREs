@@ -191,15 +191,17 @@ export default class Stargate extends StargateLike {
     }
 */
     private userjoined = (user: User) => {
-        if (!this.initialized) SGNetwork.registerGateForUser(user.name, this);
-        this.started();
+        if (!this.initialized) {
+            this.initialized = true;
+
+            if (!SGNetwork.requestSession(this.sessID)) return;
+
+            SGNetwork.registerGateForUser(user.name, this);
+            this.started();
+        }
     }
 
     private started = async () => {
-        if (this.initialized) return;
-
-        this.initialized = true;
-
         // this.loadAssets().then(() => this.initGate());
         this.initGate();
     }

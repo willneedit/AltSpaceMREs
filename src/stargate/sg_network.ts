@@ -29,13 +29,41 @@ interface UserMeetup {
     comp: SGDialCompLike;
 }
 
+interface SpamEntry {
+    timestamp: number;
+    count: number;
+}
 export default class SGNetwork {
     private static targets: { [id: string]: TargetReg } = { };
     private static userMeetup: { [id: string]: UserMeetup } = { };
     private static sessionIDs: { [sessId: string]: string } = { };
+    private static sessIDTimeouts: { [sessId: string]: SpamEntry } = { };
 
     private static nextUpdate = 0;
     private static updateInterval = 60;
+
+    public static requestSession(sessId: string): boolean {
+        const current = new Date().getTime() / 1000;
+
+        if (!this.sessIDTimeouts[sessId]) {
+            this.sessIDTimeouts[sessId] = { timestamp: current, count: 1 };
+            return true;
+        }
+
+        // Past timeout, remove entry, everything's good
+        if (current > this.sessIDTimeouts[sessId].timestamp + 30) {
+            this.sessIDTimeouts[sessId] = undefined;
+            return true;
+        }
+
+        // Flood protection: Deny if 10 or more requests accumulated,
+        // reset counter if 30 seconds have passed without incident.
+        this.sessIDTimeouts[sessId].timestamp = current;
+
+        if (this.sessIDTimeouts[sessId].count++ < 10) return true;
+
+        return false;
+    }
 
     private static async doUpdate() {
         const list: { [id: string]: string } = { };
