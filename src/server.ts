@@ -15,6 +15,9 @@ import WebSocket from 'ws';
 import DoorGuard from './DoorGuard';
 import PGBackend from './pg_backend';
 
+// tslint:disable-next-line:no-var-requires
+const forwarded = require('forwarded-for');
+
 process.on('uncaughtException', err => console.log('uncaughtException', err));
 process.on('unhandledRejection', reason => console.log('unhandledRejection', reason));
 
@@ -73,7 +76,8 @@ const proxyServer = Http.createServer(
 proxyServer.on('upgrade',
     (req, socket, head) => {
         const query = QueryString.parseUrl(req.url);
-        DoorGuard.isAdmitted(req.client.remoteAddress).then(() => {
+        const address = forwarded(req, req.headers);
+        DoorGuard.isAdmitted(address.ip).then(() => {
             if ((query.url as string) === '/control') {
                 proxy.ws(req, socket, head, { target: `ws://localhost:${controlPort}` });
             } else {
