@@ -110,13 +110,13 @@ export abstract class SGDCBase extends SGDialCompLike {
 
     private keypressed(userid: string, key: number) {
         const gate = SGNetwork.getGate(this.id);
-        const gateStatus = gate.gateStatus;
 
         if (gate == null) {
             this.updateStatus(`Error: Dialing device ${this.id || "(unconfigured)"} disconnected`);
             return; // No gate - dialer is locked
         }
 
+        const gateStatus = gate.gateStatus;
         const timestamp = new Date().getTime() / 1000;
 
         // Preevent crosstyping if someone's busy with the gate.
