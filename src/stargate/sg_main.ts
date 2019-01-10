@@ -193,6 +193,7 @@ export default class Stargate extends StargateLike {
     }
 */
     private userjoined = (user: User) => {
+        console.log(`Connection request by ${user.name}`);
         if (this.initstatus === InitStatus.initializing) {
             this.initstatus = InitStatus.initialized;
 
