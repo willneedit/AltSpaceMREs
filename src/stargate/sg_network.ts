@@ -43,6 +43,8 @@ export default class SGNetwork {
     private static updateInterval = 60;
 
     public static requestSession(sessId: string): boolean {
+        return true;
+
         const current = new Date().getTime() / 1000;
 
         if (!this.sessIDTimeouts[sessId]) {
@@ -149,6 +151,8 @@ export default class SGNetwork {
     }
 
     public static deregisterGate(id: string) {
+        if (!this.targets[id]) return;
+
         this.targets[id].gate = new StargateDespawned();
 
         if (this.targets[id] && this.targets[id].control) {
