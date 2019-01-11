@@ -68,9 +68,6 @@ export default class Stargate extends StargateLike {
         if (!this.id && params.id) this._gateID = params.id as string;
         if (!this.id && params.location) this._gateID = SGNetwork.getLocationId(params.location as string);
 
-        // Try by gate's session ID
-        if (!this.id) this._gateID = SGNetwork.getIdBySessId(this.sessID);
-
         // Register if found, else wait for the A-Frame component to announce itself.
         if (this.id) SGNetwork.registerGate(this);
         else console.info('Neither ID nor Location given - deferring Stargate registration');
@@ -194,8 +191,7 @@ export default class Stargate extends StargateLike {
     }
 */
     private userjoined = (user: User) => {
-        console.log(`Connection request by ${user.name} from ${user.properties.remoteAddress}`);
-        DoorGuard.greeted(user.properties.remoteAddress);
+        console.log(`Connection request by ${user.name}`);
         if (this.initstatus === InitStatus.initializing) {
             this.initstatus = InitStatus.initialized;
 
@@ -220,6 +216,7 @@ export default class Stargate extends StargateLike {
             }
         }
         SGNetwork.deregisterGate(this.id);
+        DoorGuard.bumpSessId(this.sessID);
     }
 
     /**

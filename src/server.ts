@@ -28,6 +28,8 @@ function initServer() {
     const controlPort = publicPort + 2;
     const banPort = publicPort + 3;
 
+    const mreSIDHeaderName = 'x-ms-mixed-reality-extension-sessionid';
+
     // Start listening for connections, and serve static files
     const server = new WebHost({
         baseDir: resolvePath(__dirname, '../public'),
@@ -73,8 +75,12 @@ function initServer() {
                 if ((query.url as string) === '/control') {
                     proxy.ws(req, socket, head, { target: `ws://localhost:${controlPort}` });
                 } else {
-                    // DoorGuard.rung(address.ip);
-                    proxy.ws(req, socket, head, { target: `ws://localhost:${mrePort}` });
+                    const mreSessId = req.headers[mreSIDHeaderName];
+                    if (mreSessId) {
+                        req.headers[mreSIDHeaderName] = DoorGuard.addSessIdPrefix(mreSessId);
+                        console.log(`Incoming MRE request for (translated) ${req.headers[mreSIDHeaderName]}`);
+                        proxy.ws(req, socket, head, { target: `ws://localhost:${mrePort}` });
+                    }
                 }
             }).catch(() => {
                 proxy.ws(req, socket, head, { target: `http://localhost:${banPort}` });
