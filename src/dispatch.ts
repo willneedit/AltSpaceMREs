@@ -18,6 +18,8 @@ import Stargate from "./stargate/sg_main";
 import ShowGLTF from "./gltf/gltf_main";
 import SGNetwork from "./stargate/sg_network";
 
+import DoorGuard from "./DoorGuard";
+
 /**
  * Contains the names and the factories for the given applets
  */
@@ -41,7 +43,8 @@ const registryControl: { [key: string]: (ws: WebSocket, data: ParameterSet) => v
  * Contains a list of functions needed to call before the service goes online.
  */
 const registryStartup: { [key: string]: () => void } = {
-    sgnetwork: () => SGNetwork.loadNetwork(),
+    sgnetwork: async () => await SGNetwork.loadNetwork(),
+    DoorGuard: async () => await DoorGuard.init(),
 };
 
 /**
@@ -92,10 +95,10 @@ export function dispatchControl(ws: WebSocket, payload: string) {
     }
 }
 
-export function dispatchStartup() {
+export async function dispatchStartup() {
     for ( const key in registryStartup) {
         if (registryStartup.hasOwnProperty(key)) {
-            registryStartup[key]();
+            await registryStartup[key]();
         }
     }
 }

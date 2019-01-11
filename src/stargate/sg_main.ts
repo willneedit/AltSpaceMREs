@@ -448,10 +448,11 @@ export default class Stargate extends StargateLike {
         const params = QueryString.parseUrl(data.url as string).query;
         const loc = (params.location || data.sid) as string;
         const id = (params.id || SGNetwork.getLocationId(loc)) as string;
-        SGNetwork.registerTarget(id, loc, ws);
 
-        const mreUserName = `Player [${data.userName as string}]`;
-        Stargate.doDeferredRegistration(mreUserName, id);
+        if (SGNetwork.registerTarget(id, loc, ws)) {
+            const mreUserName = `Player [${data.userName as string}]`;
+            Stargate.doDeferredRegistration(mreUserName, id);
+        }
     }
 
     private static async doDeferredRegistration(mreUserName: string, id: string, retry?: number) {

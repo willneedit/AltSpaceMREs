@@ -8,22 +8,35 @@ import PGBackend from "../pg_backend";
 
 import { QueryResult } from 'pg';
 
-export default class SGDB {
+export interface SGDBLocationEntry {
+    id: string;
+    location: string;
+    locked: boolean;
+}
+
+export class SGDB {
     private static db = PGBackend.instance;
 
     public static async init() {
         await this.db.query('CREATE TABLE IF NOT EXISTS gate_locations (' +
             'id varchar(10) PRIMARY KEY NOT NULL,' +
             'location varchar NOT NULL)');
+        await this.db.query('ALTER TABLE gate_locations ' +
+            'ADD COLUMN IF NOT EXISTS locked boolean DEFAULT false');
     }
 
-    public static async getLocation(id: string): Promise<string> {
-        const str = pgescape('SELECT location FROM gate_locations WHERE id=%L', id);
+    public static async getLocation(idstr: string): Promise<SGDBLocationEntry> {
+        const str = pgescape('SELECT location FROM gate_locations WHERE id=%L', idstr);
         const res: QueryResult = await this.db.query(str);
 
         if (res.rowCount === 0) return Promise.reject('Empty result');
 
-        return res.rows[0].location as string;
+        return {
+            id: idstr,
+            location: res.rows[0].location as string,
+            locked: res.rows[0].locked as boolean
+        };
+
     }
 
     public static async updateLocation(id: string, location: string) {
@@ -32,11 +45,14 @@ export default class SGDB {
         });
     }
 
-    public static registerLocationList(callback: (id: string, location: string) => void) {
-        this.db.query('SELECT id,location from gate_locations').then(
+    public static registerLocationList(callback: (id: string, location: string, locked: boolean) => void) {
+        this.db.query('SELECT id,location,locked from gate_locations').then(
             (res: QueryResult) => {
                 for (const row of res.rows) {
-                    callback(row.id as string, row.location as string);
+                    callback(
+                        row.id as string,
+                        row.location as string,
+                        row.locked as boolean);
                 }
         });
     }

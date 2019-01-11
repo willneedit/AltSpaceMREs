@@ -10,7 +10,7 @@ import SHA1 from 'sha1';
 
 import bigInt from 'big-integer';
 import FS from 'fs';
-import SGDB from './sg_database';
+import { SGDB } from './sg_database';
 
 interface ControlSockets {
     [id: string]: WebSocket;
@@ -20,6 +20,7 @@ interface TargetReg {
     gate: StargateLike;
     comp: SGDialCompLike;
     location: string;
+    locked: boolean;
     lastcid: 0;
     control: ControlSockets;
 }
@@ -102,9 +103,7 @@ export default class SGNetwork {
             const list = JSON.parse(data.toString());
 
             for (const key in list) {
-                if (list.hasOwnProperty(key)) {
-                    this.registerTarget(key, list[key]);
-                }
+                if (list.hasOwnProperty(key)) this.registerTarget(key, list[key]);
             }
 
         } catch (e) {
@@ -112,12 +111,13 @@ export default class SGNetwork {
         }
 
         // ... and then add the database data on top of it.
-        SGDB.registerLocationList((id: string, location: string) => {
+        SGDB.registerLocationList((id: string, location: string, locked: boolean) => {
             const res = SGNetwork.createDBEntry(id);
             if (this.targets[id].location !== location) {
                 console.log(`Updating portal endpoint for ID ${id} to location ${location}`);
             }
             this.targets[id].location = location;
+            this.targets[id].locked = locked;
         });
     }
 
@@ -132,7 +132,7 @@ export default class SGNetwork {
 
     private static createDBEntry(id: string): boolean {
         if (!this.targets[id]) {
-            this.targets[id] = { location: null, lastcid: 0, control: {}, gate: null, comp: null };
+            this.targets[id] = { location: null, locked: false, lastcid: 0, control: {}, gate: null, comp: null };
             return true;
         }
 
@@ -170,10 +170,16 @@ export default class SGNetwork {
         console.info(`Unregistering gate for ID ${id}`);
     }
 
-    public static registerTarget(id: string, loc: string, ws?: WebSocket) {
+    public static registerTarget(id: string, loc: string, ws?: WebSocket): boolean {
         const res = SGNetwork.createDBEntry(id);
 
-        const oldloc = this.targets[id].location;
+        const oldloc = this.targets[id].location || loc;
+
+        if ( oldloc !== loc && this.targets[id].locked) {
+            console.error(`Registering of new location ${loc} on ${id} DENIED -- location locked to ${oldloc}`);
+            return false;
+        }
+
         this.targets[id].location = loc;
 
         if (ws) {
@@ -186,6 +192,8 @@ export default class SGNetwork {
             // this.scheduleUpdate();
             if (loc !== oldloc) SGDB.updateLocation(id, loc);
         } else console.info(`Registering portal endpoint for ID ${id} at location ${loc}`);
+
+        return true;
     }
 
     public static registerDialComp(dial: SGDialCompLike) {
