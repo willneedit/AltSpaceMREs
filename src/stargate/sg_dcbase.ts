@@ -44,11 +44,13 @@ export abstract class SGDCBase extends SGDialCompLike {
         this.context.onStarted(this.started);
         this.context.onUserJoined(this.userjoined);
         this.context.onUserLeft(this.userLeft);
-        this.context.onStopped(this.stopped);
 
         // Try by ID and location, in this order
         if (!this.id && params.id) this._gateID = params.id as string;
         if (!this.id && params.location) this._gateID = SGNetwork.getLocationId(params.location as string);
+
+        // Try by gate's session ID
+        if (!this.id) this._gateID = SGNetwork.getIdBySessId(this.sessID);
 
         // Register if found, else wait for the A-Frame component to announce itself.
         if (this.id) SGNetwork.registerDialComp(this);
@@ -106,10 +108,6 @@ export abstract class SGDCBase extends SGDialCompLike {
         if (user.id === this.lastuserid) {
             this.lasttyped = 0;
         }
-    }
-
-    private stopped = () => {
-        DoorGuard.bumpSessId(this.sessID);
     }
 
     private keypressed(userid: string, key: number) {
@@ -171,7 +169,8 @@ export abstract class SGDCBase extends SGDialCompLike {
     }
 
     private userjoined = (user: User) => {
-        console.log(`Connection request by ${user.name}`);
+        console.log(`Connection request by ${user.name} from ${user.properties.remoteAddress}`);
+        DoorGuard.greeted(user.properties.remoteAddress);
         if (this.initstatus === InitStatus.initializing) {
             this.initstatus = InitStatus.initialized;
 

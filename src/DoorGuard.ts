@@ -17,11 +17,35 @@ export default class DoorGuard {
     private static db = PGBackend.instance;
 
     private static banList: { [ip: string]: BanState } = { };
-    private static sessIDPrefix: { [sessid: string]: number } = { };
+    private static rungList: { [ip: string]: number } = { };
 
     public static async init() {
         await this.db.query('CREATE TABLE IF NOT EXISTS banned (' +
             'ip varchar PRIMARY KEY NOT NULL)');
+    }
+
+    /**
+     * We got a user handshake from a given IP, reset the counter.
+     * @param ip IP we got a user handshake from
+     */
+    public static greeted(ip: string) {
+        this.rungList[ip] = 0;
+    }
+
+    /**
+     * Notify down the IP which just rung and we opened the door with.
+     * Start a timeout for actual traffic to come, and if the counter reaches its threshold, ban.
+     * @param ip IP about to connect
+     */
+    public static rung(ip: string) {
+        this.rungList[ip] = (this.rungList[ip] || 0) + 1;
+        setTimeout(() => {
+            if (this.rungList[ip] > 5) {
+                console.warn(`Excessive connection attempts without handshakes from ${ip} - banning.`);
+                this.ban(ip);
+                this.rungList[ip] = undefined;
+            }
+        }, 30 * 1000);
     }
 
     /**
@@ -55,14 +79,5 @@ export default class DoorGuard {
         }
 
         return Promise.resolve();
-    }
-
-    public static addSessIdPrefix(origId: string): string {
-        return (this.sessIDPrefix[origId] || 0) + "@" + origId;
-    }
-
-    public static bumpSessId(managedId: string) {
-        const origId = managedId.split("@", 2)[1];
-        this.sessIDPrefix[origId] = (this.sessIDPrefix[origId] || 0) + 1;
     }
 }
