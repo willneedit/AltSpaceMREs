@@ -16,11 +16,36 @@ interface BanState {
 export default class DoorGuard {
     private static db = PGBackend.instance;
 
-    private static banList: { [id: string]: BanState } = { };
+    private static banList: { [ip: string]: BanState } = { };
+    private static rungList: { [ip: string]: number } = { };
 
     public static async init() {
         await this.db.query('CREATE TABLE IF NOT EXISTS banned (' +
             'ip varchar PRIMARY KEY NOT NULL)');
+    }
+
+    /**
+     * We got a user handshake from a given IP, reset the counter.
+     * @param ip IP we got a user handshake from
+     */
+    public static greeted(ip: string) {
+        this.rungList[ip] = 0;
+    }
+
+    /**
+     * Notify down the IP which just rung and we opened the door with.
+     * Start a timeout for actual traffic to come, and if the counter reaches its threshold, ban.
+     * @param ip IP about to connect
+     */
+    public static rung(ip: string) {
+        this.rungList[ip] = (this.rungList[ip] || 0) + 1;
+        setTimeout(() => {
+            if (this.rungList[ip] > 5) {
+                console.warn(`Excessive connection attempts without handshakes from ${ip} - banning.`);
+                this.ban(ip);
+                this.rungList[ip] = undefined;
+            }
+        }, 30 * 1000);
     }
 
     /**
@@ -47,6 +72,12 @@ export default class DoorGuard {
             console.log(`BanCheck Update: ${ip} is ${this.banList[ip].state ? '' : 'not'} banned`);
         }
 
-        return this.banList[ip].state ? Promise.reject() : Promise.resolve();
+        if (this.banList[ip].state) {
+            // If the one who pinged us is blacklisted and tries again, extend the ban time.
+            if (this.banList[ip].until < currentTime + 70) this.banList[ip].until = currentTime + 70;
+            return Promise.reject();
+        }
+
+        return Promise.resolve();
     }
 }

@@ -26,6 +26,7 @@ import SGNetwork from "./sg_network";
 
 import QueryString from 'query-string';
 import WebSocket from 'ws';
+import DoorGuard from "../DoorGuard";
 
 export default class Stargate extends StargateLike {
 
@@ -193,7 +194,8 @@ export default class Stargate extends StargateLike {
     }
 */
     private userjoined = (user: User) => {
-        console.log(`Connection request by ${user.name}`);
+        console.log(`Connection request by ${user.name} from ${user.properties.remoteAddress}`);
+        DoorGuard.greeted(user.properties.remoteAddress);
         if (this.initstatus === InitStatus.initializing) {
             this.initstatus = InitStatus.initialized;
 

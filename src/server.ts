@@ -73,6 +73,7 @@ function initServer() {
                 if ((query.url as string) === '/control') {
                     proxy.ws(req, socket, head, { target: `ws://localhost:${controlPort}` });
                 } else {
+                    DoorGuard.rung(address.ip);
                     proxy.ws(req, socket, head, { target: `ws://localhost:${mrePort}` });
                 }
             }).catch(() => {

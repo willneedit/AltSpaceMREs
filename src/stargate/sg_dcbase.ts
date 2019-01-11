@@ -21,6 +21,8 @@ import {
 
 import SGNetwork from "./sg_network";
 
+import DoorGuard from "../DoorGuard";
+
 export abstract class SGDCBase extends SGDialCompLike {
 
     // tslint:disable-next-line:variable-name
@@ -167,7 +169,8 @@ export abstract class SGDCBase extends SGDialCompLike {
     }
 
     private userjoined = (user: User) => {
-        console.log(`Connection request by ${user.name}`);
+        console.log(`Connection request by ${user.name} from ${user.properties.remoteAddress}`);
+        DoorGuard.greeted(user.properties.remoteAddress);
         if (this.initstatus === InitStatus.initializing) {
             this.initstatus = InitStatus.initialized;
 
