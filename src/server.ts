@@ -14,10 +14,12 @@ import WebSocket from 'ws';
 
 import DoorGuard from './DoorGuard';
 
+/*
 import { log } from '@microsoft/mixed-reality-extension-sdk/built/log';
 
 // Enable network logging
 log.enable('network');
+ */
 
 // tslint:disable-next-line:no-var-requires
 const forwarded = require('forwarded-for');
