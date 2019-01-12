@@ -83,8 +83,7 @@ function initServer() {
                     if (!req.headers['x-forwarded-for']) {
                         req.headers['x-forwarded-for'] = address.ip;
                     }
-                    // Disabled until MRESDK respects the x-forwarded-for
-                    // DoorGuard.rung(address.ip);
+                    DoorGuard.rung(address.ip);
                     proxy.ws(req, socket, head, { target: `ws://localhost:${mrePort}` });
                 }
             }).catch(() => {
