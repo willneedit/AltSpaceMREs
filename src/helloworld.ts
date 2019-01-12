@@ -13,6 +13,7 @@ import {
     AnimationWrapMode,
     ButtonBehavior,
     Context,
+    LookAtMode,
     ParameterSet,
     Quaternion,
     TextAnchorLocation,
@@ -158,6 +159,7 @@ export default class HelloWorld extends Applet {
                 transform: {
                     position: { x: 0, y: 1, z: 0 }
                 },
+                lookAt: LookAtMode.LocalUserXY,
                 text: {
                     contents: "Hello " + user.name + "!\n" +
                     "Please refer to\n" +
@@ -170,15 +172,6 @@ export default class HelloWorld extends Applet {
                 parentId: this.text.id
             }
         });
-
-        this.announce = announcePromise.value;
-        this.announce.createAnimation({
-            animationName: 'DoAFlip',
-            keyframes: this.generateSpinKeyframes(1.0, Vector3.Up()),
-            events: []
-        }).catch(reason => console.log('error', `Failed to create flip animation: ${reason}`));
-
-        this.announce.startAnimation('DoAFlip');
     }
 
     /**
