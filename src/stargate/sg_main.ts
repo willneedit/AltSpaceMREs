@@ -404,8 +404,10 @@ export default class Stargate extends StargateLike {
 
         // Dial up the sequence, alternating directions
         for (const symbol of sequence) {
+            SGNetwork.emitPortalControlMsg(this.id, JSON.stringify({ command: 'playsound', sound: 'turnGrind' }));
             await this.dialChevron(chevron, symbol, direction);
             direction = !direction;
+            SGNetwork.emitPortalControlMsg(this.id, JSON.stringify({ command: 'playsound', sound: 'chevronLock' }));
             await SGNetwork.controlGateOperation(this.id, this.currentTarget, GateOperation.lightChevron, chevron++);
 
             if (this.abortRequested) {
