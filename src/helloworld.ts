@@ -159,7 +159,10 @@ export default class HelloWorld extends Applet {
                     position: { x: 0, y: 1, z: 0 }
                 },
                 text: {
-                    contents: "Hello " + user.name + "!",
+                    contents: "Hello " + user.name + "!\n" +
+                    "Please refer to\n" +
+                    "https://github.com/willneedit/AltSpaceMREs/wiki\n" +
+                    "for documentation.",
                     anchor: TextAnchorLocation.MiddleCenter,
                     color: { r: 255 / 255, g: 128 / 255, b: 128 / 255 },
                     height: 0.3

@@ -14,7 +14,7 @@ export default class AssetPreloadTest extends Applet {
         this.context.onStarted(this.run);
     }
 
-    public async run(): Promise<boolean> {
+    public run = async (): Promise<boolean> =>  {
         const label = await MRESDK.Actor.CreateEmpty(this.context, {
             actor: {
                 transform: {

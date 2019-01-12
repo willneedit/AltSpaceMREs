@@ -54,11 +54,11 @@ const registryStartup: { [key: string]: () => void } = {
  * @param baseUrl The base URL of the system, useful for backreferences
  */
 export function dispatch(context: Context, parameter: ParameterSet, baseUrl: string): void {
-    const name = single_param(parameter.name);
+    let name = single_param(parameter.name);
 
     if (!name) {
+        name = "helloworld";
         console.error(`No name given: Use an URL like ${baseUrl}/app?name=yourappname to select an app`);
-        return;
     }
 
     try {
