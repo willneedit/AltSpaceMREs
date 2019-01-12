@@ -242,14 +242,18 @@ export default class SGNetwork {
 
     public static registerGateForUser(user: string, gate: StargateLike) {
         if (!this.userMeetup[user]) this.userMeetup[user] = { gate: null, comp: null };
-        this.userMeetup[user].gate = gate;
-        console.info(`Deferred registration: Stargate found by ${user}`);
+        if (!this.userMeetup[user].gate) {
+            this.userMeetup[user].gate = gate;
+            console.info(`Deferred registration: Stargate found by ${user}`);
+        }
     }
 
     public static registerDCForUser(user: string, comp: SGDialCompLike) {
         if (!this.userMeetup[user]) this.userMeetup[user] = { gate: null, comp: null };
-        this.userMeetup[user].comp = comp;
-        console.info(`Deferred registration: Dialing computer found by ${user}`);
+        if (!this.userMeetup[user].comp) {
+            this.userMeetup[user].comp = comp;
+            console.info(`Deferred registration: Dialing computer found by ${user}`);
+        }
     }
 
     public static removeUser(user: string) {

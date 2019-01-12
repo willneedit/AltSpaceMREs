@@ -73,6 +73,10 @@ function initServer() {
                 if ((query.url as string) === '/control') {
                     proxy.ws(req, socket, head, { target: `ws://localhost:${controlPort}` });
                 } else {
+                    if (!req.headers['x-forwarded-for']) {
+                        req.headers['x-forwarded-for'] = address.ip;
+                    }
+                    // Disabled until MRESDK respects the x-forwarded-for
                     // DoorGuard.rung(address.ip);
                     proxy.ws(req, socket, head, { target: `ws://localhost:${mrePort}` });
                 }
