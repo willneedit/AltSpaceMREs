@@ -173,9 +173,9 @@ export default class SGNetwork {
     public static registerTarget(id: string, loc: string, ws?: WebSocket): boolean {
         const res = SGNetwork.createDBEntry(id);
 
-        const oldloc = this.targets[id].location || loc;
+        const oldloc = this.targets[id].location;
 
-        if ( oldloc !== loc && this.targets[id].locked) {
+        if (oldloc !== loc && this.targets[id].locked) {
             console.error(`Registering of new location ${loc} on ${id} DENIED -- location locked to ${oldloc}`);
             return false;
         }

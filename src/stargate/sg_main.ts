@@ -454,7 +454,8 @@ export default class Stargate extends StargateLike {
         const id = (params.id || SGNetwork.getLocationId(loc)) as string;
 
         if (SGNetwork.registerTarget(id, loc, ws)) {
-            const mreUserName = `Player [${data.userName as string}]`;
+            // const mreUserName = `Player [${data.userName as string}]`;
+            const mreUserName = data.userName as string;
             Stargate.doDeferredRegistration(mreUserName, id);
         }
     }
