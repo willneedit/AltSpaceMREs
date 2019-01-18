@@ -174,17 +174,18 @@ export abstract class SGDCBase extends SGDialCompLike {
         if (this.initstatus === InitStatus.initializing) {
             this.initstatus = InitStatus.initialized;
 
-            if (!SGNetwork.requestSession(this.sessID)) return;
             SGNetwork.registerDCForUser(user.name, this);
-
-            this.makeKeyboard();
-            if (this.id) this.updateStatus(`Initialized, Address: ${this.id}`);
-            else this.updateStatus(`Awaiting gate address...`);
         }
     }
 
     private started = () => {
         this.initstatus = InitStatus.initializing;
+
+        if (!SGNetwork.requestSession(this.sessID)) return;
+
+        this.makeKeyboard();
+        if (this.id) this.updateStatus(`Initialized, Address: ${this.id}`);
+        else this.updateStatus(`Awaiting gate address...`);
     }
 
     protected abstract async makeKeyboard(): Promise<void>;

@@ -200,14 +200,14 @@ export default class Stargate extends StargateLike {
             this.initstatus = InitStatus.initialized;
 
             if (!SGNetwork.requestSession(this.sessID)) return;
-
-            SGNetwork.registerGateForUser(user.name, this);
-            this.initGate();
         }
     }
 
     private started = () => {
         this.initstatus = InitStatus.initializing;
+
+        SGNetwork.registerGateForUser(user.name, this);
+        this.initGate();
     }
 
     private stopped = () => {
