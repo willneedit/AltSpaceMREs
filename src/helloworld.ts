@@ -159,7 +159,7 @@ export default class HelloWorld extends Applet {
                 transform: {
                     position: { x: 0, y: 1, z: 0 }
                 },
-                lookAt: LookAtMode.LocalUserXY,
+                // lookAt: LookAtMode.TargetXY,
                 text: {
                     contents: "Hello " + user.name + "!\n" +
                     "Please refer to\n" +

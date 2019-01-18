@@ -20,7 +20,7 @@ export default class AssetPreloadTest extends Applet {
                 transform: {
                     position: { x: 0, y: 2, z: 0 }
                 },
-                lookAt: MRESDK.LookAtMode.LocalUserXY,
+                // lookAt: MRESDK.LookAtMode.TargetXY,
                 text: {
                     contents: 'Initialized',
                     height: 0.3,
