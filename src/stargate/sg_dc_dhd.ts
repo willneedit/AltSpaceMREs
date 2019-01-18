@@ -7,6 +7,7 @@ import {
     Actor,
     ButtonBehavior,
     DegreesToRadians,
+    PrimitiveShape,
     Quaternion,
     TextAnchorLocation,
     Vector3,
@@ -29,7 +30,7 @@ export default class SGDCDHD extends SGDCBase {
 
     private keyStart = 0;
     private keyEnd = 39;
-    private keysInTier = Math.floor((39 - this.keyStart) / this.tiers.length);
+    private keysInTier = Math.floor((this.keyEnd - this.keyStart) / this.tiers.length);
 
     private resourceBaseURL = 'https://willneedit.github.io/MRE/stargate';
 
@@ -126,17 +127,17 @@ export default class SGDCDHD extends SGDCBase {
                     }
                 }).value;
 
-            // HACK: Primitives aren't displayed for all users (issue submitted), so create and scale a unit
-            // volume box to provide the collider.
-            const collider = Actor.CreateFromGLTF(this.context,
+            const collider = Actor.CreatePrimitive(this.context,
                 {
-                    colliderType: 'box',
-                    resourceUrl: 'https://willneedit.github.io/MRE/VolumeUnit.glb',
+                    definition: {
+                        shape: PrimitiveShape.Box,
+                        dimensions: new Vector3(letterHeight, letterHeight, 0.002)
+                    },
+                    addCollider: true,
                     actor: {
                         parentId: letterRotRoot.id,
                         transform: {
                             position: { x: 0, y: -0.03, z: 0.05 },
-                            scale: { x: letterHeight, y: letterHeight, z: 0.002 }
                         }
                     }
                 }).value;
@@ -144,15 +145,17 @@ export default class SGDCDHD extends SGDCBase {
             collider.setBehavior(ButtonBehavior).onClick('pressed', this.makeKeyCallback(i));
         }
 
-        const button = Actor.CreateFromGLTF(this.context,
+        const button = Actor.CreatePrimitive(this.context,
             {
-                colliderType: 'box',
-                resourceUrl: 'https://willneedit.github.io/MRE/VolumeUnit.glb',
+                definition: {
+                    shape: PrimitiveShape.Box,
+                    dimensions: new Vector3(0.24, 0.1, 0.24)
+                },
+                addCollider: true,
                 actor: {
                     parentId: rootNodeGimbal.id,
                     transform: {
                         position: { x: 0, y: 0.25, z: 0 },
-                        scale: { x: 0.24, y: 0.1, z: 0.24 }
                     }
                 }
             }).value;
