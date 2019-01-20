@@ -2,6 +2,7 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext;
 
 var portalTarget = '';
 var sounds = { };
+var horizonSize = 2.6;
 
 function loadSound(url, cb) {
     var xhr = new XMLHttpRequest();
@@ -94,7 +95,7 @@ function delay(milliseconds) {
 async function flashPortal() {
     var portalFlashEl = document.createElement('a-circle');
     portalFlashEl.setAttribute('material', 'opacity: 0');
-    portalFlashEl.setAttribute('radius', '2.6');
+    portalFlashEl.setAttribute('radius', horizonSize);
     portalFlashEl.setAttribute('position', '0 0 0.1');
 
     var portalFlashAnimEl = document.createElement('a-animation');
@@ -131,7 +132,7 @@ async function spawnPortal(target) {
     var portal1El = document.createElement('a-circle');
     portal1El.setAttribute('id', 'portalcircle1');
     portal1El.setAttribute('material', 'src: #portaldisc');
-    portal1El.setAttribute('radius', '2.6');
+    portal1El.setAttribute('radius', horizonSize);
     portal1El.setAttribute('position', '0 0 -0.1');
 
     var portal1AnimationEl = document.createElement('a-animation');
@@ -145,7 +146,7 @@ async function spawnPortal(target) {
     var portal2El = document.createElement('a-circle');
     portal2El.setAttribute('id', 'portalcircle2');
     portal2El.setAttribute('material', 'src: #portaldisc_detail; opacity: 0.5');
-    portal2El.setAttribute('radius', '2.6');
+    portal2El.setAttribute('radius', horizonSize);
     portal2El.setAttribute('position', '0 0 0');
     portal2El.setAttribute('portal', '');
 
@@ -203,7 +204,10 @@ function receiveCommand(message) {
         return;
     }
     
-    if(json.command === 'engage') {
+    if(json.command === 'size=') {
+        console.log(`Received command: size=${json.size}`);
+        horizonSize = 2.6 * json.size;
+    } else if(json.command === 'engage') {
         console.log(`Received command: Engage to ${json.location}`);
         spawnPortal(json.location);
     } else if(json.command === 'disengage') {
@@ -219,7 +223,7 @@ function recoverFrom(baseUrl) {
     var portalEl = document.createElement('a-circle');
     portalEl.setAttribute('id', 'iris');
     portalEl.setAttribute('color', '#222222');
-    portalEl.setAttribute('radius', '2.6');
+    portalEl.setAttribute('radius', horizonSize);
     portalEl.setAttribute('position', '0 0 0');
 
     var sceneEl = document.querySelector('a-scene');

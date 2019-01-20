@@ -453,6 +453,16 @@ export default class Stargate extends StargateLike {
         const loc = (params.location || data.sid) as string;
         const id = (params.id || SGNetwork.getLocationId(loc)) as string;
 
+        // Configure the size of the newly found portal endpoint: Currently it's echoing back its
+        // own one.
+        if (params.size) {
+            const newSize = params.size as string;
+            ws.send(JSON.stringify({
+                command: 'size=',
+                size: newSize
+            }));
+        }
+
         if (SGNetwork.registerTarget(id, loc, ws)) {
             // const mreUserName = `Player [${data.userName as string}]`;
             const mreUserName = data.userName as string;
