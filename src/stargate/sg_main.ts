@@ -30,7 +30,7 @@ import DoorGuard from "../DoorGuard";
 
 export default class Stargate extends StargateLike {
 
-    private resourceBaseURL = 'https://willneedit.github.io/MRE/stargate';
+    private resourceBaseURL = `http://willneedit-mre.herokuapp.com/stargate`;
     private whTimeout = 120; // 120 seconds until the wormhole shuts off. Cut it off by hitting 'a'.
 
     private initstatus = InitStatus.uninitialized;

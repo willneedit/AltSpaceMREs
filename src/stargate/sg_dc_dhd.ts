@@ -32,7 +32,7 @@ export default class SGDCDHD extends SGDCBase {
     private keyEnd = 39;
     private keysInTier = Math.floor((this.keyEnd - this.keyStart) / this.tiers.length);
 
-    private resourceBaseURL = 'https://willneedit.github.io/MRE/stargate';
+    private resourceBaseURL = 'http://willneedit-mre.herokuapp.com/stargate';
 
     protected createStatusLine(message: string): Actor {
         return Actor.CreateEmpty(this.context, {
