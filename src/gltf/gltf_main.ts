@@ -44,7 +44,7 @@ export default class ShowGLTF extends Applet {
 
         if (anim) {
             const animName = (this.parameter.animate == null) ? 'animation:0' : this.parameter.animate as string;
-            model.startAnimation(animName);
+            model.enableAnimation(animName);
         }
     }
 }

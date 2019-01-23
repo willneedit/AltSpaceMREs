@@ -65,9 +65,7 @@ export default class HelloWorld extends Applet {
 
         // Here we create an animation on our text actor. Animations have three mandatory arguments:
         // a name, an array of keyframes, and an array of events.
-        this.text.createAnimation({
-            // The name is a unique identifier for this animation. We'll pass it to "startAnimation" later.
-            animationName: "Spin",
+        this.text.createAnimation("Spin", {
             // Keyframes define the timeline for the animation: where the actor should be, and when.
             // We're calling the generateSpinKeyframes function to produce a simple 20-second revolution.
             keyframes: this.generateSpinKeyframes(20, Vector3.Up()),
@@ -101,27 +99,24 @@ export default class HelloWorld extends Applet {
         this.cube = cubePromise.value;
 
         // Create some animations on the cube.
-        this.cube.createAnimation({
-            animationName: 'GrowIn',
+        this.cube.createAnimation('GrowIn', {
             keyframes: this.growAnimationData,
             events: []
         }).catch(reason => console.log(`Failed to create grow animation: ${reason}`));
 
-        this.cube.createAnimation({
-            animationName: 'ShrinkOut',
+        this.cube.createAnimation('ShrinkOut', {
             keyframes: this.shrinkAnimationData,
             events: []
         }).catch(reason => console.log(`Failed to create shrink animation: ${reason}`));
 
-        this.cube.createAnimation({
-            animationName: 'DoAFlip',
+        this.cube.createAnimation('DoAFlip', {
             keyframes: this.generateSpinKeyframes(1.0, Vector3.Right()),
             events: []
         }).catch(reason => console.log(`Failed to create flip animation: ${reason}`));
 
         // Now that the text and its animation are all being set up, we can start playing
         // the animation.
-        this.text.startAnimation('Spin');
+        this.text.enableAnimation('Spin');
 
         // Set up cursor interaction. We add the input behavior ButtonBehavior to the cube.
         // Button behaviors have two pairs of events: hover start/stop, and click start/stop.
@@ -129,15 +124,15 @@ export default class HelloWorld extends Applet {
 
         // Trigger the grow/shrink animations on hover.
         buttonBehavior.onHover('enter', (userId: string) => {
-            this.cube.startAnimation('GrowIn');
+            this.cube.enableAnimation('GrowIn');
         });
         buttonBehavior.onHover('exit', (userId: string) => {
-            this.cube.startAnimation('ShrinkOut');
+            this.cube.enableAnimation('ShrinkOut');
         });
 
         // When clicked, do a 360 sideways.
         buttonBehavior.onClick('pressed', (userId: string) => {
-            this.cube.startAnimation('DoAFlip');
+            this.cube.enableAnimation('DoAFlip');
         });
 
     }

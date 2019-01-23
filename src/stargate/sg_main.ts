@@ -386,10 +386,10 @@ export default class Stargate extends StargateLike {
 
         const rotAnim = this.generateRotationKeyFrames(srcAngle, tgtAngle, dialDirection);
 
-        await this.gateRing.createAnimation({animationName: 'rotation', keyframes: rotAnim, events: []});
-        this.gateRing.startAnimation('rotation');
+        await this.gateRing.createAnimation('rotation', {keyframes: rotAnim, events: []});
+        this.gateRing.enableAnimation('rotation');
         await delay(rotAnim[rotAnim.length - 1].time * 1000 + 200);
-        await this.gateRing.stopAnimation('rotation');
+        await this.gateRing.disableAnimation('rotation');
 
         this.gateRingAngle = tgtAngle;
     }
