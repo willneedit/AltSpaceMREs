@@ -31,7 +31,7 @@ export default class AssetPreloadTest extends Applet {
         await delay(1000);
 
         label.text.contents = 'Preloading asset';
-        const group = await this.context.assets.loadGltf('monkey', this.baseUrl + '/monkey.glb');
+        const group = await this.context.assetManager.loadGltf('monkey', this.baseUrl + '/monkey.glb');
         label.text.contents = 'Asset preloaded';
         await delay(1000);
 

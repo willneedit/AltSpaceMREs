@@ -6,6 +6,7 @@
 import {
     Actor,
     AnimationKeyframe,
+    AssetGroup,
     Context,
     DegreesToRadians,
     ParameterSet,
@@ -47,6 +48,10 @@ export default class Stargate extends StargateLike {
     private gateRingAngle = 0;
     private gateChevrons: Actor[] = [ null, null, null, null, null, null, null, null, null ];
     private chevronAngles: number[] = [ 240, 280, 320, 0, 40, 80, 120, 160, 200 ];
+    private gateFramePrefabs: AssetGroup = null;
+    private gateRingPrefabs: AssetGroup = null;
+    private chevronLitPrefabs: AssetGroup = null;
+    private chevronUnlitPrefabs: AssetGroup = null;
 
     public get gateStatus() { return this._gateStatus; }
     public get id() { return this._gateID; }
@@ -113,11 +118,12 @@ export default class Stargate extends StargateLike {
                 }
             }).value;
 
-        const chevronModel = Actor.CreateFromGLTF(this.context,
+        const chevronModel = Actor.CreateFromPrefab(this.context,
             {
-                resourceUrl: (state
-                    ? `${this.resourceBaseURL}/Chevron_lit.glb`
-                    : `${this.resourceBaseURL}/Chevron_unlit.glb`),
+                prefabId: (state
+                    ? this.chevronLitPrefabs
+                    : this.chevronUnlitPrefabs
+                    ).prefabs.byIndex(0).id,
                 actor: {
                     parentId: this.gateChevrons[index].id
                 }
@@ -145,18 +151,18 @@ export default class Stargate extends StargateLike {
      */
     private async initGate(): Promise<void> {
         /* this.gateFrame = */
-        Actor.CreateFromGLTF(this.context,
+        Actor.CreateFromPrefab(this.context,
             {
-                resourceUrl: `${this.resourceBaseURL}/Gate_Frame.glb`,
+                prefabId: this.gateFramePrefabs.prefabs.byIndex(0).id,
                 actor: {
                     name: 'Gate Frame'
                 }
             }
         );
 
-        this.gateRing = Actor.CreateFromGLTF(this.context,
+        this.gateRing = Actor.CreateFromPrefab(this.context,
             {
-                resourceUrl: `${this.resourceBaseURL}/Gate_Ring.glb`,
+                prefabId: this.gateRingPrefabs.prefabs.byIndex(0).id,
                 actor: {
                     name: 'Gate Ring'
                 }
@@ -170,29 +176,22 @@ export default class Stargate extends StargateLike {
     /**
      * Preload the assets.
      */
-/*     public async loadAssets(): Promise<void> {
+    public async loadAssets(): Promise<void> {
 
-        const msg = new Message(this.context, 'Loading...');
+        this.gateFramePrefabs = await
+            this.context.assetManager.loadGltf('gateFrame', `${this.resourceBaseURL}/Gate_Frame.glb`);
 
-        const gateFramePrefabs =
-            this.context.assets.loadGltf('gateFrame', `${this.resourceBaseURL}/Gate_Frame.glb`);
-        this.gateFramePrefabs = await gateFramePrefabs;
+        this.gateRingPrefabs = await
+            this.context.assetManager.loadGltf('gateRing', `${this.resourceBaseURL}/Gate_Ring.glb`);
 
-        const gateRingPrefabs =
-            this.context.assets.loadGltf('gateRing', `${this.resourceBaseURL}/Gate_Ring.glb`);
-        this.gateRingPrefabs = await gateRingPrefabs;
+        this.chevronLitPrefabs = await
+            this.context.assetManager.loadGltf('chevronlit', `${this.resourceBaseURL}/Chevron_lit.glb`);
 
-        const chevronLitPrefabs =
-            this.context.assets.loadGltf('chevronlit', `${this.resourceBaseURL}/Chevron_lit.glb`);
-        this.chevronLitPrefabs = await chevronLitPrefabs;
+        this.chevronUnlitPrefabs = await
+            this.context.assetManager.loadGltf('chevronunlit', `${this.resourceBaseURL}/Chevron_unlit.glb`);
 
-        const chevronUnlitPrefabs =
-            this.context.assets.loadGltf('chevronunlit', `${this.resourceBaseURL}/Chevron_unlit.glb`);
-        this.chevronUnlitPrefabs = await chevronUnlitPrefabs;
-
-        msg.destroy();
     }
-*/
+
     private userjoined = (user: User) => {
         console.log(`Connection request by ${user.name} from ${user.properties.remoteAddress}`);
         DoorGuard.greeted(user.properties.remoteAddress);
@@ -207,7 +206,9 @@ export default class Stargate extends StargateLike {
         this.initstatus = InitStatus.initializing;
 
         if (!SGNetwork.requestSession(this.sessID)) return;
-        this.initGate();
+        this.loadAssets().then(() =>
+            this.initGate()
+        );
     }
 
     private stopped = () => {
