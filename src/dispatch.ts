@@ -15,8 +15,10 @@ import SGDCDebug from "./stargate/sg_dc_debug";
 import SGDCDHD from "./stargate/sg_dc_dhd";
 import Stargate from "./stargate/sg_main";
 
-import ShowGLTF from "./gltf/gltf_main";
 import SGNetwork from "./stargate/sg_network";
+
+import ShowGLTF from "./gltf/gltf_main";
+import ShowKitObj from "./kit/kit_main";
 
 import DoorGuard from "./DoorGuard";
 
@@ -29,6 +31,7 @@ const registry: { [key: string]: () => Applet } = {
     sgdialcomp: (): Applet => new SGDCDHD(),
     asset_preload: (): Applet => new AssetPreloadTest(),
     gltf: (): Applet => new ShowGLTF(),
+    kit: (): Applet => new ShowKitObj(),
 };
 
 /**
