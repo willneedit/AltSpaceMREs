@@ -22,6 +22,9 @@ interface TierDefinition {
 }
 
 export default class SGDCDHD extends SGDCBase {
+
+    private dhdModelId = '1144262470072795308';
+
     private tiers: TierDefinition[] = [
         { letterRadius: -0.34, letterHeight: 0.13, letterElevation: 0.27 }, // Inner Circle
         { letterRadius: -0.59, letterHeight: 0.15, letterElevation: 0.15 }, // Middle Circle
@@ -31,8 +34,6 @@ export default class SGDCDHD extends SGDCBase {
     private keyStart = 0;
     private keyEnd = 39;
     private keysInTier = Math.floor((this.keyEnd - this.keyStart) / this.tiers.length);
-
-    private resourceBaseURL = 'http://willneedit-mre.herokuapp.com/stargate';
 
     protected createStatusLine(message: string): Actor {
         return Actor.CreateEmpty(this.context, {
@@ -71,13 +72,13 @@ export default class SGDCDHD extends SGDCBase {
 
         const letterRotation = Quaternion.RotationAxis(Vector3.Right(), 76 * DegreesToRadians);
 
-        const frame = Actor.CreateFromGLTF(this.context,
+        Actor.CreateFromLibrary(this.context,
             {
-                resourceUrl: `${this.resourceBaseURL}/DHD_3tiers.glb`,
+                resourceId: this.dhdModelId,
                 actor: {
                     name: 'DHD Stand'
                 }
-            }).value;
+            });
 
         for (let i = this.keyStart; i < this.keyEnd; i++) {
             const tierData = this.tiers[Math.floor((i - this.keyStart) / this.keysInTier)];
@@ -111,7 +112,7 @@ export default class SGDCDHD extends SGDCBase {
                 ? Quaternion.RotationAxis(Vector3.Forward(), 180 * DegreesToRadians)
                 : Quaternion.RotationAxis(Vector3.Forward(), 0);
 
-            const letter = Actor.CreateEmpty(this.context,
+            Actor.CreateEmpty(this.context,
                 {
                     actor: {
                         parentId: letterRotRoot.id,
@@ -125,7 +126,7 @@ export default class SGDCDHD extends SGDCBase {
                             height: letterHeight
                         }
                     }
-                }).value;
+                });
 
             const collider = Actor.CreatePrimitive(this.context,
                 {
