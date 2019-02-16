@@ -6,7 +6,6 @@
 import {
     Actor,
     AnimationKeyframe,
-    AssetGroup,
     Context,
     DegreesToRadians,
     ParameterSet,
@@ -31,7 +30,6 @@ import DoorGuard from "../DoorGuard";
 
 export default class Stargate extends StargateLike {
 
-    private resourceBaseURL = `http://willneedit-mre.herokuapp.com/stargate`;
     private whTimeout = 120; // 120 seconds until the wormhole shuts off. Cut it off by hitting 'a'.
 
     private initstatus = InitStatus.uninitialized;
@@ -48,10 +46,11 @@ export default class Stargate extends StargateLike {
     private gateRingAngle = 0;
     private gateChevrons: Actor[] = [ null, null, null, null, null, null, null, null, null ];
     private chevronAngles: number[] = [ 240, 280, 320, 0, 40, 80, 120, 160, 200 ];
-    private gateFramePrefabs: AssetGroup = null;
-    private gateRingPrefabs: AssetGroup = null;
-    private chevronLitPrefabs: AssetGroup = null;
-    private chevronUnlitPrefabs: AssetGroup = null;
+
+    private gateFrameId = '1144171771746845684';
+    private gateRingId = '1144171766839510003';
+    private gateChevronLitId = '1144171760086680562';
+    private gateChevronUnlitId = '1144171776629015542';
 
     public get gateStatus() { return this._gateStatus; }
     public get id() { return this._gateID; }
@@ -118,12 +117,9 @@ export default class Stargate extends StargateLike {
                 }
             }).value;
 
-        const chevronModel = Actor.CreateFromPrefab(this.context,
+        const chevronModel = Actor.CreateFromLibrary(this.context,
             {
-                prefabId: (state
-                    ? this.chevronLitPrefabs
-                    : this.chevronUnlitPrefabs
-                    ).prefabs.byIndex(0).id,
+                resourceId: (state ? this.gateChevronLitId : this.gateChevronUnlitId),
                 actor: {
                     parentId: this.gateChevrons[index].id
                 }
@@ -150,19 +146,18 @@ export default class Stargate extends StargateLike {
      * Initialize the gate and set up the models.
      */
     private async initGate(): Promise<void> {
-        /* this.gateFrame = */
-        Actor.CreateFromPrefab(this.context,
+        Actor.CreateFromLibrary(this.context,
             {
-                prefabId: this.gateFramePrefabs.prefabs.byIndex(0).id,
+                resourceId: this.gateFrameId,
                 actor: {
                     name: 'Gate Frame'
                 }
             }
         );
 
-        this.gateRing = Actor.CreateFromPrefab(this.context,
+        this.gateRing = Actor.CreateFromLibrary(this.context,
             {
-                prefabId: this.gateRingPrefabs.prefabs.byIndex(0).id,
+                resourceId: this.gateRingId,
                 actor: {
                     name: 'Gate Ring'
                 }
@@ -170,25 +165,6 @@ export default class Stargate extends StargateLike {
         ).value;
 
         this.resetGate();
-
-    }
-
-    /**
-     * Preload the assets.
-     */
-    public async loadAssets(): Promise<void> {
-
-        this.gateFramePrefabs = await
-            this.context.assetManager.loadGltf('gateFrame', `${this.resourceBaseURL}/Gate_Frame.glb`);
-
-        this.gateRingPrefabs = await
-            this.context.assetManager.loadGltf('gateRing', `${this.resourceBaseURL}/Gate_Ring.glb`);
-
-        this.chevronLitPrefabs = await
-            this.context.assetManager.loadGltf('chevronlit', `${this.resourceBaseURL}/Chevron_lit.glb`);
-
-        this.chevronUnlitPrefabs = await
-            this.context.assetManager.loadGltf('chevronunlit', `${this.resourceBaseURL}/Chevron_unlit.glb`);
 
     }
 
@@ -206,9 +182,7 @@ export default class Stargate extends StargateLike {
         this.initstatus = InitStatus.initializing;
 
         if (!SGNetwork.requestSession(this.sessID)) return;
-        this.loadAssets().then(() =>
-            this.initGate()
-        );
+        this.initGate();
     }
 
     private stopped = () => {
