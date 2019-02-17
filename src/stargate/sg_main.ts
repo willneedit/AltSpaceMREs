@@ -44,6 +44,7 @@ export default class Stargate extends StargateLike {
 
     private gateRing: Actor = null;
     private gateRingAngle = 0;
+    private gateHorizon: Actor = null;
     private gateChevrons: Actor[] = [ null, null, null, null, null, null, null, null, null ];
     private chevronAngles: number[] = [ 240, 280, 320, 0, 40, 80, 120, 160, 200 ];
 
@@ -51,6 +52,9 @@ export default class Stargate extends StargateLike {
     private gateRingId = '1144171766839510003';
     private gateChevronLitId = '1144171760086680562';
     private gateChevronUnlitId = '1144171776629015542';
+
+    private gateHorizonOpening = '1144997990889422905';
+    private gateHorizonClosing = '1144997995519934522';
 
     public get gateStatus() { return this._gateStatus; }
     public get id() { return this._gateID; }
@@ -307,6 +311,19 @@ export default class Stargate extends StargateLike {
 
         const loc = SGNetwork.getTarget(this.currentTarget);
         if (loc) {
+            if (this.gateHorizon != null) {
+                this.gateHorizon.destroy();
+                this.gateHorizon = null;
+            }
+            this.gateHorizon = Actor.CreateFromLibrary(this.context, {
+                resourceId: this.gateHorizonOpening,
+                actor: {
+                    transform: {
+                        rotation: Quaternion.RotationAxis(Vector3.Right(), Math.PI / 2)
+                    }
+                }
+            }).value;
+
             if (SGNetwork.emitPortalControlMsg(this.id, JSON.stringify({ command: 'engage', location: loc }))) {
                 // Ignore the error code (this one and the other 180 :) ) from the target gate
                 // saying it is already engaged with another connection
@@ -333,6 +350,21 @@ export default class Stargate extends StargateLike {
 
         // Stale request, discard
         if (this.currentTimeStamp !== oldTs) return;
+
+        if (this.gateStatus === GateStatus.engaged) {
+            if (this.gateHorizon != null) {
+                this.gateHorizon.destroy();
+                this.gateHorizon = null;
+            }
+            this.gateHorizon = Actor.CreateFromLibrary(this.context, {
+                resourceId: this.gateHorizonClosing,
+                actor: {
+                    transform: {
+                        rotation: Quaternion.RotationAxis(Vector3.Right(), Math.PI / 2)
+                    }
+                }
+            }).value;
+        }
 
         if (this.gateStatus === GateStatus.dialing) {
             // If it's incoming, reset. If it's outgoing, request to abort the dialing sequence.

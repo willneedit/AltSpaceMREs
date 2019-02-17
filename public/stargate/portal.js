@@ -46,12 +46,6 @@ function loadSounds() {
         sounds.turnGrind.loop = true;
     });
 
-    loadSound('https://willneedit.github.io/MRE/stargate/SG_Vortex_Formation.wav', function(source, volumeControl)
-    {
-        sounds.vortexForm = source;
-        sounds.vortexFormVol = volumeControl;
-    });
-
 }
 
 var playingSound = null;
@@ -92,30 +86,6 @@ function delay(milliseconds) {
     });
 }
 
-async function flashPortal() {
-    var portalFlashEl = document.createElement('a-circle');
-    portalFlashEl.setAttribute('material', 'opacity: 0');
-    portalFlashEl.setAttribute('radius', horizonSize);
-    portalFlashEl.setAttribute('position', '0 0 0.1');
-
-    var portalFlashAnimEl = document.createElement('a-animation');
-    portalFlashAnimEl.setAttribute('attribute', 'material.opacity');
-    portalFlashAnimEl.setAttribute('dur', '1000');
-    portalFlashAnimEl.setAttribute('from', '0');
-    portalFlashAnimEl.setAttribute('to', '1');
-    portalFlashAnimEl.setAttribute('repeat', '1');
-    portalFlashAnimEl.setAttribute('direction', 'alternate');
-    portalFlashEl.appendChild(portalFlashAnimEl);
-
-    var sceneEl = document.querySelector('a-scene');
-    sceneEl.appendChild(portalFlashEl);
-    sounds.playSound('vortexForm');
-
-    setTimeout( () => sceneEl.removeChild(portalFlashEl), 2000);
-
-    await delay(1000);
-}
-
 async function startTurning() {
     sounds.playSound('turnGrind');
 }
@@ -127,51 +97,22 @@ async function chevronLock() {
 async function spawnPortal(target) {
     portalTarget = 'altspace://account.altvr.com/api/spaces/' + target;
 
-    await flashPortal();
-
     var portal1El = document.createElement('a-circle');
     portal1El.setAttribute('id', 'portalcircle1');
-    portal1El.setAttribute('material', 'src: #portaldisc');
+    portal1El.setAttribute('material', 'src: #portaldisc; opacity: 0.0');
     portal1El.setAttribute('radius', horizonSize);
     portal1El.setAttribute('position', '0 0 -0.1');
-
-    var portal1AnimationEl = document.createElement('a-animation');
-    portal1AnimationEl.setAttribute('attribute', 'rotation');
-    portal1AnimationEl.setAttribute('dur', '20000');
-    portal1AnimationEl.setAttribute('to', '0 0 360');
-    portal1AnimationEl.setAttribute('easing', 'linear');
-    portal1AnimationEl.setAttribute('repeat', 'indefinite');
-    portal1El.appendChild(portal1AnimationEl);
-
-    var portal2El = document.createElement('a-circle');
-    portal2El.setAttribute('id', 'portalcircle2');
-    portal2El.setAttribute('material', 'src: #portaldisc_detail; opacity: 0.5');
-    portal2El.setAttribute('radius', horizonSize);
-    portal2El.setAttribute('position', '0 0 0');
-    portal2El.setAttribute('portal', '');
-
-    var portal2AnimationEl = document.createElement('a-animation');
-    portal2AnimationEl.setAttribute('attribute', 'rotation');
-    portal2AnimationEl.setAttribute('dur', '13000');
-    portal2AnimationEl.setAttribute('to', '0 0 360');
-    portal2AnimationEl.setAttribute('easing', 'linear');
-    portal2AnimationEl.setAttribute('repeat', 'indefinite');
-    portal2El.appendChild(portal2AnimationEl);
+    portal1El.setAttribute('portal', '');
 
     var sceneEl = document.querySelector('a-scene');
     sceneEl.appendChild(portal1El);
-    sceneEl.appendChild(portal2El);
 }
 
 async function despawnPortal() {
-    await flashPortal();
-
     var sceneEl = document.querySelector('a-scene');
     var portal1El = document.querySelector('#portalcircle1');
-    var portal2El = document.querySelector('#portalcircle2');
 
     sceneEl.removeChild(portal1El);
-    sceneEl.removeChild(portal2El);
 }
 
 async function socketHeartbeat(socket) {
