@@ -330,7 +330,7 @@ export default class Stargate extends StargateLike {
                 this.reportStatus(`${this.currentDirection ? 'Incoming w' : 'W'}ormhole active`);
                 if (!this.currentDirection) {
                     delay(this.whTimeout * 1000).then(
-                        () => this.timeOutGate());
+                        () => this.timeOutGate(this.currentTimeStamp));
                 }
                 return;
             } else this.reportStatus('Error: Cannot establish wormhole - gate unpowered');
@@ -341,9 +341,9 @@ export default class Stargate extends StargateLike {
     /**
      * Time out a wormhole, only if it's not manually disconnected.
      */
-    private timeOutGate() {
+    private timeOutGate(oldTs: number) {
         return SGNetwork.controlGateOperation(
-            this.id, this.currentTarget, GateOperation.disconnect, this.currentTimeStamp);
+            this.id, this.currentTarget, GateOperation.disconnect, oldTs);
     }
 
     public async disconnect(oldTs: number) {
