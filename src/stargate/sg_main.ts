@@ -27,6 +27,7 @@ import SGNetwork from "./sg_network";
 import QueryString from 'query-string';
 import WebSocket from 'ws';
 import DoorGuard from "../DoorGuard";
+import KitAudio from "../kit_audio";
 
 export default class Stargate extends StargateLike {
 
@@ -55,6 +56,9 @@ export default class Stargate extends StargateLike {
 
     private gateHorizonOpening = '1144997990889422905';
     private gateHorizonClosing = '1144997995519934522';
+
+    private soundChevronLockId = '1149312917426929915';
+    private soundGateTurningId = '1149312917628256508';
 
     public get gateStatus() { return this._gateStatus; }
     public get id() { return this._gateID; }
@@ -410,10 +414,11 @@ export default class Stargate extends StargateLike {
 
         // Dial up the sequence, alternating directions
         for (const symbol of sequence) {
-            SGNetwork.emitPortalControlMsg(this.id, JSON.stringify({ command: 'playsound', sound: 'turnGrind' }));
+            KitAudio.startSound(this.context, this.soundGateTurningId);
             await this.dialChevron(chevron, symbol, direction);
             direction = !direction;
-            SGNetwork.emitPortalControlMsg(this.id, JSON.stringify({ command: 'playsound', sound: 'chevronLock' }));
+            KitAudio.stopSound(this.context, this.soundGateTurningId);
+            KitAudio.startSound(this.context, this.soundChevronLockId);
             await SGNetwork.controlGateOperation(this.id, this.currentTarget, GateOperation.lightChevron, chevron++);
 
             if (this.abortRequested) {
