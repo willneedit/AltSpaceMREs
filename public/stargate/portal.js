@@ -105,8 +105,6 @@ function main() {
     baseurl = baseurl.replace('http://', 'ws://');
     baseurl = baseurl.replace('https://', 'ws://');
 
-    loadSounds();
-
     AFRAME.registerComponent('portal', {
         schema: {},
         init: function(){
