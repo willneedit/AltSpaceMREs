@@ -9,7 +9,7 @@ import { single_param } from "./helpers";
 
 import WebSocket from 'ws';
 
-import AssetPreloadTest from "./asset-preload";
+import DemonGate from "./demongate/demongate_main";
 import HelloWorld from "./helloworld";
 import SGDCDebug from "./stargate/sg_dc_debug";
 import SGDCDHD from "./stargate/sg_dc_dhd";
@@ -29,9 +29,9 @@ const registry: { [key: string]: () => Applet } = {
     helloworld: (): Applet => new HelloWorld(),
     stargate: (): Applet => new Stargate(),
     sgdialcomp: (): Applet => new SGDCDHD(),
-    asset_preload: (): Applet => new AssetPreloadTest(),
     gltf: (): Applet => new ShowGLTF(),
     kit: (): Applet => new ShowKitObj(),
+    demongate: (): Applet => new DemonGate(),
 };
 
 /**
