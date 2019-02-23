@@ -193,7 +193,7 @@ export default class Stargate extends StargateLike {
         if (this.gateStatus !== GateStatus.idle) {
             if (!this.currentDirection) {
                 console.debug(`World with active gate falls empty, stopping gate operation`);
-                this.timeOutGate();
+                this.timeOutGate(this.currentTimeStamp);
             } else {
                 console.debug("World with incoming gate falls empty. Deregistering gate, leaving operations untouched");
             }
@@ -352,18 +352,17 @@ export default class Stargate extends StargateLike {
         if (this.currentTimeStamp !== oldTs) return;
 
         if (this.gateStatus === GateStatus.engaged) {
-            if (this.gateHorizon != null) {
-                this.gateHorizon.destroy();
-                this.gateHorizon = null;
-            }
-            this.gateHorizon = Actor.CreateFromLibrary(this.context, {
+            Actor.CreateFromLibrary(this.context, {
                 resourceId: this.gateHorizonClosing,
                 actor: {
                     transform: {
                         rotation: Quaternion.RotationAxis(Vector3.Right(), Math.PI / 2)
                     }
                 }
-            }).value;
+            }).then((gateHorizon) => {
+                if (this.gateHorizon != null) this.gateHorizon.destroy();
+                this.gateHorizon = gateHorizon;
+            });
         }
 
         if (this.gateStatus === GateStatus.dialing) {
