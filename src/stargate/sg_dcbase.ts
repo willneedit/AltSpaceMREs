@@ -45,26 +45,25 @@ export abstract class SGDCBase extends SGDialCompLike {
         this.context.onUserJoined(this.userjoined);
         this.context.onUserLeft(this.userLeft);
 
-        // Try by ID and location, in this order
-        if (!this.id && params.id) this._gateID = params.id as string;
-        if (!this.id && params.location) this._gateID = SGNetwork.getLocationId(params.location as string);
-
-        // Try by gate's session ID
-        if (!this.id) this._gateID = SGNetwork.getIdBySessId(this.sessID);
-
-        // Register if found, else wait for the A-Frame component to announce itself.
-        if (this.id) SGNetwork.registerDialComp(this);
-        else console.info('Neither ID nor Location given - deferring Dial Computer registration');
+        // Try by ID, then look up in database
+        if (params.id) this.registerDC(params.id as string);
+        else {
+            SGNetwork.getIdBySessId(this.sessID).then((id: string) => {
+                this.registerDC(id);
+            }).catch(() => {
+                console.info('No ID given, and Dial Computer unregistered.');
+                this.updateStatus(
+                    'Gate Address not set. Please visit\n' +
+                    'https://willneedit-mre.herokuapp.com/register.html\n' +
+                    'to set up the system.');
+            });
+        }
     }
 
     public registerDC(id: string) {
-        if (!this._gateID) {
-            this._gateID = id;
-            SGNetwork.registerDialComp(this);
-            this.updateStatus(`Initialized, Address: ${this._gateID}`);
-        } else if (this.id !== id) {
-            console.error(`Dial computer: ID COLLISION: ${this.id} vs. retrieved ID ${id}`);
-        }
+        this._gateID = id;
+        SGNetwork.registerDialComp(this);
+        this.updateStatus(`Initialized, Address: ${this._gateID}`);
     }
 
     public updateStatus(message: string) {
@@ -181,11 +180,7 @@ export abstract class SGDCBase extends SGDialCompLike {
     private started = () => {
         this.initstatus = InitStatus.initializing;
 
-        if (!SGNetwork.requestSession(this.sessID)) return;
-
         this.makeKeyboard();
-        if (this.id) this.updateStatus(`Initialized, Address: ${this.id}`);
-        else this.updateStatus(`Awaiting gate address...`);
     }
 
     protected abstract async makeKeyboard(): Promise<void>;

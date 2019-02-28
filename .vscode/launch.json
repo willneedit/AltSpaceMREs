@@ -9,13 +9,13 @@
             "request": "attach",
             "name": "Attach to Chrome",
             "port": 9999,
-            "webRoot": "${workspaceFolder}\\public"
+            "webRoot": "${workspaceFolder}/public"
         },
         {
             "type": "node",
             "request": "launch",
             "name": "Launch Program",
-            "program": "${workspaceFolder}\\built\\server.js",
+            "program": "${workspaceFolder}/built/server.js",
             "outFiles": [
                 "${workspaceFolder}/**/*.js"
             ]

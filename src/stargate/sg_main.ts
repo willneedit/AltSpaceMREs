@@ -46,6 +46,7 @@ export default class Stargate extends StargateLike {
     private gateRing: Actor = null;
     private gateRingAngle = 0;
     private gateHorizon: Actor = null;
+    private gateHorizonTeleporter: Actor = null;
     private gateChevrons: Actor[] = [ null, null, null, null, null, null, null, null, null ];
     private chevronAngles: number[] = [ 240, 280, 320, 0, 40, 80, 120, 160, 200 ];
 
@@ -76,25 +77,20 @@ export default class Stargate extends StargateLike {
         this.context.onUserLeft((user: User) => SGNetwork.removeUser(user.name));
         this.context.onStopped(this.stopped);
 
-        // Try by ID and location, in this order
-        if (!this.id && params.id) this._gateID = params.id as string;
-        if (!this.id && params.location) this._gateID = SGNetwork.getLocationId(params.location as string);
-
-        // Try by gate's session ID
-        if (!this.id) this._gateID = SGNetwork.getIdBySessId(this.sessID);
-
-        // Register if found, else wait for the A-Frame component to announce itself.
-        if (this.id) SGNetwork.registerGate(this);
-        else console.info('Neither ID nor Location given - deferring Stargate registration');
+        // Try by ID, then look up in database
+        if (params.id) this.registerGate(params.id as string);
+        else {
+            SGNetwork.getIdBySessId(this.sessID).then((id: string) => {
+                this.registerGate(id);
+            }).catch(() => {
+                console.info('No ID given, and Gate unregistered.');
+            });
+        }
     }
 
     public registerGate(id: string) {
-        if (!this.id) {
-            this._gateID = id;
-            SGNetwork.registerGate(this);
-        } else if (this.id !== id) {
-            console.error(`Gate: ID COLLISION: ${this.id} vs. retrieved ID ${id}`);
-        }
+        this._gateID = id;
+        SGNetwork.registerGate(this);
     }
 
     /**
@@ -189,12 +185,15 @@ export default class Stargate extends StargateLike {
     private started = () => {
         this.initstatus = InitStatus.initializing;
 
-        if (!SGNetwork.requestSession(this.sessID)) return;
         this.initGate();
     }
 
     private stopped = () => {
         if (this.gateStatus !== GateStatus.idle) {
+            // Hack: Set GateStatus to idle, so that we just deregister ourselves and fiddle with the
+            // remote gate rather than trying to modify the gate status here and having hung requests.
+            this._gateStatus = GateStatus.idle;
+
             if (!this.currentDirection) {
                 console.debug(`World with active gate falls empty, stopping gate operation`);
                 this.timeOutGate(this.currentTimeStamp);
@@ -313,33 +312,42 @@ export default class Stargate extends StargateLike {
 
         this._gateStatus = GateStatus.engaged;
 
-        const loc = SGNetwork.getTarget(this.currentTarget);
-        if (loc) {
-            if (this.gateHorizon != null) {
-                this.gateHorizon.destroy();
-                this.gateHorizon = null;
-            }
-            this.gateHorizon = Actor.CreateFromLibrary(this.context, {
+        SGNetwork.getTarget(this.currentTarget).then((loc: string) => {
+            Actor.CreateFromLibrary(this.context, {
                 resourceId: this.gateHorizonOpening,
                 actor: {
                     transform: {
                         rotation: Quaternion.RotationAxis(Vector3.Right(), Math.PI / 2)
                     }
                 }
-            }).value;
+            }).then((gateHorizon) => {
+                if (this.gateHorizon != null) this.gateHorizon.destroy();
+                this.gateHorizon = gateHorizon;
 
-            if (SGNetwork.emitPortalControlMsg(this.id, JSON.stringify({ command: 'engage', location: loc }))) {
-                // Ignore the error code (this one and the other 180 :) ) from the target gate
-                // saying it is already engaged with another connection
-                this.reportStatus(`${this.currentDirection ? 'Incoming w' : 'W'}ormhole active`);
-                if (!this.currentDirection) {
-                    delay(this.whTimeout * 1000).then(
-                        () => this.timeOutGate(this.currentTimeStamp));
-                }
-                return;
-            } else this.reportStatus('Error: Cannot establish wormhole - gate unpowered');
-        } else this.reportStatus('Error: Cannot establish wormhole - no endpoint');
-        this.resetGate();
+                this.gateHorizonTeleporter = Actor.CreateFromLibrary(this.context, {
+                    resourceId: `Teleporter:${loc}`,
+                    actor: {
+                        parentId: gateHorizon.id,
+                        transform: {
+                            // Teleporter is a bit bugged and need an explicit PRS setting,
+                            // else it spawns at (0,0,0), regardless of parenting.
+                            position: { x: 0, y: 0, z: 0 },
+                            rotation: Quaternion.RotationAxis(Vector3.Right(), 0),
+                            scale: { x: 5.4, y: 0.01, z: 5.4 }
+                        }
+                    }
+                }).value;
+            });
+
+            this.reportStatus(`${this.currentDirection ? 'Incoming w' : 'W'}ormhole active`);
+            if (!this.currentDirection) {
+                delay(this.whTimeout * 1000).then(
+                    () => this.timeOutGate(this.currentTimeStamp));
+            }
+        }).catch((err) => {
+            this.reportStatus('Error: Cannot establish wormhole - no endpoint');
+            this.resetGate();
+        });
     }
 
     /**
@@ -356,6 +364,11 @@ export default class Stargate extends StargateLike {
         if (this.currentTimeStamp !== oldTs) return;
 
         if (this.gateStatus === GateStatus.engaged) {
+            if (this.gateHorizonTeleporter) {
+                this.gateHorizonTeleporter.destroy();
+                this.gateHorizonTeleporter = null;
+            }
+
             Actor.CreateFromLibrary(this.context, {
                 resourceId: this.gateHorizonClosing,
                 actor: {
@@ -376,7 +389,8 @@ export default class Stargate extends StargateLike {
         }
 
         if (this.gateStatus === GateStatus.engaged) {
-            SGNetwork.emitPortalControlMsg(this.id, JSON.stringify({ command: 'disengage' }));
+            // TODO: Despawn Teleporter
+
             this.reportStatus('Wormhole disengaged');
             this.resetGate();
         }
@@ -453,52 +467,4 @@ export default class Stargate extends StargateLike {
         this.reportStatus('Dialing...');
     }
 
-    /**
-     * Control connection endpoint as registered in dispatch.ts
-     * @param {WebSocket} ws Endpoint for the portal in the enclosure
-     * @param data Parameter (here: The init message)
-     */
-    public static control(ws: WebSocket, data: ParameterSet): void {
-
-        const params = QueryString.parseUrl(data.url as string).query;
-        const loc = (params.location || data.sid) as string;
-        const id = (params.id || SGNetwork.getLocationId(loc)) as string;
-
-        // Configure the size of the newly found portal endpoint: Currently it's echoing back its
-        // own one.
-        if (params.size) {
-            const newSize = params.size as string;
-            ws.send(JSON.stringify({
-                command: 'size=',
-                size: newSize
-            }));
-        }
-
-        if (SGNetwork.registerTarget(id, loc, ws)) {
-            // const mreUserName = `Player [${data.userName as string}]`;
-            const mreUserName = data.userName as string;
-            Stargate.doDeferredRegistration(mreUserName, id);
-        }
-    }
-
-    private static async doDeferredRegistration(mreUserName: string, id: string, retry?: number) {
-        if (!retry) retry = 1;
-
-        // Server restarted, and maybe some stale connections from users who are already gone, give up.
-        if (retry > 5) return;
-
-        const userMeetup = SGNetwork.getInfoForUser(mreUserName);
-        let again = false;
-        if (userMeetup) {
-            const gate = userMeetup.gate;
-            if (gate) gate.registerGate(id);
-            else again = true;
-
-            const dcomp = userMeetup.comp;
-            if (dcomp) dcomp.registerDC(id);
-            else again = true;
-        } else again = true;
-
-        if (again) delay(1000).then(() => this.doDeferredRegistration(mreUserName, id, retry + 1 ));
-    }
 }

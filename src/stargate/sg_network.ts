@@ -9,130 +9,29 @@ import { GateOperation, SGDialCompLike, StargateDespawned, StargateLike } from "
 import SHA1 from 'sha1';
 
 import bigInt from 'big-integer';
-import FS from 'fs';
-import { SGDB } from './sg_database';
 
-interface ControlSockets {
-    [id: string]: WebSocket;
-}
+import QueryString from 'query-string';
+
+import { SGDB, SGDBLocationEntry } from './sg_database';
+
+import { ParameterSet } from '@microsoft/mixed-reality-extension-sdk';
 
 interface TargetReg {
     gate: StargateLike;
     comp: SGDialCompLike;
-    location: string;
-    locked: boolean;
-    lastcid: 0;
-    control: ControlSockets;
 }
 
-interface UserMeetup {
-    gate: StargateLike;
-    comp: SGDialCompLike;
-}
-
-interface SpamEntry {
-    timestamp: number;
-    count: number;
-}
 export default class SGNetwork {
     private static targets: { [id: string]: TargetReg } = { };
-    private static userMeetup: { [id: string]: UserMeetup } = { };
-    private static sessionIDs: { [sessId: string]: string } = { };
-    private static sessIDTimeouts: { [sessId: string]: SpamEntry } = { };
-
-    private static nextUpdate = 0;
-    private static updateInterval = 60;
-
-    public static requestSession(sessId: string): boolean {
-        return true;
-
-        const current = new Date().getTime() / 1000;
-
-        if (!this.sessIDTimeouts[sessId]) {
-            this.sessIDTimeouts[sessId] = { timestamp: current, count: 1 };
-            return true;
-        }
-
-        // Past timeout, remove entry, everything's good
-        if (current > this.sessIDTimeouts[sessId].timestamp + 30) {
-            this.sessIDTimeouts[sessId] = undefined;
-            return true;
-        }
-
-        // Flood protection: Deny if 10 or more requests accumulated,
-        // reset counter if 30 seconds have passed without incident.
-        this.sessIDTimeouts[sessId].timestamp = current;
-
-        if (this.sessIDTimeouts[sessId].count++ < 10) return true;
-
-        return false;
-    }
-
-    private static async doUpdate() {
-        const list: { [id: string]: string } = { };
-
-        for (const key in this.targets) {
-            if (SGNetwork.targets.hasOwnProperty(key)) {
-                list[key] = this.targets[key].location;
-            }
-        }
-
-        FS.writeFile('public/SGNetwork.json',
-            JSON.stringify(list), (err) => {
-                if (!err) {
-                    console.log(`Portal network saved.`);
-                }
-            }
-        );
-    }
-
-    private static scheduleUpdate() {
-        // Aim for one minute after this trigger.
-        const proposed = Math.round((new Date()).getTime() / 1000) + this.updateInterval;
-
-        // Do not schedule an update if it'd be still too soon after the next pending one.
-        if (proposed < this.nextUpdate + this.updateInterval) return;
-
-        this.nextUpdate = proposed;
-        setTimeout(() => this.doUpdate(), this.updateInterval * 1000);
-    }
-
-    public static bootstrapNetwork(data: Buffer) {
-        // Try to cope with the file's data....
-        try {
-            const list = JSON.parse(data.toString());
-
-            for (const key in list) {
-                if (list.hasOwnProperty(key)) this.registerTarget(key, list[key]);
-            }
-
-        } catch (e) {
-            console.error(`Error encountered in SG Bootstrap data, message: ${e.message}`);
-        }
-
-        // ... and then add the database data on top of it.
-        SGDB.registerLocationList((id: string, location: string, locked: boolean) => {
-            const res = SGNetwork.createDBEntry(id);
-            if (this.targets[id].location !== location) {
-                console.log(`Updating portal endpoint for ID ${id} to location ${location}`);
-            }
-            this.targets[id].location = location;
-            this.targets[id].locked = locked;
-        });
-    }
+    private static userMeetup: { [id: string]: TargetReg } = { };
 
     public static loadNetwork() {
-        SGDB.init().then(() => {
-            FS.readFile('public/SGNetwork.json', (err, data) => {
-                if (err) console.log(`Cannot read stargate network bootstrap info.`);
-                else this.bootstrapNetwork(data);
-            });
-        });
+        SGDB.init();
     }
 
     private static createDBEntry(id: string): boolean {
         if (!this.targets[id]) {
-            this.targets[id] = { location: null, locked: false, lastcid: 0, control: {}, gate: null, comp: null };
+            this.targets[id] = { gate: null, comp: null };
             return true;
         }
 
@@ -141,13 +40,11 @@ export default class SGNetwork {
 
     public static registerGate(gate: StargateLike) {
         const id = gate.id;
-        const sessid = gate.sessID;
 
         SGNetwork.createDBEntry(id);
 
         this.targets[id].gate = gate;
-        this.sessionIDs[sessid] = id;
-        console.info(`Registering gate for ID ${id}`);
+        console.info(`Announcing gate for ID ${id}`);
     }
 
     public static deregisterGate(id: string) {
@@ -155,72 +52,58 @@ export default class SGNetwork {
 
         this.targets[id].gate = new StargateDespawned();
 
-        if (this.targets[id] && this.targets[id].control) {
-            // Close and deregister the control connections.
-            Object.keys(this.targets[id].control).forEach(
-                (key) => {
-                    const ws = this.targets[id].control[key];
-                    if (ws) ws.close();
-                }
-            );
-            this.targets[id].control = { };
-            this.targets[id].lastcid = 0;
-        }
-
-        console.info(`Unregistering gate for ID ${id}`);
-    }
-
-    public static registerTarget(id: string, loc: string, ws?: WebSocket): boolean {
-        const res = SGNetwork.createDBEntry(id);
-
-        const oldloc = this.targets[id].location;
-
-        if (oldloc !== loc && this.targets[id].locked) {
-            console.error(`Registering of new location ${loc} on ${id} DENIED -- location locked to ${oldloc}`);
-            return false;
-        }
-
-        this.targets[id].location = loc;
-
-        if (ws) {
-            const cid = this.targets[id].lastcid++;
-
-            this.targets[id].control[cid] = ws;
-            console.info(`Registering portal endpoint for ID ${id} at location ${loc}, endpoint number ${cid}`);
-
-            // This is a new one rather than a reload, schedule an update.
-            // this.scheduleUpdate();
-            if (loc !== oldloc) SGDB.updateLocation(id, loc);
-        } else console.info(`Registering portal endpoint for ID ${id} at location ${loc}`);
-
-        return true;
+        console.info(`Removing gate for ID ${id}`);
     }
 
     public static registerDialComp(dial: SGDialCompLike) {
         const id = dial.id;
-        const sessid = dial.sessID;
 
         SGNetwork.createDBEntry(id);
 
         this.targets[id].comp = dial;
-        this.sessionIDs[sessid] = id;
-        console.info(`Registering dial computer for ID ${id}`);
+        console.info(`Announcing dial computer for ID ${id}`);
     }
 
     public static getGate(id: string): StargateLike {
         return this.targets[id] && this.targets[id].gate;
     }
 
-    public static getTarget(id: string): string {
-        return this.targets[id] && this.targets[id].location;
-    }
-
     public static getDialComp(id: string) {
         return this.targets[id] && this.targets[id].comp;
     }
 
-    public static getControlSockets(id: string): ControlSockets {
-        return this.targets[id] && this.targets[id].control;
+    public static async getTarget(id: string): Promise<string> {
+        return SGDB.getLocationDataId(id).then((res: SGDBLocationEntry) => {
+            return res.location;
+        });
+    }
+
+    public static registerGateForUser(user: string, gate: StargateLike) {
+        if (!this.userMeetup[user]) this.userMeetup[user] = { gate: null, comp: null };
+
+        this.userMeetup[user].gate = gate;
+        console.info(`Deferred registration: Stargate found by ${user}`);
+    }
+
+    public static registerDCForUser(user: string, comp: SGDialCompLike) {
+        if (!this.userMeetup[user]) this.userMeetup[user] = { gate: null, comp: null };
+
+        this.userMeetup[user].comp = comp;
+        console.info(`Deferred registration: Dialing computer found by ${user}`);
+    }
+
+    public static removeUser(user: string) {
+        // Unhook old data when user leaves to avoid stale data messing things up when he transitions
+        // to a new space with a stargate
+        this.userMeetup[user] = { gate: null, comp: null };
+    }
+
+    public static getInfoForUser(user: string): TargetReg {
+        return this.userMeetup[user];
+    }
+
+    public static async getIdBySessId(sessid: string) {
+        return SGDB.getIdForSid(sessid);
     }
 
     public static getLocationIdSequence(location: string): number[] {
@@ -240,41 +123,6 @@ export default class SGNetwork {
         return seq;
     }
 
-    public static registerGateForUser(user: string, gate: StargateLike) {
-        if (!this.userMeetup[user]) this.userMeetup[user] = { gate: null, comp: null };
-        if (!this.userMeetup[user].gate) {
-            this.userMeetup[user].gate = gate;
-            console.info(`Deferred registration: Stargate found by ${user}`);
-        }
-    }
-
-    public static registerDCForUser(user: string, comp: SGDialCompLike) {
-        if (!this.userMeetup[user]) this.userMeetup[user] = { gate: null, comp: null };
-        if (!this.userMeetup[user].comp) {
-            this.userMeetup[user].comp = comp;
-            console.info(`Deferred registration: Dialing computer found by ${user}`);
-        }
-    }
-
-    public static removeUser(user: string) {
-        // Unhook old data when user leaves to avoid stale data messing things up when he transitions
-        // to a new space with a stargate
-        this.userMeetup[user] = { gate: null, comp: null };
-    }
-
-    public static getInfoForUser(user: string): UserMeetup {
-        return this.userMeetup[user];
-    }
-
-    public static getIdBySessId(sessid: string) {
-        return this.sessionIDs[sessid];
-    }
-
-    public static getLocationId(location: string): string {
-        const seq = this.getLocationIdSequence(location);
-        return this.stringifySequence(seq);
-    }
-
     public static stringifySequence(sequence: number[]): string {
         const lowerA = "a".charCodeAt(0);
         const upperA = "A".charCodeAt(0);
@@ -288,26 +136,123 @@ export default class SGNetwork {
         return str;
     }
 
-    public static emitPortalControlMsg(id: string, msg: string): boolean {
-        const css = SGNetwork.getControlSockets(id);
+    public static getLocationId(location: string): string {
+        const seq = this.getLocationIdSequence(location);
+        return this.stringifySequence(seq);
+    }
 
-        if (!css) return false;
+    public static async sgRegisterInitResponse(
+        ws: WebSocket,
+        myuser: string,
+        mysgid: string,
+        mylocation: string,
+        mystatus: string) {
+        const userInfo = this.getInfoForUser(myuser);
 
-        // Broadcast the control message, remove stale sockets from list (from clients of users who have left)
-        Object.keys(css).forEach(
-            (key) => {
-                if (css[key]) {
-                    css[key].send(msg, (err) => {
-                        if (err) {
-                            this.targets[id].control[key] = null;
-                            console.info(`Removed stale endpoint for ID ${id}, endpoint number ${key}`);
-                        }
-                    });
-                }
+        const getReg = async (sid: string): Promise<string> => {
+            return this.getIdBySessId(sid).then((id: string) => id ).catch((err) => 'unregistered');
+        };
+
+        const sids = [ ];
+        if (userInfo) {
+            if (userInfo.gate) {
+                const reg = await getReg(userInfo.gate.sessID);
+                sids.push(`Gate: ${userInfo.gate.sessID} - ${reg}`);
             }
-        );
+            if (userInfo.comp) {
+                const reg = await getReg(userInfo.comp.sessID);
+                sids.push(`Dial Computer: ${userInfo.comp.sessID} - ${reg}`);
+            }
+        }
 
-        return true;
+        ws.send(JSON.stringify({
+            objlist: sids,
+            sgid: mysgid,
+            location: mylocation,
+            status: mystatus
+        }));
+    }
+
+    public static async sgRegisterInit(ws: WebSocket, data: ParameterSet) {
+        const mysgid = await SGDB.getLocationDataLoc(data.location as string)
+            .then((value) => value.id)
+            .catch(() => this.getLocationId(data.location as string));
+        const okAdmin = await SGNetwork.isAdminLevelReq(data);
+
+        SGNetwork.sgRegisterDisplayStatus(mysgid, ws, data);
+
+        ws.send(JSON.stringify({
+            response: 'init_response',
+            isAdmin: okAdmin
+        }));
+    }
+
+    private static sgRegisterDisplayStatus(mysgid: string, ws: WebSocket, data: ParameterSet) {
+        SGDB.getLocationDataId(mysgid).then(
+            (locdata) => this.sgRegisterInitResponse(
+                ws, data.userName as string, locdata.id,
+                locdata.location, locdata.locked ? 'locked' : 'unlocked')
+        ).catch(
+            (err) => this.sgRegisterInitResponse(
+                ws, data.userName as string, mysgid, data.location as string, 'unregistered')
+        );
+    }
+
+    public static async sgRegister(ws: WebSocket, data: ParameterSet) {
+        const okAdmin = await SGNetwork.isAdminLevelReq(data);
+
+        let mylocation = data.location && data.location as string;
+        let mysgid = data.sgid as string;
+        const customSgid = (data.custom_sgid as string) || '';
+        if (okAdmin && customSgid !== '') mysgid = customSgid;
+
+        const userInfo = this.getInfoForUser(data.userName as string);
+
+        await SGDB.registerLocation(mysgid, mylocation);
+
+        // Either read back the new entry or get the old one if the update was rejected
+        const locdata = await SGDB.getLocationDataId(mysgid);
+        mylocation = locdata.location;
+        mysgid = locdata.id;
+
+        if (userInfo && userInfo.gate) {
+            SGDB.registerIdForSid(userInfo.gate.sessID, mylocation && mysgid);
+            userInfo.gate.registerGate(mysgid);
+        }
+
+        if (userInfo && userInfo.comp) {
+            SGDB.registerIdForSid(userInfo.comp.sessID, mylocation && mysgid);
+            userInfo.comp.registerDC(mysgid);
+        }
+
+        this.sgRegisterDisplayStatus(mysgid, ws, data);
+
+    }
+
+    public static async sgAdmin(ws: WebSocket, data: ParameterSet) {
+        const okAdmin = await SGNetwork.isAdminLevelReq(data);
+
+        if (data.command === 'delete') {
+            if (okAdmin) SGDB.deleteLocation(data.id as string);
+            data.command = 'getlist';
+        }
+
+        if (data.command === 'getlist') {
+            const result: SGDBLocationEntry[] = [ ];
+
+            await SGDB.forEachLocation((val) => {
+                result.push(val);
+            });
+
+            ws.send(JSON.stringify({ isAdmin: okAdmin, response: 'getlist', lines: result }));
+        }
+    }
+
+    private static async isAdminLevelReq(data: ParameterSet) {
+        const query = QueryString.parseUrl(data.url as string);
+        const okAdmin = query.query.pw &&
+            await SGDB.isAdmin(query.query.pw as string).then(() => true).catch(() => false);
+        return okAdmin;
     }
 
     public static async controlGateOperation(

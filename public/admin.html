@@ -1,0 +1,22 @@
+<html>
+    <head>
+        <title>Stargate Administration Panel</title>
+    </head>
+    <body bgcolor="#FFFFFF">
+        <script src="mre_conn.js"></script>
+        <script src="admin.js"></script>
+
+        <div id="whole">
+            <h1>List of registered worlds</h1>
+            <div id="worldlist">
+                Loading...
+            </div>
+        </div>
+        <script>
+            function populate(contents) {
+                document.querySelector('#worldlist').innerHTML = contents;
+            }
+        </script>
+        <script>window.addEventListener('load', main(), false);</script>
+    </body>
+</html>

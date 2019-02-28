@@ -26,9 +26,14 @@ export default class PGBackend {
             });
         } else {
             // Running locally, for testing purposes
+            // DATABASE MOVED, to ease use of Heroku's pg:push and pg:pull
+            // Used with:
+            //  PGHOST=localhost PGUSER=postgres PGPASSWORD=postgresql \
+            //  heroku pg:pull DATABASE_URL stargate -a willneedit-mre
+            // Use 'CREATE DATABASE stargate;' to initialize
             this.dbConn = new PG({
                 host: 'localhost',
-                database: 'postgres',
+                database: 'stargate',
                 user: 'postgres',
                 password: 'postgresql'
             });
