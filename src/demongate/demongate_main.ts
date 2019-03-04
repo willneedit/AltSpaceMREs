@@ -21,11 +21,11 @@ import DoorGuard from "../DoorGuard";
 export default class DemonGate extends Applet {
     private initialized = false;
 
-    private candleId = '1149165753065275931';
-    private candleFlameId = '1149165752914280986';
-    private pentagramLineId = '1149165752729731609';
-    private gateFrameId = '1149165758366876188';
-    private gateInsetId = '1149165763660087837';
+    private candleId = 'artifact:1149165753065275931';
+    private candleFlameId = 'artifact:1149165752914280986';
+    private pentagramLineId = 'artifact:1149165752729731609';
+    private gateFrameId = 'artifact:1149165758366876188';
+    private gateInsetId = 'artifact:1149165763660087837';
 
     private candles: Actor[] = [ null, null, null, null, null ];
     private candleFlames: Actor[] = [ null, null, null, null, null ];

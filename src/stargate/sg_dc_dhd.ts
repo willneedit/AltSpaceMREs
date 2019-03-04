@@ -23,7 +23,7 @@ interface TierDefinition {
 
 export default class SGDCDHD extends SGDCBase {
 
-    private dhdModelId = '1144262470072795308';
+    private dhdModelId = 'artifact:1144262470072795308';
 
     private tiers: TierDefinition[] = [
         { letterRadius: -0.34, letterHeight: 0.13, letterElevation: 0.27 }, // Inner Circle

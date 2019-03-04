@@ -50,16 +50,16 @@ export default class Stargate extends StargateLike {
     private gateChevrons: Actor[] = [ null, null, null, null, null, null, null, null, null ];
     private chevronAngles: number[] = [ 240, 280, 320, 0, 40, 80, 120, 160, 200 ];
 
-    private gateFrameId = '1144171771746845684';
-    private gateRingId = '1144171766839510003';
-    private gateChevronLitId = '1144171760086680562';
-    private gateChevronUnlitId = '1144171776629015542';
+    private gateFrameId = 'artifact:1144171771746845684';
+    private gateRingId = 'artifact:1144171766839510003';
+    private gateChevronLitId = 'artifact:1144171760086680562';
+    private gateChevronUnlitId = 'artifact:1144171776629015542';
 
-    private gateHorizonOpening = '1144997990889422905';
-    private gateHorizonClosing = '1144997995519934522';
+    private gateHorizonOpening = 'artifact:1144997990889422905';
+    private gateHorizonClosing = 'artifact:1144997995519934522';
 
-    private soundChevronLockId = '1149312917426929915';
-    private soundGateTurningId = '1149312917628256508';
+    private soundChevronLockId = 'artifact:1149312917426929915';
+    private soundGateTurningId = 'artifact:1149312917628256508';
 
     public get gateStatus() { return this._gateStatus; }
     public get id() { return this._gateID; }

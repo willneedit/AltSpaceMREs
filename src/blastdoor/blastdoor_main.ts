@@ -17,15 +17,16 @@ import {
 import Applet from "../Applet";
 import DoorGuard from "../DoorGuard";
 import KitAudio from "../kit_audio";
+
 import { delay } from "../helpers";
 
 export default class BlastDoor extends Applet {
     private initialized = false;
 
-    private blastDoorLeftId = '1155082333288661757';
-    private blastDoorRightId = '1155082327643128572';
-    private blastDoorLockId = '1155082317299974906';
-    private blastDoorSoundFXId = '1155082322744181499';
+    private blastDoorLeftId = 'artifact:1155082333288661757';
+    private blastDoorRightId = 'artifact:1155082327643128572';
+    private blastDoorLockId = 'artifact:1155082317299974906';
+    private blastDoorSoundFXId = 'artifact:1155082322744181499';
 
     private blastDoorLeft: Actor = null;
     private blastDoorRight: Actor = null;
