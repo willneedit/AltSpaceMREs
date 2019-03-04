@@ -9,6 +9,7 @@ import { single_param } from "./helpers";
 
 import WebSocket from 'ws';
 
+import BlastDoor from "./blastdoor/blastdoor_main";
 import DemonGate from "./demongate/demongate_main";
 import HelloWorld from "./helloworld";
 import SGDCDebug from "./stargate/sg_dc_debug";
@@ -32,6 +33,7 @@ const registry: { [key: string]: () => Applet } = {
     gltf: (): Applet => new ShowGLTF(),
     kit: (): Applet => new ShowKitObj(),
     demongate: (): Applet => new DemonGate(),
+    blastdoor: (): Applet => new BlastDoor(),
 };
 
 /**
