@@ -22,7 +22,7 @@ import {
     StargateLike,
 } from "./sg_types";
 
-import { delay, initSound } from "../helpers";
+import { delay, initSound, restartSound } from "../helpers";
 import SGNetwork from "./sg_network";
 
 import QueryString from 'query-string';
@@ -437,7 +437,7 @@ export default class Stargate extends StargateLike {
             await this.dialChevron(chevron, symbol, direction);
             direction = !direction;
             this.soundGateTurning.pause();
-            this.soundChevronLock.resume();
+            restartSound(this.soundChevronLock);
             await SGNetwork.controlGateOperation(this.id, this.currentTarget, GateOperation.lightChevron, chevron++);
 
             if (this.abortRequested) {

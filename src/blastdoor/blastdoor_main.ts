@@ -18,7 +18,7 @@ import {
 import Applet from "../Applet";
 import DoorGuard from "../DoorGuard";
 
-import { delay, initSound } from "../helpers";
+import { delay, initSound, restartSound } from "../helpers";
 
 export default class BlastDoor extends Applet {
     private initialized = false;
@@ -27,7 +27,7 @@ export default class BlastDoor extends Applet {
     private blastDoorRightId = 'artifact:1155082327643128572';
     private blastDoorLockId = 'artifact:1155082317299974906';
 
-    private externBaseURL = 'https://raw.githubusercontent.com/willneedit/willneedit.github.io/master/MRE/blastdoor';
+    private externBaseURL = 'https://raw.githubusercontent.com/willneedit/willneedit.github.io/master/MRE/BlastDoor';
     private blastDoorSoundFXURL = `${this.externBaseURL}/Powered_Sliding_Door.wav`;
 
     private blastDoorRoot: Actor = null;
@@ -53,7 +53,7 @@ export default class BlastDoor extends Applet {
     private async closeDoor() {
         this.open = false;
 
-        this.blastDoorSoundFX.resume();
+        restartSound(this.blastDoorSoundFX);
 
         this.blastDoorLeft.animateTo({
             transform: {
@@ -79,7 +79,7 @@ export default class BlastDoor extends Applet {
 
         this.open = true;
 
-        this.blastDoorSoundFX.resume();
+        restartSound(this.blastDoorSoundFX);
 
         this.blastDoorLeft.animateTo({
             transform: {
