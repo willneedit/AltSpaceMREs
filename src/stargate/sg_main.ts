@@ -10,6 +10,7 @@ import {
     DegreesToRadians,
     ParameterSet,
     Quaternion,
+    SoundInstance,
     User,
     Vector3,
 } from "@microsoft/mixed-reality-extension-sdk";
@@ -21,13 +22,12 @@ import {
     StargateLike,
 } from "./sg_types";
 
-import { delay } from "../helpers";
+import { delay, initSound } from "../helpers";
 import SGNetwork from "./sg_network";
 
 import QueryString from 'query-string';
 import WebSocket from 'ws';
 import DoorGuard from "../DoorGuard";
-import KitAudio from "../kit_audio";
 
 export default class Stargate extends StargateLike {
 
@@ -58,8 +58,12 @@ export default class Stargate extends StargateLike {
     private gateHorizonOpening = 'artifact:1144997990889422905';
     private gateHorizonClosing = 'artifact:1144997995519934522';
 
-    private soundChevronLockId = 'artifact:1149312917426929915';
-    private soundGateTurningId = 'artifact:1149312917628256508';
+    private externBaseURL = 'https://raw.githubusercontent.com/willneedit/willneedit.github.io/master/MRE/stargate';
+    private soundChevronLockURL = `${this.externBaseURL}/SG_Chevron_lock.wav`;
+    private soundGateTurningURL = `${this.externBaseURL}/SG_Turn_Grind.wav`;
+
+    private soundChevronLock: SoundInstance = null;
+    private soundGateTurning: SoundInstance = null;
 
     public get gateStatus() { return this._gateStatus; }
     public get id() { return this._gateID; }
@@ -167,6 +171,9 @@ export default class Stargate extends StargateLike {
                 }
             }
         ).value;
+
+        this.soundGateTurning = initSound(this.gateRing, this.soundGateTurningURL, { looping: true }).value;
+        this.soundChevronLock = initSound(this.gateRing, this.soundChevronLockURL).value;
 
         this.resetGate();
 
@@ -389,8 +396,6 @@ export default class Stargate extends StargateLike {
         }
 
         if (this.gateStatus === GateStatus.engaged) {
-            // TODO: Despawn Teleporter
-
             this.reportStatus('Wormhole disengaged');
             this.resetGate();
         }
@@ -428,11 +433,11 @@ export default class Stargate extends StargateLike {
 
         // Dial up the sequence, alternating directions
         for (const symbol of sequence) {
-            KitAudio.startSound(this.context, this.soundGateTurningId);
+            this.soundGateTurning.resume();
             await this.dialChevron(chevron, symbol, direction);
             direction = !direction;
-            KitAudio.stopSound(this.context, this.soundGateTurningId);
-            KitAudio.startSound(this.context, this.soundChevronLockId);
+            this.soundGateTurning.pause();
+            this.soundChevronLock.resume();
             await SGNetwork.controlGateOperation(this.id, this.currentTarget, GateOperation.lightChevron, chevron++);
 
             if (this.abortRequested) {

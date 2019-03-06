@@ -10,15 +10,15 @@ import {
     Context,
     ParameterSet,
     Quaternion,
+    SoundInstance,
     User,
     Vector3,
 } from "@microsoft/mixed-reality-extension-sdk";
 
 import Applet from "../Applet";
 import DoorGuard from "../DoorGuard";
-import KitAudio from "../kit_audio";
 
-import { delay } from "../helpers";
+import { delay, initSound } from "../helpers";
 
 export default class BlastDoor extends Applet {
     private initialized = false;
@@ -26,11 +26,16 @@ export default class BlastDoor extends Applet {
     private blastDoorLeftId = 'artifact:1155082333288661757';
     private blastDoorRightId = 'artifact:1155082327643128572';
     private blastDoorLockId = 'artifact:1155082317299974906';
-    private blastDoorSoundFXId = 'artifact:1155082322744181499';
 
+    private externBaseURL = 'https://raw.githubusercontent.com/willneedit/willneedit.github.io/master/MRE/blastdoor';
+    private blastDoorSoundFXURL = `${this.externBaseURL}/Powered_Sliding_Door.wav`;
+
+    private blastDoorRoot: Actor = null;
     private blastDoorLeft: Actor = null;
     private blastDoorRight: Actor = null;
     private blastDoorLock: Actor = null;
+
+    private blastDoorSoundFX: SoundInstance = null;
 
     private open = false;
 
@@ -48,7 +53,7 @@ export default class BlastDoor extends Applet {
     private async closeDoor() {
         this.open = false;
 
-        await KitAudio.startSound(this.context, this.blastDoorSoundFXId);
+        this.blastDoorSoundFX.resume();
 
         this.blastDoorLeft.animateTo({
             transform: {
@@ -74,7 +79,7 @@ export default class BlastDoor extends Applet {
 
         this.open = true;
 
-        await KitAudio.startSound(this.context, this.blastDoorSoundFXId);
+        this.blastDoorSoundFX.resume();
 
         this.blastDoorLeft.animateTo({
             transform: {
@@ -102,6 +107,8 @@ export default class BlastDoor extends Applet {
 
         this.initialized = true;
 
+        this.blastDoorRoot = Actor.CreateEmpty(this.context).value;
+
         this.blastDoorLeft = Actor.CreateFromLibrary(this.context, {
             resourceId: this.blastDoorLeftId
         }).value;
@@ -122,5 +129,7 @@ export default class BlastDoor extends Applet {
 
         this.blastDoorLock.setBehavior(ButtonBehavior).onClick('pressed',
             (userId: string) => this.doorUsed(userId) );
+
+        this.blastDoorSoundFX = initSound(this.blastDoorRoot, this.blastDoorSoundFXURL).value;
     }
 }
