@@ -25,8 +25,6 @@ import {
 import { delay, initSound, restartSound } from "../helpers";
 import SGNetwork from "./sg_network";
 
-import QueryString from 'query-string';
-import WebSocket from 'ws';
 import DoorGuard from "../DoorGuard";
 
 export default class Stargate extends StargateLike {
@@ -417,8 +415,13 @@ export default class Stargate extends StargateLike {
 
         await this.gateRing.createAnimation('rotation', {keyframes: rotAnim, events: []});
         this.gateRing.enableAnimation('rotation');
+
+        this.soundGateTurning.resume();
         await delay(rotAnim[rotAnim.length - 1].time * 1000 + 200);
+        this.soundGateTurning.pause();
+
         await this.gateRing.disableAnimation('rotation');
+        restartSound(this.soundChevronLock);
 
         this.gateRingAngle = tgtAngle;
     }
@@ -433,12 +436,9 @@ export default class Stargate extends StargateLike {
 
         // Dial up the sequence, alternating directions
         for (const symbol of sequence) {
-            this.soundGateTurning.resume();
             await this.dialChevron(chevron, symbol, direction);
-            direction = !direction;
-            this.soundGateTurning.pause();
-            restartSound(this.soundChevronLock);
             await SGNetwork.controlGateOperation(this.id, this.currentTarget, GateOperation.lightChevron, chevron++);
+            direction = !direction;
 
             if (this.abortRequested) {
                 return Promise.reject("Dialing sequence aborted");
