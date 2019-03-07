@@ -40,7 +40,7 @@ export default class DoorGuard {
     public static rung(ip: string) {
         this.rungList[ip] = (this.rungList[ip] || 0) + 1;
         setTimeout(() => {
-            if (this.rungList[ip] > 5) {
+            if (this.rungList[ip] > 50) {
                 console.warn(`Excessive connection attempts without handshakes from ${ip} - banning.`);
                 this.ban(ip);
                 this.rungList[ip] = undefined;
