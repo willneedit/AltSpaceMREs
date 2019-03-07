@@ -14,7 +14,7 @@ import DemonGate from "./demongate/demongate_main";
 import HelloWorld from "./helloworld";
 import SGDCDebug from "./stargate/sg_dc_debug";
 import SGDCDHD from "./stargate/sg_dc_dhd";
-import Stargate from "./stargate/sg_main";
+import StargateSG1 from "./stargate/sg_sg1";
 
 import SGNetwork from "./stargate/sg_network";
 
@@ -28,7 +28,7 @@ import DoorGuard from "./DoorGuard";
  */
 const registry: { [key: string]: () => Applet } = {
     helloworld: (): Applet => new HelloWorld(),
-    stargate: (): Applet => new Stargate(),
+    stargate: (): Applet => new StargateSG1(),
     sgdialcomp: (): Applet => new SGDCDHD(),
     gltf: (): Applet => new ShowGLTF(),
     kit: (): Applet => new ShowKitObj(),
