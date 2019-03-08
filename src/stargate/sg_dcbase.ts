@@ -146,13 +146,6 @@ export abstract class SGDCBase extends SGDialCompLike {
         this.sequence.push(key);
 
         if (this.sequence.length === 7) {
-            this.openTime = timestamp;
-
-            SGNetwork.controlGateOperation(
-                gate.id,
-                SGNetwork.stringifySequence(this.sequence),
-                GateOperation.startSequence,
-                this.openTime);
             gate.startDialing(this.sequence);
             this.sequence = [];
         } else if (key === 0) {

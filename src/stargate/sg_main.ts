@@ -287,6 +287,12 @@ export default abstract class Stargate extends StargateLike {
      * @param sequence Number sequence to dial
      */
     public async startDialing(sequence: number[]) {
+        SGNetwork.controlGateOperation(
+            this.id,
+            SGNetwork.stringifySequence(sequence),
+            GateOperation.startSequence,
+            (new Date().getTime() / 1000));
+
         this._gateStatus = GateStatus.dialing;
         this.dialSequence(sequence)
             .then(
