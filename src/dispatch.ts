@@ -22,6 +22,7 @@ import ShowGLTF from "./gltf/gltf_main";
 import ShowKitObj from "./kit/kit_main";
 
 import DoorGuard from "./DoorGuard";
+import StargateElven from "./stargate/sg_elven";
 
 /**
  * Contains the names and the factories for the given applets
@@ -29,6 +30,7 @@ import DoorGuard from "./DoorGuard";
 const registry: { [key: string]: () => Applet } = {
     helloworld: (): Applet => new HelloWorld(),
     stargate: (): Applet => new StargateSG1(),
+    sg_elven: (): Applet => new StargateElven(),
     sgdialcomp: (): Applet => new SGDCDHD(),
     gltf: (): Applet => new ShowGLTF(),
     kit: (): Applet => new ShowKitObj(),
