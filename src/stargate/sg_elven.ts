@@ -111,7 +111,10 @@ export default class StargateElven extends Stargate {
             {
                 resourceId: this.gateFrameId,
                 actor: {
-                    name: 'Gate Frame'
+                    name: 'Gate Frame',
+                    transform: {
+                        rotation: Quaternion.RotationAxis(Vector3.Up(), Math.PI)
+                    }
                 }
             }
         );
@@ -166,6 +169,7 @@ export default class StargateElven extends Stargate {
 
         const symbolLightRoot = Actor.CreateEmpty(this.context, {
             actor: {
+                parentId: this.gateFrame.id,
                 transform: {
                     rotation: Quaternion.RotationAxis(Vector3.Forward(), srcAngle * DegreesToRadians)
                 }
