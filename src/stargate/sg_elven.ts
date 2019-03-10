@@ -111,10 +111,7 @@ export default class StargateElven extends Stargate {
             {
                 resourceId: this.gateFrameId,
                 actor: {
-                    name: 'Gate Frame',
-                    transform: {
-                        rotation: Quaternion.RotationAxis(Vector3.Up(), Math.PI)
-                    }
+                    name: 'Gate Frame'
                 }
             }
         );
@@ -160,12 +157,15 @@ export default class StargateElven extends Stargate {
     protected async dialChevron(chevron: number, symbol: number, dialDirection: boolean) {
 
         // target angle for the ring to show a specific symbol at a given chevron
-        const tgtAngle = (symbol * 360 / 39) % 360;
+        let tgtAngle = (symbol * 360 / 39) % 360;
         const srcAngle = this.gateRingAngle;
+
+        if (Math.abs(tgtAngle - srcAngle) < 20) {
+            tgtAngle = tgtAngle + 360;
+        }
 
         const symbolLightRoot = Actor.CreateEmpty(this.context, {
             actor: {
-                parentId: this.gateFrame.id,
                 transform: {
                     rotation: Quaternion.RotationAxis(Vector3.Forward(), srcAngle * DegreesToRadians)
                 }
