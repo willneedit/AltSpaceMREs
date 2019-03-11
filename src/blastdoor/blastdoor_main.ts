@@ -27,14 +27,15 @@ export default class BlastDoor extends Applet {
     private blastDoorRightId = 'artifact:1155082327643128572';
     private blastDoorLockId = 'artifact:1155082317299974906';
 
+    private externBaseURL = 'https://raw.githubusercontent.com/willneedit/willneedit.github.io/master/MRE/BlastDoor';
+    private blastDoorSoundFXURL = `${this.externBaseURL}/Powered_Sliding_Door.wav`;
+
     private blastDoorRoot: Actor = null;
     private blastDoorLeft: Actor = null;
     private blastDoorRight: Actor = null;
     private blastDoorLock: Actor = null;
 
-    // private externBaseURL = 'https://raw.githubusercontent.com/willneedit/willneedit.github.io/master/MRE/BlastDoor';
-    // private blastDoorSoundFXURL = `${this.externBaseURL}/Powered_Sliding_Door.wav`;
-    // private blastDoorSoundFX: SoundInstance = null;
+    private blastDoorSoundFX: SoundInstance = null;
 
     private open = false;
 
@@ -52,7 +53,7 @@ export default class BlastDoor extends Applet {
     private async closeDoor() {
         this.open = false;
 
-        // restartSound(this.blastDoorSoundFX);
+        restartSound(this.blastDoorSoundFX);
 
         this.blastDoorLeft.animateTo({
             transform: {
@@ -78,7 +79,7 @@ export default class BlastDoor extends Applet {
 
         this.open = true;
 
-        // restartSound(this.blastDoorSoundFX);
+        restartSound(this.blastDoorSoundFX);
 
         this.blastDoorLeft.animateTo({
             transform: {
@@ -129,6 +130,6 @@ export default class BlastDoor extends Applet {
         this.blastDoorLock.setBehavior(ButtonBehavior).onClick('pressed',
             (userId: string) => this.doorUsed(userId) );
 
-        // this.blastDoorSoundFX = initSound(this.blastDoorRoot, this.blastDoorSoundFXURL).value;
+        this.blastDoorSoundFX = initSound(this.blastDoorRoot, this.blastDoorSoundFXURL).value;
     }
 }
