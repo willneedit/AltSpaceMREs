@@ -171,7 +171,7 @@ export default class StargateElven extends Stargate {
             actor: {
                 parentId: this.gateFrame.id,
                 transform: {
-                    rotation: Quaternion.RotationAxis(Vector3.Forward(), srcAngle * DegreesToRadians)
+                    rotation: Quaternion.RotationAxis(Vector3.Backward(), srcAngle * DegreesToRadians)
                 }
             }
         }).value;
@@ -190,7 +190,7 @@ export default class StargateElven extends Stargate {
         this.soundDialChime.resume();
         await symbolLightRoot.animateTo({
             transform: {
-                rotation: Quaternion.RotationAxis(Vector3.Forward(), tgtAngle * DegreesToRadians)
+                rotation: Quaternion.RotationAxis(Vector3.Backward(), tgtAngle * DegreesToRadians)
             }
         }, duration, AnimationEaseCurves.EaseInOutSine);
         await delay((duration + 1) * 1000);
