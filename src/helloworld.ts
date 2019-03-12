@@ -75,7 +75,7 @@ export default class HelloWorld extends Applet {
 
             // Optionally, we also repeat the animation infinitely.
             wrapMode: AnimationWrapMode.Loop
-        }).catch(reason => console.log(`Failed to create spin animation: ${reason}`));
+        });
 
         // Load a glTF model
         const cubePromise = Actor.CreateFromGLTF(this.context, {
@@ -102,17 +102,17 @@ export default class HelloWorld extends Applet {
         this.cube.createAnimation('GrowIn', {
             keyframes: this.growAnimationData,
             events: []
-        }).catch(reason => console.log(`Failed to create grow animation: ${reason}`));
+        });
 
         this.cube.createAnimation('ShrinkOut', {
             keyframes: this.shrinkAnimationData,
             events: []
-        }).catch(reason => console.log(`Failed to create shrink animation: ${reason}`));
+        });
 
         this.cube.createAnimation('DoAFlip', {
             keyframes: this.generateSpinKeyframes(1.0, Vector3.Right()),
             events: []
-        }).catch(reason => console.log(`Failed to create flip animation: ${reason}`));
+        });
 
         // Now that the text and its animation are all being set up, we can start playing
         // the animation.
