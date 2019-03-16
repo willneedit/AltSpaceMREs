@@ -22,6 +22,7 @@ import ShowGLTF from "./gltf/gltf_main";
 import ShowKitObj from "./kit/kit_main";
 
 import DoorGuard from "./DoorGuard";
+import SGDCElven from "./stargate/sg_dc_elven";
 import StargateElven from "./stargate/sg_elven";
 
 /**
@@ -32,6 +33,7 @@ const registry: { [key: string]: () => Applet } = {
     stargate: (): Applet => new StargateSG1(),
     sg_elven: (): Applet => new StargateElven(),
     sgdialcomp: (): Applet => new SGDCDHD(),
+    sg_elven_dhd: (): Applet => new SGDCElven(),
     gltf: (): Applet => new ShowGLTF(),
     kit: (): Applet => new ShowKitObj(),
     demongate: (): Applet => new DemonGate(),
