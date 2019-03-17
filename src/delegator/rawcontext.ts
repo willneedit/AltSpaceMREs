@@ -32,6 +32,15 @@ export class RawContext implements ContextLike {
     public onUserJoined(handler: (user: User) => void): this { this._baseContext.onUserJoined(handler); return this; }
     public onUserLeft(handler: (user: User) => void): this { this._baseContext.onUserLeft(handler); return this; }
 
+    public announceSelf() {
+        this.baseContext.emitter.emit('started');
+        for (const user in this.baseContext.users) {
+            if (this.baseContext.users.hasOwnProperty(user)) {
+                this.baseContext.emitter.emit('user-joined', this.baseContext.users[user]);
+            }
+        }
+    }
+
     public CreateEmpty(options?: any): ForwardPromise<Actor> {
         return Actor.CreateEmpty(this.baseContext, options);
     }

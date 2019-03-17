@@ -3,7 +3,12 @@
  * Licensed under the MIT License.
  */
 
-import { Context, ParameterSet } from "@microsoft/mixed-reality-extension-sdk";
+import {
+    DegreesToRadians,
+    ParameterSet,
+    Quaternion,
+} from "@microsoft/mixed-reality-extension-sdk";
+
 import Applet from "./Applet";
 import { single_param } from "./helpers";
 
@@ -12,7 +17,6 @@ import WebSocket from 'ws';
 import BlastDoor from "./blastdoor/blastdoor_main";
 import DemonGate from "./demongate/demongate_main";
 import HelloWorld from "./helloworld";
-import SGDCDebug from "./stargate/sg_dc_debug";
 import SGDCDHD from "./stargate/sg_dc_dhd";
 import StargateSG1 from "./stargate/sg_sg1";
 
@@ -25,7 +29,10 @@ import DoorGuard from "./DoorGuard";
 import SGDCElven from "./stargate/sg_dc_elven";
 import StargateElven from "./stargate/sg_elven";
 
+import { ProxyContext } from "./delegator/proxycontext";
 import { ContextLike } from "./delegator/types";
+
+import got from "got";
 
 /**
  * Contains the names and the factories for the given applets
@@ -49,7 +56,7 @@ const registryControl: { [key: string]: (ws: WebSocket, data: ParameterSet) => v
     sg_register_init: (ws: WebSocket, data: ParameterSet) => SGNetwork.sgRegisterInit(ws, data),
     sg_register: (ws: WebSocket, data: ParameterSet) => SGNetwork.sgRegister(ws, data),
     sg_admin: (ws: WebSocket, data: ParameterSet) => SGNetwork.sgAdmin(ws, data),
-    hb: (ws: WebSocket, data: ParameterSet) => { }
+    hb: () => { }
 };
 
 /**
@@ -59,6 +66,54 @@ const registryStartup: { [key: string]: () => void } = {
     sgnetwork: async () => await SGNetwork.loadNetwork(),
     DoorGuard: async () => await DoorGuard.init(),
 };
+
+function reportDispatchError(context: ContextLike, baseUrl: string, errortxt: string) {
+    console.error(errortxt);
+    const applet = registry.helloworld;
+    const parameter = { error: errortxt };
+    applet().init(context, parameter, baseUrl);
+}
+
+function parseDispatchMulti(context: ContextLike, baseUrl: string, initData: any[]) {
+
+    initData.forEach((elem, index) => {
+        const applet = registry[elem.name];
+        const params = elem.params || { };
+        const transform = elem.transform || { };
+
+        // Replace name in parameters
+        params.name = elem.name;
+
+        // Replace the rotation (if given) from YXZ Euler to Quaternion
+        if (transform.rotation) {
+            transform.rotation = Quaternion.RotationYawPitchRoll(
+                transform.rotation.y * DegreesToRadians,
+                transform.rotation.x * DegreesToRadians,
+                transform.rotation.z * DegreesToRadians);
+        }
+
+        const subContext = new ProxyContext(context.baseContext, index, transform);
+
+        applet().init(subContext, params, baseUrl);
+    });
+}
+
+function dispatchMulti(context: ContextLike, parameter: ParameterSet, baseUrl: string) {
+    got(parameter.url as string, { json: true })
+    .then(response => {
+        console.log(response.body);
+        parseDispatchMulti(context, baseUrl, response.body);
+
+        // Do this because we at least missed the OnStarted() since we run asynchronously.
+        context.announceSelf();
+    })
+    .catch(error => {
+        reportDispatchError(context, baseUrl, `Cannot load definitions - Error: ${error.message}`);
+
+        // Do this because we at least missed the OnStarted() since we run asynchronously.
+        context.announceSelf();
+    });
+}
 
 /**
  * Dispatch the instantiation to distinct applets.
@@ -73,6 +128,8 @@ export function dispatch(context: ContextLike, parameter: ParameterSet, baseUrl:
         name = "helloworld";
         parameter.error = `No name given: Use an URL like ${baseUrl}/app?name=yourappname to select an app`;
     }
+
+    if (name === 'multi') return dispatchMulti(context, parameter, baseUrl);
 
     try {
         let applet = registry[name];

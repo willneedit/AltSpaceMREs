@@ -8,6 +8,7 @@ import {
     ActorLike,
     AssetManager,
     Connection,
+    Context,
     ForwardPromise,
     PrimitiveDefinition,
     SubscriptionType,
@@ -18,6 +19,7 @@ import { CreateColliderType } from "@microsoft/mixed-reality-extension-sdk/built
 
 // tslint:disable:variable-name
 export interface ContextLike {
+    readonly baseContext: Context;
     readonly assetManager: AssetManager;
     readonly sessionId: string;
     readonly conn: Connection;
@@ -123,4 +125,6 @@ export interface ContextLike {
         actor?: Partial<ActorLike>;
         subscriptions?: SubscriptionType[];
     }): ForwardPromise<Actor>;
+
+    announceSelf(): void;
 }
