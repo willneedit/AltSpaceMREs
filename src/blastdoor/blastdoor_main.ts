@@ -20,6 +20,8 @@ import DoorGuard from "../DoorGuard";
 
 import { delay, initSound, restartSound } from "../helpers";
 
+import { ContextLike } from "../delegator/types";
+
 export default class BlastDoor extends Applet {
     private initialized = false;
 
@@ -39,7 +41,7 @@ export default class BlastDoor extends Applet {
 
     private open = false;
 
-    public init(context: Context, params: ParameterSet, baseUrl: string) {
+    public init(context: ContextLike, params: ParameterSet, baseUrl: string) {
         super.init(context, params, baseUrl);
         this.context.onUserJoined(this.userjoined);
     }
@@ -107,17 +109,17 @@ export default class BlastDoor extends Applet {
 
         this.initialized = true;
 
-        this.blastDoorRoot = Actor.CreateEmpty(this.context).value;
+        this.blastDoorRoot = this.context.CreateEmpty().value;
 
-        this.blastDoorLeft = Actor.CreateFromLibrary(this.context, {
+        this.blastDoorLeft = this.context.CreateFromLibrary({
             resourceId: this.blastDoorLeftId
         }).value;
 
-        this.blastDoorRight = Actor.CreateFromLibrary(this.context, {
+        this.blastDoorRight = this.context.CreateFromLibrary({
             resourceId: this.blastDoorRightId
         }).value;
 
-        this.blastDoorLock = await Actor.CreateFromLibrary(this.context, {
+        this.blastDoorLock = await this.context.CreateFromLibrary({
             resourceId: this.blastDoorLockId,
             actor: {
                 parentId: this.blastDoorLeft.id,

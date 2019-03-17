@@ -13,10 +13,12 @@ import {
 import Applet from "../Applet";
 import DoorGuard from "../DoorGuard";
 
+import { ContextLike } from "../delegator/types";
+
 export default class ShowGLTF extends Applet {
     private initialized = false;
 
-    public init(context: Context, params: ParameterSet, baseUrl: string) {
+    public init(context: ContextLike, params: ParameterSet, baseUrl: string) {
         super.init(context, params, baseUrl);
         this.context.onUserJoined(this.userjoined);
     }
@@ -35,7 +37,7 @@ export default class ShowGLTF extends Applet {
         const gltfName = this.parameter.gltf as string;
         const anim = this.parameter.animate !== undefined;
 
-        const model = await Actor.CreateFromGLTF(this.context, {
+        const model = await this.context.CreateFromGLTF({
             resourceUrl: gltfName,
             actor: {
                 name: `Model URL: ${gltfName}`

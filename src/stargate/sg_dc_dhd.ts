@@ -36,7 +36,7 @@ export default class SGDCDHD extends SGDCBase {
     private keysInTier = Math.floor((this.keyEnd - this.keyStart) / this.tiers.length);
 
     protected createStatusLine(message: string): Actor {
-        return Actor.CreateEmpty(this.context, {
+        return this.context.CreateEmpty({
             actor: {
                 transform: {
                     rotation: Quaternion.RotationAxis(Vector3.Up(), Math.PI),
@@ -60,8 +60,7 @@ export default class SGDCDHD extends SGDCBase {
     protected async makeKeyboard() {
         const kbtilt = Quaternion.RotationAxis(Vector3.Right(), 30 * DegreesToRadians);
 
-        const rootNodeGimbal = Actor.CreateEmpty(this.context,
-            {
+        const rootNodeGimbal = this.context.CreateEmpty({
                 actor: {
                     transform: {
                         position: { x: 0.0, y: 1, z: 0.0 },
@@ -72,8 +71,7 @@ export default class SGDCDHD extends SGDCBase {
 
         const letterRotation = Quaternion.RotationAxis(Vector3.Right(), 76 * DegreesToRadians);
 
-        Actor.CreateFromLibrary(this.context,
-            {
+        this.context.CreateFromLibrary({
                 resourceId: this.dhdModelId,
                 actor: {
                     name: 'DHD Stand'
@@ -87,8 +85,7 @@ export default class SGDCDHD extends SGDCBase {
             const letterElevation = tierData.letterElevation;
             const keySlot = (i - this.keyStart) % this.keysInTier;
 
-            const letterRotOffset = Actor.CreateEmpty(this.context,
-                {
+            const letterRotOffset = this.context.CreateEmpty({
                     actor: {
                         parentId: rootNodeGimbal.id,
                         transform: {
@@ -98,8 +95,7 @@ export default class SGDCDHD extends SGDCBase {
                     }
                 }).value;
 
-            const letterRotRoot = Actor.CreateEmpty(this.context,
-                {
+            const letterRotRoot = this.context.CreateEmpty({
                     actor: {
                         parentId: letterRotOffset.id,
                         transform: {
@@ -112,24 +108,22 @@ export default class SGDCDHD extends SGDCBase {
                 ? Quaternion.RotationAxis(Vector3.Forward(), 180 * DegreesToRadians)
                 : Quaternion.RotationAxis(Vector3.Forward(), 0);
 
-            Actor.CreateEmpty(this.context,
-                {
-                    actor: {
-                        parentId: letterRotRoot.id,
-                        transform: {
-                            rotation: letterOrientation,
-                        },
-                        text: {
-                            anchor: TextAnchorLocation.MiddleCenter,
-                            contents: this.getLetter(i),
-                            color: { r: 1.0, g: 1.0, b: 1.0 },
-                            height: letterHeight
-                        }
+            this.context.CreateEmpty({
+                actor: {
+                    parentId: letterRotRoot.id,
+                    transform: {
+                        rotation: letterOrientation,
+                    },
+                    text: {
+                        anchor: TextAnchorLocation.MiddleCenter,
+                        contents: this.getLetter(i),
+                        color: { r: 1.0, g: 1.0, b: 1.0 },
+                        height: letterHeight
                     }
-                });
+                }
+            });
 
-            const collider = Actor.CreatePrimitive(this.context,
-                {
+            const collider = this.context.CreatePrimitive({
                     definition: {
                         shape: PrimitiveShape.Box,
                         dimensions: new Vector3(letterHeight, letterHeight, 0.002)
@@ -146,8 +140,7 @@ export default class SGDCDHD extends SGDCBase {
             collider.setBehavior(ButtonBehavior).onClick('pressed', this.makeKeyCallback(i));
         }
 
-        const button = Actor.CreatePrimitive(this.context,
-            {
+        const button = this.context.CreatePrimitive({
                 definition: {
                     shape: PrimitiveShape.Box,
                     dimensions: new Vector3(0.24, 0.1, 0.24)

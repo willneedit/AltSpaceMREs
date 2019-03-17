@@ -22,6 +22,7 @@ import {
 } from '@microsoft/mixed-reality-extension-sdk';
 
 import Applet from "./Applet";
+import { ContextLike } from './delegator/types';
 
 /**
  * The main class of this app. All the logic goes here.
@@ -31,7 +32,7 @@ export default class HelloWorld extends Applet {
     private cube: Actor = null;
     private announce: Actor = null;
 
-    public init(context: Context, params: ParameterSet, baseUrl: string) {
+    public init(context: ContextLike, params: ParameterSet, baseUrl: string) {
         super.init(context, params, baseUrl);
         this.context.onStarted(this.started);
         this.context.onUserJoined(this.userjoined);
@@ -47,7 +48,7 @@ export default class HelloWorld extends Applet {
 
         // Create a new actor with no mesh, but some text. This operation is asynchronous, so
         // it returns a "forward" promise (a special promise, as we'll see later).
-        const textPromise = Actor.CreateEmpty(this.context, {
+        const textPromise = this.context.CreateEmpty({
             actor: {
                 name: 'Text',
                 transform: {
@@ -81,7 +82,7 @@ export default class HelloWorld extends Applet {
         });
 
         // Load a glTF model
-        const cubePromise = Actor.CreateFromGLTF(this.context, {
+        const cubePromise = this.context.CreateFromGLTF({
             // at the given URL
             resourceUrl: `${this.baseUrl}/altspace-cube.glb`,
             // and spawn box colliders around the meshes.
@@ -151,7 +152,7 @@ export default class HelloWorld extends Applet {
 
         // Create a new actor with no mesh, but some text. This operation is asynchronous, so
         // it returns a "forward" promise (a special promise, as we'll see later).
-        const announcePromise = Actor.CreateEmpty(this.context, {
+        const announcePromise = this.context.CreateEmpty({
             actor: {
                 name: 'Announce',
                 transform: {

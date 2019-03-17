@@ -37,7 +37,7 @@ export default class SGDCElven extends SGDCBase {
     private keysInTier = Math.floor((this.keyEnd - this.keyStart) / this.tiers.length);
 
     protected createStatusLine(message: string): Actor {
-        return Actor.CreateEmpty(this.context, {
+        return this.context.CreateEmpty({
             actor: {
                 transform: {
                     rotation: Quaternion.RotationAxis(Vector3.Up(), Math.PI),
@@ -62,8 +62,7 @@ export default class SGDCElven extends SGDCBase {
     protected async makeKeyboard() {
         const letterRotation = Quaternion.RotationAxis(Vector3.Right(), 45 * DegreesToRadians);
 
-        Actor.CreateFromLibrary(this.context,
-            {
+        this.context.CreateFromLibrary({
                 resourceId: this.dhdModelId,
                 actor: {
                     name: 'DHD Stand'
@@ -77,22 +76,11 @@ export default class SGDCElven extends SGDCBase {
             const letterHeight = tierData.letterHeight;
             const letterElevation = tierData.letterElevation;
 
-            const letterRotOffset = Actor.CreateEmpty(this.context,
-                {
-                    actor: {
-                        transform: {
-                            position: { x: 0.0, y: letterElevation, z: 1.1},
-                            rotation: this.makeRotation(keySlot + 0.5),
-                        }
-                    }
-                }).value;
-
             const letterCoordRot = ((keySlot + 0.5) * 180 / this.keysInTier + 90) * DegreesToRadians;
             const letterRadiusX = letterRadius * Math.sin(letterCoordRot);
             const letterRadiusZ = letterRadius * Math.cos(letterCoordRot) * 0.75 + 1.04;
 
-            const letterRotRoot = Actor.CreateEmpty(this.context,
-                {
+            const letterRotRoot = this.context.CreateEmpty({
                     actor: {
                         transform: {
                             rotation: this.makeRotation(keySlot + 0.5).multiply(letterRotation),
@@ -102,8 +90,7 @@ export default class SGDCElven extends SGDCBase {
 
             const letterOrientation = Quaternion.RotationAxis(Vector3.Forward(), 0);
 
-            Actor.CreateEmpty(this.context,
-                {
+            this.context.CreateEmpty({
                     actor: {
                         parentId: letterRotRoot.id,
                         transform: {
@@ -119,8 +106,7 @@ export default class SGDCElven extends SGDCBase {
                     }
                 });
 
-            const collider = Actor.CreatePrimitive(this.context,
-                {
+            const collider = this.context.CreatePrimitive({
                     definition: {
                         shape: PrimitiveShape.Box,
                         dimensions: new Vector3(letterHeight, letterHeight, 0.002)

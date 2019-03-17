@@ -13,10 +13,12 @@ import {
 import Applet from "../Applet";
 import DoorGuard from "../DoorGuard";
 
+import { ContextLike } from "../delegator/types";
+
 export default class ShowKitObj extends Applet {
     private initialized = false;
 
-    public init(context: Context, params: ParameterSet, baseUrl: string) {
+    public init(context: ContextLike, params: ParameterSet, baseUrl: string) {
         super.init(context, params, baseUrl);
         this.context.onUserJoined(this.userjoined);
     }
@@ -35,7 +37,7 @@ export default class ShowKitObj extends Applet {
         const kitObjId = this.parameter.kit as string;
         const anim = this.parameter.animate !== undefined;
 
-        const model = await Actor.CreateFromLibrary(this.context, {
+        const model = await this.context.CreateFromLibrary({
             resourceId: kitObjId,
             actor: {
                 name: `Kit Model Id: ${kitObjId}`

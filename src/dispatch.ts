@@ -25,6 +25,8 @@ import DoorGuard from "./DoorGuard";
 import SGDCElven from "./stargate/sg_dc_elven";
 import StargateElven from "./stargate/sg_elven";
 
+import { ContextLike } from "./delegator/types";
+
 /**
  * Contains the names and the factories for the given applets
  */
@@ -64,7 +66,7 @@ const registryStartup: { [key: string]: () => void } = {
  * @param parameter The parameter set of the WebSession, URLdecoded and split along key=value lines
  * @param baseUrl The base URL of the system, useful for backreferences
  */
-export function dispatch(context: Context, parameter: ParameterSet, baseUrl: string): void {
+export function dispatch(context: ContextLike, parameter: ParameterSet, baseUrl: string): void {
     let name = single_param(parameter.name);
 
     if (!name) {

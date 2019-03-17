@@ -18,6 +18,8 @@ import {
 import Applet from "../Applet";
 import DoorGuard from "../DoorGuard";
 
+import { ContextLike } from "../delegator/types";
+
 export default class DemonGate extends Applet {
     private initialized = false;
 
@@ -32,7 +34,7 @@ export default class DemonGate extends Applet {
     private pentagramLines: Actor[] = [ null, null, null, null, null ];
     private gateInset: Actor = null;
 
-    public init(context: Context, params: ParameterSet, baseUrl: string) {
+    public init(context: ContextLike, params: ParameterSet, baseUrl: string) {
         super.init(context, params, baseUrl);
         this.context.onUserJoined(this.userjoined);
     }
@@ -55,7 +57,7 @@ export default class DemonGate extends Applet {
                 this.pentagramLines[i].destroy();
                 this.pentagramLines[i] = null;
             } else if (isLit && this.pentagramLines[i] === null) {
-                this.pentagramLines[i] = Actor.CreateFromLibrary(this.context, {
+                this.pentagramLines[i] = this.context.CreateFromLibrary({
                     resourceId: this.pentagramLineId,
                     actor: {
                         parentId: this.candles[i].id,
@@ -71,7 +73,7 @@ export default class DemonGate extends Applet {
             this.gateInset.destroy();
             this.gateInset = null;
         } else if (allLit && this.gateInset === null ) {
-            this.gateInset = Actor.CreateFromLibrary(this.context, {
+            this.gateInset = this.context.CreateFromLibrary({
                 resourceId: this.gateInsetId,
             }).value;
         }
@@ -82,7 +84,7 @@ export default class DemonGate extends Applet {
             this.candleFlames[i].destroy();
             this.candleFlames[i] = null;
         } else {
-            this.candleFlames[i] = Actor.CreateFromLibrary(this.context, {
+            this.candleFlames[i] = this.context.CreateFromLibrary({
                 resourceId: this.candleFlameId,
                 actor: {
                     parentId: this.candles[i].id,
@@ -105,7 +107,7 @@ export default class DemonGate extends Applet {
 
         this.initialized = true;
 
-        Actor.CreateFromLibrary(this.context, {
+        this.context.CreateFromLibrary({
             resourceId: this.gateFrameId,
             actor: {
                 transform: {
@@ -115,7 +117,7 @@ export default class DemonGate extends Applet {
         });
 
         for (let i = 0; i < 5; i++) {
-            const rot = await Actor.CreateEmpty(this.context, {
+            const rot = await this.context.CreateEmpty({
                 actor: {
                     transform: {
                         rotation: Quaternion.RotationAxis(Vector3.Up(), DegreesToRadians * 72 * i)
@@ -123,7 +125,7 @@ export default class DemonGate extends Applet {
                 }
             });
 
-            this.candles[i] = await Actor.CreateFromLibrary(this.context, {
+            this.candles[i] = await this.context.CreateFromLibrary({
                 resourceId: this.candleId,
                 actor: {
                     parentId: rot.id,

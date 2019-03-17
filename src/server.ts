@@ -14,6 +14,8 @@ import WebSocket from 'ws';
 
 import DoorGuard from './DoorGuard';
 
+import { RawContext } from './delegator/rawcontext';
+
 /*
 import { log } from '@microsoft/mixed-reality-extension-sdk/built/log';
 
@@ -42,7 +44,7 @@ function initServer() {
     });
 
     // Handle new application sessions
-    server.adapter.onConnection((context, params) => dispatch(context, params, server.baseUrl));
+    server.adapter.onConnection((context, params) => dispatch(new RawContext(context), params, server.baseUrl));
 
     // Start a remote control server to maintain connection between the server and the Altspace Enclosure items
     const controlserver = new WebSocket.Server({ port: controlPort });

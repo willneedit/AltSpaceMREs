@@ -17,8 +17,7 @@ import { SGDCBase } from "./sg_dcbase";
 export default class SGDCDebug extends SGDCBase {
 
     protected async makeKeyboard() {
-        const rootNode = Actor.CreateEmpty(this.context,
-            {
+        const rootNode = this.context.CreateEmpty({
                 actor: {
                     transform: { rotation: Quaternion.RotationAxis(Vector3.Right(), 45 * DegreesToRadians)}
                 }
@@ -28,8 +27,7 @@ export default class SGDCDebug extends SGDCBase {
             const xpos = (i % 8) * 0.10 + -0.35;
             const ypos = Math.trunc(i / 8) * -0.10 + 0.20;
 
-            const key = Actor.CreatePrimitive(this.context,
-                {
+            const key = this.context.CreatePrimitive({
                     definition: { shape: PrimitiveShape.Box, dimensions: new Vector3(0.09, 0.09, 0.01)},
                     addCollider: true,
                     actor: {
@@ -39,8 +37,7 @@ export default class SGDCDebug extends SGDCBase {
                     }
                 }).value;
 
-            const letter = Actor.CreateEmpty(this.context,
-                {
+            const letter = this.context.CreateEmpty({
                     actor: {
                         parentId: key.id,
                         transform: { position: { x: -0.002, y: 0.03, z: -0.011 }},

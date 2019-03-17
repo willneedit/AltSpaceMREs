@@ -5,9 +5,11 @@
 
 import { Context, ParameterSet } from "@microsoft/mixed-reality-extension-sdk";
 
+import { ContextLike } from "./delegator/types";
+
 export default abstract class Applet {
     // tslint:disable:variable-name
-    private _context: Context;
+    private _context: ContextLike;
     private _parameter: ParameterSet;
     private _baseUrl: string;
     // tslint:enable:variable-name
@@ -17,7 +19,7 @@ export default abstract class Applet {
     public get baseUrl() { return this._baseUrl; }
     public get sessID() { return this.context.sessionId; }
 
-    public init(context: Context, parameter: ParameterSet, baseUrl: string): void {
+    public init(context: ContextLike, parameter: ParameterSet, baseUrl: string): void {
         this._context = context;
         this._parameter = parameter;
         this._baseUrl = baseUrl;

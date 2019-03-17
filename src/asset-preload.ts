@@ -7,15 +7,17 @@ import * as MRESDK from '@microsoft/mixed-reality-extension-sdk';
 import Applet from './Applet';
 import { delay, destroyActors } from './helpers';
 
+import { ContextLike } from './delegator/types';
+
 export default class AssetPreloadTest extends Applet {
 
-    public init(context: MRESDK.Context, params: MRESDK.ParameterSet, baseUrl: string) {
+    public init(context: ContextLike, params: MRESDK.ParameterSet, baseUrl: string) {
         super.init(context, params, baseUrl);
         this.context.onStarted(this.run);
     }
 
     public run = async (): Promise<boolean> =>  {
-        const label = await MRESDK.Actor.CreateEmpty(this.context, {
+        const label = await this.context.CreateEmpty({
             actor: {
                 transform: {
                     position: { x: 0, y: 2, z: 0 }
@@ -36,7 +38,7 @@ export default class AssetPreloadTest extends Applet {
         await delay(1000);
 
         label.text.contents = 'Instantiating prefab';
-        const actor = await MRESDK.Actor.CreateFromPrefab(this.context, {
+        const actor = await this.context.CreateFromPrefab({
             prefabId: group.prefabs.byIndex(0).id,
             actor: {
                 transform: {

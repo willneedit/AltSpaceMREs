@@ -48,9 +48,7 @@ export default class StargateSG1 extends Stargate {
 
         const oldChevron = this.gateChevrons[index];
 
-        this.gateChevrons[index] = Actor.CreateEmpty(
-            this.context,
-            {
+        this.gateChevrons[index] = this.context.CreateEmpty({
                 actor: {
                     name: 'Gate Chevron ' + index,
                     transform: { rotation: Quaternion.RotationAxis(
@@ -58,8 +56,7 @@ export default class StargateSG1 extends Stargate {
                 }
             }).value;
 
-        const chevronModel = Actor.CreateFromLibrary(this.context,
-            {
+        const chevronModel = this.context.CreateFromLibrary({
                 resourceId: (state ? this.gateChevronLitId : this.gateChevronUnlitId),
                 actor: {
                     parentId: this.gateChevrons[index].id
@@ -85,8 +82,7 @@ export default class StargateSG1 extends Stargate {
      * Initialize the gate and set up the models.
      */
     protected async initGate(): Promise<void> {
-        Actor.CreateFromLibrary(this.context,
-            {
+        this.context.CreateFromLibrary({
                 resourceId: this.gateFrameId,
                 actor: {
                     name: 'Gate Frame'
@@ -94,8 +90,7 @@ export default class StargateSG1 extends Stargate {
             }
         );
 
-        this.gateRing = Actor.CreateFromLibrary(this.context,
-            {
+        this.gateRing = this.context.CreateFromLibrary({
                 resourceId: this.gateRingId,
                 actor: {
                     name: 'Gate Ring'

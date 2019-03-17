@@ -24,6 +24,8 @@ import SGNetwork from "./sg_network";
 
 import DoorGuard from "../DoorGuard";
 
+import { ContextLike } from "../delegator/types";
+
 export default abstract class Stargate extends StargateLike {
 
     private whTimeout = 120; // 120 seconds until the wormhole shuts off. Cut it off by hitting 'a'.
@@ -53,7 +55,7 @@ export default abstract class Stargate extends StargateLike {
 
     private abortRequested = false;
 
-    public init(context: Context, params: ParameterSet, baseUrl: string) {
+    public init(context: ContextLike, params: ParameterSet, baseUrl: string) {
         super.init(context, params, baseUrl);
         this.context.onUserJoined(this.userjoined);
         this.context.onStarted(this.started);
@@ -167,7 +169,7 @@ export default abstract class Stargate extends StargateLike {
         this._gateStatus = GateStatus.engaged;
 
         SGNetwork.getTarget(this.currentTarget).then((loc: string) => {
-            Actor.CreateFromLibrary(this.context, {
+            this.context.CreateFromLibrary({
                 resourceId: this.gateHorizonOpening,
                 actor: {
                     transform: {
@@ -178,7 +180,7 @@ export default abstract class Stargate extends StargateLike {
                 if (this.gateHorizon != null) this.gateHorizon.destroy();
                 this.gateHorizon = gateHorizon;
 
-                this.gateHorizonTeleporter = Actor.CreateFromLibrary(this.context, {
+                this.gateHorizonTeleporter = this.context.CreateFromLibrary({
                     resourceId: `Teleporter:${loc}`,
                     actor: {
                         parentId: gateHorizon.id,
@@ -223,7 +225,7 @@ export default abstract class Stargate extends StargateLike {
                 this.gateHorizonTeleporter = null;
             }
 
-            Actor.CreateFromLibrary(this.context, {
+            this.context.CreateFromLibrary({
                 resourceId: this.gateHorizonClosing,
                 actor: {
                     transform: {

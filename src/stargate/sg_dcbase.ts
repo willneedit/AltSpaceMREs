@@ -23,6 +23,8 @@ import SGNetwork from "./sg_network";
 
 import DoorGuard from "../DoorGuard";
 
+import { ContextLike } from "../delegator/types";
+
 export abstract class SGDCBase extends SGDialCompLike {
 
     // tslint:disable-next-line:variable-name
@@ -39,7 +41,7 @@ export abstract class SGDCBase extends SGDialCompLike {
     public get id() { return this._gateID; }
     public get sessID() { return this.context.sessionId; }
 
-    public init(context: Context, params: ParameterSet, baseUrl: string) {
+    public init(context: ContextLike, params: ParameterSet, baseUrl: string) {
         super.init(context, params, baseUrl);
         this.context.onStarted(this.started);
         this.context.onUserJoined(this.userjoined);
@@ -73,7 +75,7 @@ export abstract class SGDCBase extends SGDialCompLike {
     }
 
     protected createStatusLine(message: string): Actor {
-        return Actor.CreateEmpty(this.context, {
+        return this.context.CreateEmpty({
             actor: {
                 transform: { position: { x: 0.0, y: 0.3, z: 0.0 } },
                 text: {

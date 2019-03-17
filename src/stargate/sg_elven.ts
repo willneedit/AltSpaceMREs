@@ -66,7 +66,7 @@ export default class StargateElven extends Stargate {
             this.chevronData[index].actor.destroy();
             this.chevronData[index].actor = null;
         } else if (state && !this.chevronData[index].actor) {
-            const chevronActor = await Actor.CreateFromLibrary(this.context, {
+            const chevronActor = await this.context.CreateFromLibrary({
                 resourceId: this.chevronLightId,
                 actor: {
                     transform: {
@@ -107,8 +107,7 @@ export default class StargateElven extends Stargate {
      * Initialize the gate and set up the models.
      */
     protected async initGate(): Promise<void> {
-        this.gateFrame = await Actor.CreateFromLibrary(this.context,
-            {
+        this.gateFrame = await this.context.CreateFromLibrary({
                 resourceId: this.gateFrameId,
                 actor: {
                     name: 'Gate Frame',
@@ -167,7 +166,7 @@ export default class StargateElven extends Stargate {
             tgtAngle = tgtAngle + 360;
         }
 
-        const symbolLightRoot = Actor.CreateEmpty(this.context, {
+        const symbolLightRoot = this.context.CreateEmpty({
             actor: {
                 parentId: this.gateFrame.id,
                 transform: {
@@ -176,7 +175,7 @@ export default class StargateElven extends Stargate {
             }
         }).value;
 
-        await Actor.CreateFromLibrary(this.context, {
+        await this.context.CreateFromLibrary({
             resourceId: this.symbolLightId,
             actor: {
                 parentId: symbolLightRoot.id,
