@@ -69,16 +69,18 @@ export function dispatch(context: Context, parameter: ParameterSet, baseUrl: str
 
     if (!name) {
         name = "helloworld";
-        console.error(`No name given: Use an URL like ${baseUrl}/app?name=yourappname to select an app`);
+        parameter.error = `No name given: Use an URL like ${baseUrl}/app?name=yourappname to select an app`;
     }
 
     try {
-        const applet = registry[name];
+        let applet = registry[name];
         if (!applet) {
-            console.error(`Unrecognized applet: ${name}`);
-        } else {
-            applet().init(context, parameter, baseUrl);
+            parameter.error = `Unrecognized applet: ${name}`;
+            applet = registry.helloworld;
         }
+
+        applet().init(context, parameter, baseUrl);
+
     } catch (e) {
         console.error(e.message);
     }

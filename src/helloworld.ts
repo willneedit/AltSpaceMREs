@@ -42,6 +42,9 @@ export default class HelloWorld extends Applet {
      */
     private started = () => {
 
+        let mytext = "Hello World! (base: " + this.baseUrl + ")";
+        if (this.parameter.error) mytext = this.parameter.error as string;
+
         // Create a new actor with no mesh, but some text. This operation is asynchronous, so
         // it returns a "forward" promise (a special promise, as we'll see later).
         const textPromise = Actor.CreateEmpty(this.context, {
@@ -51,7 +54,7 @@ export default class HelloWorld extends Applet {
                     position: { x: 0, y: 0.5, z: 0 }
                 },
                 text: {
-                    contents: "Hello World! (base: " + this.baseUrl + ")",
+                    contents: mytext,
                     anchor: TextAnchorLocation.MiddleCenter,
                     color: { r: 30 / 255, g: 206 / 255, b: 213 / 255 },
                     height: 0.3
