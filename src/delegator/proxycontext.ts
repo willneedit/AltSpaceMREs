@@ -30,16 +30,6 @@ export class ProxyContext extends RawContext {
     // Session ID of the base actor gets extended with the index
     public get sessionId() { return this.baseContext.sessionId + "@" + this.index; }
 
-    public async initRootActor() {
-        if (!this._rootActor) {
-            this._rootActor = await Actor.CreateEmpty(this.baseContext, {
-                actor: {
-                    transform: this._rootTransform
-                }
-            });
-        }
-    }
-
     private addRootActor(options: any): any {
         if (!this._rootActor) {
             this._rootActor = Actor.CreateEmpty(this.baseContext, {
