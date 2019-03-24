@@ -4,10 +4,11 @@
  */
 
 import {
-    Actor,
-    Context,
+    AttachPoint,
     ParameterSet,
-    User
+    Transform,
+    User,
+    Vector3,
 } from "@microsoft/mixed-reality-extension-sdk";
 
 import Applet from "../Applet";
@@ -17,22 +18,34 @@ import { ContextLike } from "../delegator/types";
 
 export default class ShowKitObj extends Applet {
     private initialized = false;
+    private attachPoint: AttachPoint = "none";
+    private attachUser: string = null;
+    private offset: Partial<Transform> = { position: new Vector3(0.0, 0.0, 0.0 ) };
 
     public init(context: ContextLike, params: ParameterSet, baseUrl: string) {
         super.init(context, params, baseUrl);
+
+        if (params.attach) this.attachPoint = params.attach as AttachPoint;
+        if (params.user) this.attachUser = params.user as string;
+        if (params.x) this.offset.position.x = +params.x;
+        if (params.y) this.offset.position.y = +params.y;
+        if (params.z) this.offset.position.z = +params.z;
+
         this.context.onUserJoined(this.userjoined);
     }
 
     private userjoined = async (user: User) => {
         console.log(`Connection request by ${user.name} from ${user.properties.remoteAddress}`);
         DoorGuard.greeted(user.properties.remoteAddress);
-        this.started();
+        this.started(user);
     }
 
-    private started = async () => {
+    private started = async (user: User) => {
         if (this.initialized) return;
 
-        this.initialized = true;
+        if (this.attachUser && this.attachUser !== user.name) return;
+
+        if (this.attachPoint === "none") this.initialized = true;
 
         const kitObjId = this.parameter.kit as string;
         const anim = this.parameter.animate !== undefined;
@@ -40,7 +53,8 @@ export default class ShowKitObj extends Applet {
         const model = await this.context.CreateFromLibrary({
             resourceId: kitObjId,
             actor: {
-                name: `Kit Model Id: ${kitObjId}`
+                name: `Kit Model Id: ${kitObjId}`,
+                transform: this.offset
             }
         });
 
@@ -48,5 +62,7 @@ export default class ShowKitObj extends Applet {
             const animName = (this.parameter.animate == null) ? 'animation:0' : this.parameter.animate as string;
             model.enableAnimation(animName);
         }
+
+        if (this.attachPoint !== "none") model.attach(user, this.attachPoint);
     }
 }
