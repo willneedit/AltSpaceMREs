@@ -93,8 +93,9 @@ function parseDispatchMulti(context: ContextLike, baseUrl: string, initData: any
         }
 
         const subContext = new ProxyContext(context.baseContext, index, transform);
-
-        applet().init(subContext, params, baseUrl);
+        subContext.initRootActor().then(() => {
+            applet().init(subContext, params, baseUrl);
+        });
     });
 }
 
