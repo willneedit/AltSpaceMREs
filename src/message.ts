@@ -18,7 +18,7 @@ export default class Message {
             actor: {
                 name: 'Text',
                 transform: {
-                    position: { x: 0, y: 0.5, z: 0 }
+                    local: { position: { x: 0, y: 0.5, z: 0 } }
                 },
                 text: {
                     contents: message,

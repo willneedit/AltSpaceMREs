@@ -4,7 +4,7 @@
  */
 
 import {
-    Actor, Context, Transform, Vector3,
+    Actor, Context, ScaledTransform, Transform, Vector3,
 } from '@microsoft/mixed-reality-extension-sdk';
 
 interface AudioEntry {
@@ -15,7 +15,7 @@ interface AudioEntry {
 export default class KitAudio {
     private static sources: { [cid: string]: AudioEntry } = { };
 
-    public static async startSound(context: Context, id: string, pos?: Partial<Transform>) {
+    public static async startSound(context: Context, id: string, pos?: Partial<ScaledTransform>) {
 
         this.stopSound(context, id);
 
@@ -28,7 +28,7 @@ export default class KitAudio {
             actor: await Actor.CreateFromLibrary(context, {
                 resourceId: id,
                 actor: {
-                    transform: pos
+                    transform: { local: pos }
                 }
             })
         };

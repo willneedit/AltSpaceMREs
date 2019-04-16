@@ -173,7 +173,7 @@ export default abstract class Stargate extends StargateLike {
                 resourceId: this.gateHorizonOpening,
                 actor: {
                     transform: {
-                        rotation: Quaternion.RotationAxis(Vector3.Right(), Math.PI / 2)
+                        local: { rotation: Quaternion.RotationAxis(Vector3.Right(), Math.PI / 2) }
                     }
                 }
             }).then((gateHorizon) => {
@@ -185,11 +185,13 @@ export default abstract class Stargate extends StargateLike {
                     actor: {
                         parentId: gateHorizon.id,
                         transform: {
-                            // Teleporter is a bit bugged and need an explicit PRS setting,
-                            // else it spawns at (0,0,0), regardless of parenting.
-                            position: { x: 0, y: 0, z: 0 },
-                            rotation: Quaternion.RotationAxis(Vector3.Right(), 0),
-                            scale: { x: 5.4, y: 0.01, z: 5.4 }
+                            local: {
+                                // Teleporter is a bit bugged and need an explicit PRS setting,
+                                // else it spawns at (0,0,0), regardless of parenting.
+                                position: { x: 0, y: 0, z: 0 },
+                                rotation: Quaternion.RotationAxis(Vector3.Right(), 0),
+                                scale: { x: 5.4, y: 0.01, z: 5.4 }
+                            }
                         }
                     }
                 }).value;
@@ -229,7 +231,7 @@ export default abstract class Stargate extends StargateLike {
                 resourceId: this.gateHorizonClosing,
                 actor: {
                     transform: {
-                        rotation: Quaternion.RotationAxis(Vector3.Right(), Math.PI / 2)
+                        local: { rotation: Quaternion.RotationAxis(Vector3.Right(), Math.PI / 2) }
                     }
                 }
             }).then((gateHorizon) => {

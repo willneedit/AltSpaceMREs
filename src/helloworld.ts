@@ -52,7 +52,9 @@ export default class HelloWorld extends Applet {
             actor: {
                 name: 'Text',
                 transform: {
-                    position: { x: 0, y: 0.5, z: 0 }
+                    local: {
+                        position: { x: 0, y: 0.5, z: 0 }
+                    }
                 },
                 text: {
                     contents: mytext,
@@ -93,8 +95,10 @@ export default class HelloWorld extends Applet {
                 // Parent the glTF model to the text actor.
                 parentId: this.text.id,
                 transform: {
-                    position: { x: 0, y: -1, z: 0 },
-                    scale: { x: 0.4, y: 0.4, z: 0.4 }
+                    local: {
+                        position: { x: 0, y: -1, z: 0 },
+                        scale: { x: 0.4, y: 0.4, z: 0.4 }
+                    }
                 }
             }
         });
@@ -127,15 +131,15 @@ export default class HelloWorld extends Applet {
         const buttonBehavior = this.cube.setBehavior(ButtonBehavior);
 
         // Trigger the grow/shrink animations on hover.
-        buttonBehavior.onHover('enter', (userId: string) => {
+        buttonBehavior.onHover('enter', (user: User) => {
             this.cube.enableAnimation('GrowIn');
         });
-        buttonBehavior.onHover('exit', (userId: string) => {
+        buttonBehavior.onHover('exit', (user: User) => {
             this.cube.enableAnimation('ShrinkOut');
         });
 
         // When clicked, do a 360 sideways.
-        buttonBehavior.onClick('pressed', (userId: string) => {
+        buttonBehavior.onClick('pressed', (user: User) => {
             this.cube.enableAnimation('DoAFlip');
         });
 
@@ -156,7 +160,9 @@ export default class HelloWorld extends Applet {
             actor: {
                 name: 'Announce',
                 transform: {
-                    position: { x: 0, y: 1, z: 0 }
+                    local: {
+                        position: { x: 0, y: 1, z: 0 }
+                    }
                 },
                 // lookAt: LookAtMode.TargetXY,
                 text: {
@@ -181,35 +187,35 @@ export default class HelloWorld extends Applet {
     private generateSpinKeyframes(duration: number, axis: Vector3): AnimationKeyframe[] {
         return [{
             time: 0 * duration,
-            value: { transform: { rotation: Quaternion.RotationAxis(axis, 0) } }
+            value: { transform: { local: { rotation: Quaternion.RotationAxis(axis, 0) } } }
         }, {
             time: 0.25 * duration,
-            value: { transform: { rotation: Quaternion.RotationAxis(axis, Math.PI / 2) } }
+            value: { transform: { local: { rotation: Quaternion.RotationAxis(axis, Math.PI / 2) } } }
         }, {
             time: 0.5 * duration,
-            value: { transform: { rotation: Quaternion.RotationAxis(axis, Math.PI) } }
+            value: { transform: { local: { rotation: Quaternion.RotationAxis(axis, Math.PI) } } }
         }, {
             time: 0.75 * duration,
-            value: { transform: { rotation: Quaternion.RotationAxis(axis, 3 * Math.PI / 2) } }
+            value: { transform: { local: { rotation: Quaternion.RotationAxis(axis, 3 * Math.PI / 2) } } }
         }, {
             time: 1 * duration,
-            value: { transform: { rotation: Quaternion.RotationAxis(axis, 2 * Math.PI) } }
+            value: { transform: { local: { rotation: Quaternion.RotationAxis(axis, 2 * Math.PI) } } }
         }];
     }
 
     private growAnimationData: AnimationKeyframe[] = [{
         time: 0,
-        value: { transform: { scale: { x: 0.4, y: 0.4, z: 0.4 } } }
+        value: { transform: { local: { scale: { x: 0.4, y: 0.4, z: 0.4 } } } }
     }, {
         time: 0.3,
-        value: { transform: { scale: { x: 0.5, y: 0.5, z: 0.5 } } }
+        value: { transform: { local: { scale: { x: 0.5, y: 0.5, z: 0.5 } } } }
     }];
 
     private shrinkAnimationData: AnimationKeyframe[] = [{
         time: 0,
-        value: { transform: { scale: { x: 0.5, y: 0.5, z: 0.5 } } }
+        value: { transform: { local: { scale: { x: 0.5, y: 0.5, z: 0.5 } } } }
     }, {
         time: 0.3,
-        value: { transform: { scale: { x: 0.4, y: 0.4, z: 0.4 } } }
+        value: { transform: { local: { scale: { x: 0.4, y: 0.4, z: 0.4 } } } }
     }];
 }

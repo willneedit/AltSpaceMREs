@@ -39,8 +39,10 @@ export default class SGDCDHD extends SGDCBase {
         return this.context.CreateEmpty({
             actor: {
                 transform: {
-                    rotation: Quaternion.RotationAxis(Vector3.Up(), Math.PI),
-                    position: { x: 0.0, y: 1.75, z: 0.0 }
+                    local: {
+                        rotation: Quaternion.RotationAxis(Vector3.Up(), Math.PI),
+                        position: { x: 0.0, y: 1.75, z: 0.0 }
+                    }
                 },
                 text: {
                     contents: message,
@@ -63,8 +65,10 @@ export default class SGDCDHD extends SGDCBase {
         const rootNodeGimbal = this.context.CreateEmpty({
                 actor: {
                     transform: {
-                        position: { x: 0.0, y: 1, z: 0.0 },
-                        rotation: kbtilt
+                        local: {
+                            position: { x: 0.0, y: 1, z: 0.0 },
+                            rotation: kbtilt
+                        }
                     }
                 }
             }).value;
@@ -89,8 +93,10 @@ export default class SGDCDHD extends SGDCBase {
                     actor: {
                         parentId: rootNodeGimbal.id,
                         transform: {
-                            position: { x: 0.0, y: letterElevation, z: 0},
-                            rotation: this.makeRotation(keySlot + 0.5),
+                            local: {
+                                position: { x: 0.0, y: letterElevation, z: 0},
+                                rotation: this.makeRotation(keySlot + 0.5),
+                            }
                         }
                     }
                 }).value;
@@ -99,8 +105,10 @@ export default class SGDCDHD extends SGDCBase {
                     actor: {
                         parentId: letterRotOffset.id,
                         transform: {
-                            rotation: letterRotation,
-                            position: { x: 0, y: 0.03, z: letterRadius }},
+                            local: {
+                                rotation: letterRotation,
+                                position: { x: 0, y: 0.03, z: letterRadius }},
+                            }
                     }
                 }).value;
 
@@ -112,7 +120,9 @@ export default class SGDCDHD extends SGDCBase {
                 actor: {
                     parentId: letterRotRoot.id,
                     transform: {
-                        rotation: letterOrientation,
+                        local: {
+                            rotation: letterOrientation,
+                        }
                     },
                     text: {
                         anchor: TextAnchorLocation.MiddleCenter,
@@ -132,7 +142,9 @@ export default class SGDCDHD extends SGDCBase {
                     actor: {
                         parentId: letterRotRoot.id,
                         transform: {
-                            position: { x: 0, y: -0.03, z: 0.05 },
+                            local: {
+                                position: { x: 0, y: -0.03, z: 0.05 },
+                            }
                         }
                     }
                 }).value;
@@ -149,7 +161,9 @@ export default class SGDCDHD extends SGDCBase {
                 actor: {
                     parentId: rootNodeGimbal.id,
                     transform: {
-                        position: { x: 0, y: 0.25, z: 0 },
+                        local: {
+                            position: { x: 0, y: 0.25, z: 0 },
+                        }
                     }
                 }
             }).value;

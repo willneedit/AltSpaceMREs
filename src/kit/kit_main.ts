@@ -54,7 +54,7 @@ export default class ShowKitObj extends Applet {
             resourceId: kitObjId,
             actor: {
                 name: `Kit Model Id: ${kitObjId}`,
-                transform: this.offset
+                transform: { local: this.offset }
             }
         });
 

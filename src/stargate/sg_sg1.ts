@@ -51,8 +51,8 @@ export default class StargateSG1 extends Stargate {
         this.gateChevrons[index] = this.context.CreateEmpty({
                 actor: {
                     name: 'Gate Chevron ' + index,
-                    transform: { rotation: Quaternion.RotationAxis(
-                        Vector3.Forward(), this.chevronAngles[index] * DegreesToRadians) }
+                    transform: { local: { rotation: Quaternion.RotationAxis(
+                        Vector3.Forward(), this.chevronAngles[index] * DegreesToRadians) } }
                 }
             }).value;
 
@@ -155,7 +155,7 @@ export default class StargateSG1 extends Stargate {
             const rot =  Quaternion.RotationAxis(Vector3.Forward(), rAngle * DegreesToRadians);
             kf.push({
                     time: t / timescale,
-                    value: { transform: { rotation: rot } }
+                    value: { transform: { local: { rotation: rot } } }
             });
 //            }
             t++;
@@ -167,7 +167,7 @@ export default class StargateSG1 extends Stargate {
             {
                 time: (t++) / timescale,
                 value: { transform: {
-                    rotation: Quaternion.RotationAxis(Vector3.Forward(), tgtAngle * DegreesToRadians)
+                    local: { rotation: Quaternion.RotationAxis(Vector3.Forward(), tgtAngle * DegreesToRadians) }
                 } }
             });
 

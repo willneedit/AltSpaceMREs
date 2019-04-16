@@ -62,7 +62,9 @@ export default class DemonGate extends Applet {
                     actor: {
                         parentId: this.candles[i].id,
                         transform: {
-                            position: { x: 0.0, y: 0.1, z: 0.0 }
+                            local: {
+                                position: { x: 0.0, y: 0.1, z: 0.0 }
+                            }
                         }
                     }
                 }).value;
@@ -79,7 +81,7 @@ export default class DemonGate extends Applet {
         }
     }
 
-    protected candleTouched(userid: string, i: number) {
+    protected candleTouched(user: User, i: number) {
         if (this.candleFlames[i] !== null) {
             this.candleFlames[i].destroy();
             this.candleFlames[i] = null;
@@ -89,7 +91,9 @@ export default class DemonGate extends Applet {
                 actor: {
                     parentId: this.candles[i].id,
                     transform: {
-                        position: { x: 0.0, y: 0.11, z: 0.0 }
+                        local: {
+                            position: { x: 0.0, y: 0.11, z: 0.0 }
+                        }
                     }
                 }
             }).value;
@@ -99,7 +103,7 @@ export default class DemonGate extends Applet {
     }
 
     protected makeCandleCallback(i: number): ActionHandler {
-        return (userid: string) => this.candleTouched(userid, i);
+        return (user: User) => this.candleTouched(user, i);
     }
 
     private started = async () => {
@@ -111,7 +115,9 @@ export default class DemonGate extends Applet {
             resourceId: this.gateFrameId,
             actor: {
                 transform: {
-                    scale: { x: 0.01, y: 0.01, z: 0.01 } // Why? Oculus Medium import oddity?
+                    local: {
+                        scale: { x: 0.01, y: 0.01, z: 0.01 } // Why? Oculus Medium import oddity?
+                    }
                 }
             }
         });
@@ -120,7 +126,9 @@ export default class DemonGate extends Applet {
             const rot = await this.context.CreateEmpty({
                 actor: {
                     transform: {
-                        rotation: Quaternion.RotationAxis(Vector3.Up(), DegreesToRadians * 72 * i)
+                        local: {
+                            rotation: Quaternion.RotationAxis(Vector3.Up(), DegreesToRadians * 72 * i)
+                        }
                     }
                 }
             });
@@ -130,7 +138,9 @@ export default class DemonGate extends Applet {
                 actor: {
                     parentId: rot.id,
                     transform: {
-                        position: { x: 2.0, y: 0.0, z: 0.0}
+                        local: {
+                            position: { x: 2.0, y: 0.0, z: 0.0}
+                        }
                     }
                 }
             });

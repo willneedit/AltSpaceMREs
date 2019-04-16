@@ -40,8 +40,10 @@ export default class SGDCElven extends SGDCBase {
         return this.context.CreateEmpty({
             actor: {
                 transform: {
-                    rotation: Quaternion.RotationAxis(Vector3.Up(), Math.PI),
-                    position: { x: 0.0, y: 1.75, z: 0.0 }
+                    local: {
+                        rotation: Quaternion.RotationAxis(Vector3.Up(), Math.PI),
+                        position: { x: 0.0, y: 1.75, z: 0.0 }
+                    }
                 },
                 text: {
                     contents: message,
@@ -83,8 +85,10 @@ export default class SGDCElven extends SGDCBase {
             const letterRotRoot = this.context.CreateEmpty({
                     actor: {
                         transform: {
-                            rotation: this.makeRotation(keySlot + 0.5).multiply(letterRotation),
-                            position: { x: letterRadiusX, y: letterElevation + 0.04, z: letterRadiusZ }},
+                            local: {
+                                rotation: this.makeRotation(keySlot + 0.5).multiply(letterRotation),
+                                position: { x: letterRadiusX, y: letterElevation + 0.04, z: letterRadiusZ }},
+                            }
                     }
                 }).value;
 
@@ -94,7 +98,9 @@ export default class SGDCElven extends SGDCBase {
                     actor: {
                         parentId: letterRotRoot.id,
                         transform: {
-                            rotation: letterOrientation,
+                            local: {
+                                rotation: letterOrientation,
+                            }
                         },
                         text: {
                             anchor: TextAnchorLocation.MiddleCenter,
@@ -115,7 +121,9 @@ export default class SGDCElven extends SGDCBase {
                     actor: {
                         parentId: letterRotRoot.id,
                         transform: {
-                            position: { x: 0, y: -0.03, z: 0.055 },
+                            local: {
+                                position: { x: 0, y: -0.03, z: 0.055 },
+                            }
                         }
                     }
                 }).value;

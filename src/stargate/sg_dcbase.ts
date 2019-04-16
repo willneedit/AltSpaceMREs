@@ -77,7 +77,7 @@ export abstract class SGDCBase extends SGDialCompLike {
     protected createStatusLine(message: string): Actor {
         return this.context.CreateEmpty({
             actor: {
-                transform: { position: { x: 0.0, y: 0.3, z: 0.0 } },
+                transform: { local: {position: { x: 0.0, y: 0.3, z: 0.0 } } },
                 text: {
                     contents: message,
                     height: 0.1,
@@ -111,7 +111,7 @@ export abstract class SGDCBase extends SGDialCompLike {
         }
     }
 
-    private keypressed(userid: string, key: number) {
+    private keypressed(user: User, key: number) {
         const gate = SGNetwork.getGate(this.id);
 
         if (gate == null) {
@@ -123,7 +123,7 @@ export abstract class SGDCBase extends SGDialCompLike {
         const timestamp = new Date().getTime() / 1000;
 
         // Preevent crosstyping if someone's busy with the gate.
-        if (userid !== this.lastuserid) {
+        if (user.id !== this.lastuserid) {
 
             // 180 seconds timeout since the last authorized keypress if the gate is connected or dialing up
             if ((gateStatus === GateStatus.engaged || gateStatus === GateStatus.dialing)
@@ -133,7 +133,7 @@ export abstract class SGDCBase extends SGDialCompLike {
             if (timestamp < this.lasttyped + 30) return;
         }
 
-        this.lastuserid = userid;
+        this.lastuserid = user.id;
         this.lasttyped = timestamp;
 
         if (gate.gateStatus !== GateStatus.idle) {
@@ -160,7 +160,7 @@ export abstract class SGDCBase extends SGDialCompLike {
     }
 
     protected makeKeyCallback(i: number): ActionHandler {
-        return (userid: string) => this.keypressed(userid, i);
+        return (user: User) => this.keypressed(user, i);
     }
 
     private userjoined = (user: User) => {

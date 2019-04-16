@@ -70,15 +70,17 @@ export default class StargateElven extends Stargate {
                 resourceId: this.chevronLightId,
                 actor: {
                     transform: {
-                        position: {
-                            x: this.chevronData[index].x,
-                            y: this.chevronData[index].y,
-                            z: 0
-                        },
-                        scale: {
-                            x: 0.3,
-                            y: 0.3,
-                            z: 0.3
+                        local: {
+                            position: {
+                                x: this.chevronData[index].x,
+                                y: this.chevronData[index].y,
+                                z: 0
+                            },
+                            scale: {
+                                x: 0.3,
+                                y: 0.3,
+                                z: 0.3
+                            }
                         }
                     }
                 }
@@ -112,7 +114,7 @@ export default class StargateElven extends Stargate {
                 actor: {
                     name: 'Gate Frame',
                     transform: {
-                        rotation: Quaternion.RotationAxis(Vector3.Up(), Math.PI)
+                        local: { rotation: Quaternion.RotationAxis(Vector3.Up(), Math.PI) }
                     }
                 }
             }
@@ -170,7 +172,7 @@ export default class StargateElven extends Stargate {
             actor: {
                 parentId: this.gateFrame.id,
                 transform: {
-                    rotation: Quaternion.RotationAxis(Vector3.Backward(), srcAngle * DegreesToRadians)
+                    local: { rotation: Quaternion.RotationAxis(Vector3.Backward(), srcAngle * DegreesToRadians) }
                 }
             }
         }).value;
@@ -180,7 +182,7 @@ export default class StargateElven extends Stargate {
             actor: {
                 parentId: symbolLightRoot.id,
                 transform: {
-                    position: { x: 0.0, y: -2.9, z: 0.0 }
+                    local: { position: { x: 0.0, y: -2.9, z: 0.0 } }
                 }
             }
         });
@@ -189,7 +191,7 @@ export default class StargateElven extends Stargate {
         this.soundDialChime.resume();
         await symbolLightRoot.animateTo({
             transform: {
-                rotation: Quaternion.RotationAxis(Vector3.Backward(), tgtAngle * DegreesToRadians)
+                local: { rotation: Quaternion.RotationAxis(Vector3.Backward(), tgtAngle * DegreesToRadians) }
             }
         }, duration, AnimationEaseCurves.EaseInOutSine);
         await delay((duration + 1) * 1000);

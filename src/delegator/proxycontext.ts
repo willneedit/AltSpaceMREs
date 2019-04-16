@@ -34,7 +34,9 @@ export class ProxyContext extends RawContext {
         if (!this._rootActor) {
             this._rootActor = Actor.CreateEmpty(this.baseContext, {
                 actor: {
-                    transform: this._rootTransform
+                    transform: {
+                        local: this._rootTransform
+                    }
                 }
             }).value;
         }

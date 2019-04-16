@@ -20,7 +20,9 @@ export default class AssetPreloadTest extends Applet {
         const label = await this.context.CreateEmpty({
             actor: {
                 transform: {
-                    position: { x: 0, y: 2, z: 0 }
+                    local: {
+                        position: { x: 0, y: 2, z: 0 }
+                    }
                 },
                 // lookAt: MRESDK.LookAtMode.TargetXY,
                 text: {
@@ -42,7 +44,9 @@ export default class AssetPreloadTest extends Applet {
             prefabId: group.prefabs.byIndex(0).id,
             actor: {
                 transform: {
-                    position: { x: 0, y: 1, z: 0 }
+                    local: {
+                        position: { x: 0, y: 1, z: 0 }
+                    }
                 }
             }
         });

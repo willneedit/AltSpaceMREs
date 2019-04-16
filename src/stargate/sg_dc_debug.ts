@@ -19,7 +19,7 @@ export default class SGDCDebug extends SGDCBase {
     protected async makeKeyboard() {
         const rootNode = this.context.CreateEmpty({
                 actor: {
-                    transform: { rotation: Quaternion.RotationAxis(Vector3.Right(), 45 * DegreesToRadians)}
+                    transform: { local: { rotation: Quaternion.RotationAxis(Vector3.Right(), 45 * DegreesToRadians)} }
                 }
             }).value;
 
@@ -32,7 +32,7 @@ export default class SGDCDebug extends SGDCBase {
                     addCollider: true,
                     actor: {
                         parentId: rootNode.id,
-                        transform: { position: { x: xpos, y: ypos, z: 0 }},
+                        transform: { local: { position: { x: xpos, y: ypos, z: 0 }} },
                         name: 'button ' + i
                     }
                 }).value;
@@ -40,7 +40,7 @@ export default class SGDCDebug extends SGDCBase {
             const letter = this.context.CreateEmpty({
                     actor: {
                         parentId: key.id,
-                        transform: { position: { x: -0.002, y: 0.03, z: -0.011 }},
+                        transform: { local: { position: { x: -0.002, y: 0.03, z: -0.011 }} },
                         text: {
                             contents: this.getLetter(i),
                             color: { r: 0.0, g: 0.0, b: 0.0 },

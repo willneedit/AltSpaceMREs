@@ -59,24 +59,30 @@ export default class BlastDoor extends Applet {
 
         this.blastDoorLeft.animateTo({
             transform: {
-                position: { x: 0.0, y: 0.0, z: 0.0 }
+                local: {
+                    position: { x: 0.0, y: 0.0, z: 0.0 }
+                }
             }
         }, 2.0, AnimationEaseCurves.EaseInOutSine);
 
         this.blastDoorRight.animateTo({
             transform: {
-                position: { x: 0.0, y: 0.0, z: 0.0 }
+                local: {
+                    position: { x: 0.0, y: 0.0, z: 0.0 }
+                }
             }
         }, 2.0, AnimationEaseCurves.EaseInOutSine);
 
         this.blastDoorLock.animateTo({
             transform: {
-                rotation: Quaternion.RotationAxis(Vector3.Forward(), 0)
+                local: {
+                    rotation: Quaternion.RotationAxis(Vector3.Forward(), 0)
+                }
             }
         }, 0.5, AnimationEaseCurves.EaseInOutSine);
     }
 
-    private async doorUsed(userId: string) {
+    private async doorUsed(user: User) {
         if (this.open) return;
 
         this.open = true;
@@ -85,19 +91,25 @@ export default class BlastDoor extends Applet {
 
         this.blastDoorLeft.animateTo({
             transform: {
-                position: { x: 1.0, y: 0.0, z: 0.0 }
+                local: {
+                    position: { x: 1.0, y: 0.0, z: 0.0 }
+                }
             }
         }, 2.0, AnimationEaseCurves.EaseInOutSine);
 
         this.blastDoorRight.animateTo({
             transform: {
-                position: { x: -1.0, y: 0.0, z: 0.0 }
+                local: {
+                    position: { x: -1.0, y: 0.0, z: 0.0 }
+                }
             }
         }, 2.0, AnimationEaseCurves.EaseInOutSine);
 
         this.blastDoorLock.animateTo({
             transform: {
-                rotation: Quaternion.RotationAxis(Vector3.Forward(), Math.PI)
+                local: {
+                    rotation: Quaternion.RotationAxis(Vector3.Forward(), Math.PI)
+                }
             }
         }, 0.5, AnimationEaseCurves.EaseInOutSine);
 
@@ -124,13 +136,15 @@ export default class BlastDoor extends Applet {
             actor: {
                 parentId: this.blastDoorLeft.id,
                 transform: {
-                    position: { x: 0.3, y: 1.5, z: 0.0 }
+                    local: {
+                        position: { x: 0.3, y: 1.5, z: 0.0 }
+                    }
                 }
             }
         });
 
         this.blastDoorLock.setBehavior(ButtonBehavior).onClick('pressed',
-            (userId: string) => this.doorUsed(userId) );
+            (user: User) => this.doorUsed(user) );
 
         this.blastDoorSoundFX = initSound(this.blastDoorRoot, this.blastDoorSoundFXURL).value;
     }
