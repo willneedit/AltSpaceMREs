@@ -33,11 +33,13 @@ import { ProxyContext } from "./delegator/proxycontext";
 import { ContextLike } from "./delegator/types";
 
 import got from "got";
+import DragNDropTest from "./dragndrop-test/dragndrop_main";
 
 /**
  * Contains the names and the factories for the given applets
  */
 const registry: { [key: string]: () => Applet } = {
+    dragndrop: (): Applet => new DragNDropTest(),
     helloworld: (): Applet => new HelloWorld(),
     stargate: (): Applet => new StargateSG1(),
     sg_elven: (): Applet => new StargateElven(),
