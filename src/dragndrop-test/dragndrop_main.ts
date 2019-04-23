@@ -63,9 +63,9 @@ export default class DragNDropTest extends Applet {
             addCollider: true,
             actor: {
                 name: "Item",
-                transform: { local: { position: { x: 1.0, y: 0.0, z: 0.0 } } }
-            },
-            subscriptions: [ 'transform' ]
+                transform: { local: { position: { x: 1.0, y: 0.0, z: 0.0 } } },
+                subscriptions: [ 'transform' ]
+            }
         }).value;
 
         this.announce = this.context.CreateEmpty({
@@ -85,9 +85,9 @@ export default class DragNDropTest extends Applet {
         this.sphere.onGrab('begin', (user: User) => { this.handleAction(user, 1); } );
         this.sphere.onGrab('end', (user: User) => { this.handleAction(user, ~1); } );
 
-        const behavior = this.receptacle.setBehavior(ButtonBehavior);
-        behavior.onHover('enter', (user: User) => { this.handleAction(user, 2); } );
-        behavior.onHover('exit', (user: User) => { this.handleAction(user, ~2); } );
+        // const behavior = this.receptacle.setBehavior(ButtonBehavior);
+        // behavior.onHover('enter', (user: User) => { this.handleAction(user, 2); } );
+        // behavior.onHover('exit', (user: User) => { this.handleAction(user, ~2); } );
 
         this.setAnnouncement("Grab the sphere and place it inside the cube");
 
@@ -107,18 +107,16 @@ export default class DragNDropTest extends Applet {
         else this.mode = this.mode | modechange;
         const currentTime = new Date().getTime();
 
+        const pos1 = this.receptacle.transform.app.position;
+        const pos2 = this.sphere.transform.app.position;
+        const dvec = pos1.subtract(pos2);
+
         switch (this.mode) {
             case 0:
-                this.modechangetime = currentTime;
-                break;
-            case 1:
-                this.setAnnouncement('Good. Now place it in the cube.');
-                break;
-            case 2:
-                if ((currentTime - this.modechangetime) < 100) {
+                if ( dvec.lengthSquared() < 0.25) {
                     this.setAnnouncement('Looks good!');
                     this.sphere.animateTo({
-                        transform: { local: { position: { x: 0.0, y: 0.0, z: 0.0 }}}
+                        transform: { local: { position: { x: pos1.x, y: pos1.y, z: pos1.z }}}
                     }, 0.5, AnimationEaseCurves.EaseInOutSine);
                 } else {
                     this.setAnnouncement('Nope, try again.');
@@ -126,8 +124,9 @@ export default class DragNDropTest extends Applet {
                         transform: { local: { position: { x: 1.0, y: 0.0, z: 0.0 }}}
                     }, 1.0, AnimationEaseCurves.EaseInOutSine);
                 }
-            case 3:
-                this.modechangetime = currentTime;
+                break;
+            case 1:
+                this.setAnnouncement('Good. Now place it in the cube.');
                 break;
             default:
                 this.setAnnouncement(`Unknown mode: ${this.mode}`);
