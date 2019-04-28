@@ -35,6 +35,8 @@ import { ContextLike } from "./delegator/types";
 import got from "got";
 import DragNDropTest from "./dragndrop-test/dragndrop_main";
 
+import GenericDoor from "./doors/generic";
+
 /**
  * Contains the names and the factories for the given applets
  */
@@ -49,6 +51,7 @@ const registry: { [key: string]: () => Applet } = {
     kit: (): Applet => new ShowKitObj(),
     demongate: (): Applet => new DemonGate(),
     blastdoor: (): Applet => new BlastDoor(),
+    door: (): Applet => new GenericDoor(),
 };
 
 /**
