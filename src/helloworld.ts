@@ -22,7 +22,7 @@ import {
 } from '@microsoft/mixed-reality-extension-sdk';
 
 import Applet from "./Applet";
-import { ContextLike } from './delegator/types';
+import { ContextLike } from './frameworks/context/types';
 
 /**
  * The main class of this app. All the logic goes here.

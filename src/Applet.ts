@@ -5,7 +5,7 @@
 
 import { Context, ParameterSet } from "@microsoft/mixed-reality-extension-sdk";
 
-import { ContextLike } from "./delegator/types";
+import { ContextLike } from "./frameworks/context/types";
 
 export default abstract class Applet {
     // tslint:disable:variable-name

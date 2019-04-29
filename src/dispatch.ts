@@ -29,8 +29,8 @@ import DoorGuard from "./DoorGuard";
 import SGDCElven from "./stargate/sg_dc_elven";
 import StargateElven from "./stargate/sg_elven";
 
-import { ProxyContext } from "./delegator/proxycontext";
-import { ContextLike } from "./delegator/types";
+import { ProxyContext } from "./frameworks/context/proxycontext";
+import { ContextLike } from "./frameworks/context/types";
 
 import got from "got";
 import DragNDropTest from "./dragndrop-test/dragndrop_main";

@@ -11,7 +11,7 @@
 import Applet from "../Applet";
 import DoorGuard from "../DoorGuard";
 
-import { ContextLike } from "../delegator/types";
+import { ContextLike } from "../frameworks/context/types";
 
 import {
     ParameterSet,

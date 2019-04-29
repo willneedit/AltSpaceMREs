@@ -24,7 +24,7 @@ import SGNetwork from "./sg_network";
 
 import DoorGuard from "../DoorGuard";
 
-import { ContextLike } from "../delegator/types";
+import { ContextLike } from "../frameworks/context/types";
 
 export default abstract class Stargate extends StargateLike {
 

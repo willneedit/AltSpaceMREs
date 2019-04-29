@@ -14,9 +14,7 @@ import WebSocket from 'ws';
 
 import DoorGuard from './DoorGuard';
 
-import { RawContext } from './delegator/rawcontext';
-
-import { ProxyContext } from './delegator/proxycontext';
+import { RawContext } from './frameworks/context/rawcontext';
 
 /*
 import { log } from '@microsoft/mixed-reality-extension-sdk/built/log';

@@ -14,7 +14,7 @@ import {
 import Applet from "../Applet";
 import DoorGuard from "../DoorGuard";
 
-import { ContextLike } from "../delegator/types";
+import { ContextLike } from "../frameworks/context/types";
 
 export default class ShowKitObj extends Applet {
     private initialized = false;

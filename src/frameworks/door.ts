@@ -6,7 +6,7 @@
 import { DoorPart, DoorStructure } from "./types";
 
 import got = require("got");
-import { ContextLike } from "../delegator/types";
+import { ContextLike } from "../frameworks/context/types";
 
 import {
     Actor,

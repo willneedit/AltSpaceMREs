@@ -20,7 +20,7 @@ import DoorGuard from "../DoorGuard";
 
 import { delay, initSound, restartSound } from "../helpers";
 
-import { ContextLike } from "../delegator/types";
+import { ContextLike } from "../frameworks/context/types";
 
 export default class BlastDoor extends Applet {
     private initialized = false;

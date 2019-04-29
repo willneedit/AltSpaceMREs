@@ -23,7 +23,7 @@ import SGNetwork from "./sg_network";
 
 import DoorGuard from "../DoorGuard";
 
-import { ContextLike } from "../delegator/types";
+import { ContextLike } from "../frameworks/context/types";
 
 export abstract class SGDCBase extends SGDialCompLike {
 

@@ -19,7 +19,8 @@ import {
 
 // tslint:disable:no-bitwise
 import Applet from "../Applet";
-import { ContextLike } from '../delegator/types';
+import { ContextLike } from '../frameworks/context/types';
+
 import DoorGuard from '../DoorGuard';
 
 /**
