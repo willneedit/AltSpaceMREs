@@ -6,7 +6,7 @@
 import { DoorPart, DoorStructure } from "./types";
 
 import got = require("got");
-import { ContextLike } from "../frameworks/context/types";
+import { ContextLike } from "../context/types";
 
 import {
     Actor,
@@ -19,7 +19,7 @@ import {
     User,
 } from "@microsoft/mixed-reality-extension-sdk";
 
-import { delay, initSound, restartSound } from "../helpers";
+import { delay, initSound, restartSound } from "../../helpers";
 
 export default class BasicDoor {
     private static cache: { [url: string]: Promise<DoorStructure> } = { };

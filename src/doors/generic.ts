@@ -13,11 +13,9 @@ import DoorGuard from "../DoorGuard";
 
 import { ContextLike } from "../frameworks/context/types";
 
-import {
-    ParameterSet,
-    User
-} from "@microsoft/mixed-reality-extension-sdk";
-import BasicDoor from "../frameworks/door";
+import { ParameterSet, User } from "@microsoft/mixed-reality-extension-sdk";
+
+import BasicDoor from "../frameworks/door/door";
 
 export default class GenericDoor extends Applet {
     private initialized = false;
