@@ -22,7 +22,7 @@ import {
 import { delay, initSound, restartSound } from "../../helpers";
 
 export default class BasicDoor {
-    private static cache: { [url: string]: Promise<DoorStructure> } = { };
+    private static cache: { [url: string]: { time: number, struct: Promise<DoorStructure> } } = { };
 
     private context: ContextLike = null;
     private doorstate: DoorStructure = null;
@@ -70,6 +70,8 @@ export default class BasicDoor {
 
     private async loadDoorStructure(source: string | DoorStructure): Promise<DoorStructure> {
 
+        const currentTime = new Date().getTime() / 1000;
+
         // Return a structure as-is
         if (typeof source !== 'string') {
             const ds: DoorStructure = source as DoorStructure;
@@ -77,11 +79,17 @@ export default class BasicDoor {
             return ds;
         }
 
+        if (BasicDoor.cache[source] && BasicDoor.cache[source].time < currentTime) {
+            BasicDoor.cache[source] = undefined;
+        }
+
         // If we already have something cached, or waiting for the cache, return the Promise
-        if (BasicDoor.cache[source]) return BasicDoor.cache[source];
+        if (BasicDoor.cache[source]) return BasicDoor.cache[source].struct;
+
+        BasicDoor.cache[source] = { time: currentTime + 10, struct: null };
 
         // Else create a new entry and wait for it to be filled
-        BasicDoor.cache[source] = new Promise<DoorStructure>((resolve, reject) => {
+        BasicDoor.cache[source].struct = new Promise<DoorStructure>((resolve, reject) => {
             got(source, {json: true })
             .then((response) => {
                 const ds: DoorStructure = response.body as DoorStructure;
@@ -91,7 +99,7 @@ export default class BasicDoor {
             .catch((err) => { reject(err); });
         });
 
-        return BasicDoor.cache[source];
+        return BasicDoor.cache[source].struct;
     }
 
     public started(ctx: ContextLike, source: string | DoorStructure) {
@@ -147,7 +155,8 @@ export default class BasicDoor {
         if (ds.closesound) this.closeSoundFX = initSound(this.doorRoot, ds.closesound).value;
         if (ds.lockedsound) this.lockedSoundFX = initSound(this.doorRoot, ds.closesound).value;
 
-        this.doorstate = ds;
+        // Deep clone the door structure to avoid backscatter into the cache
+        this.doorstate = JSON.parse(JSON.stringify(ds));
         this.doorstate.parts.forEach((dp: DoorPart) => {
             this.updateDoorPart(this.doorRoot.id, dp, false, false);
         });
