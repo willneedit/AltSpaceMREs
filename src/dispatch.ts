@@ -36,6 +36,7 @@ import got from "got";
 import DragNDropTest from "./dragndrop-test/dragndrop_main";
 
 import GenericDoor from "./doors/generic";
+import Earthquake from "./earthquake/earthquake_main";
 
 /**
  * Contains the names and the factories for the given applets
@@ -52,6 +53,7 @@ const registry: { [key: string]: () => Applet } = {
     demongate: (): Applet => new DemonGate(),
     blastdoor: (): Applet => new BlastDoor(),
     door: (): Applet => new GenericDoor(),
+    earthquake: (): Applet => new Earthquake(),
 };
 
 /**
