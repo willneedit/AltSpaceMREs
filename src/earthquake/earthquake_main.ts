@@ -160,6 +160,15 @@ export default class Earthquake extends Applet {
         });
 
         this.eqIdle.setBehavior(ButtonBehavior).onClick('pressed', (user: User) => this.activate(user));
+
+        this.humSound = initSound(this.terrain, this.humSoundURL, {
+            looping: true
+        }).value;
+
+        this.laserSound = initSound(this.terrain, this.laserSoundURL, {
+            looping: true
+        }).value;
+
     }
 
     private async activate(user: User) {
@@ -225,9 +234,6 @@ export default class Earthquake extends Applet {
 
         this.eqRotUpper.enableAnimation('spin');
 
-        this.humSound = initSound(this.eqRunning, this.humSoundURL, {
-            looping: true
-        }).value;
         restartSound(this.humSound, { looping: true });
 
         setTimeout(() => this.activateStage2(), 16000);
@@ -250,10 +256,6 @@ export default class Earthquake extends Applet {
             actor: {
                 parentId: this.terrain.id
             }
-        }).value;
-
-        this.laserSound = initSound(this.eqEmitter, this.laserSoundURL, {
-            looping: true
         }).value;
 
         restartSound(this.laserSound, { looping: true });
