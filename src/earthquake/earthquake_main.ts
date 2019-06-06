@@ -42,7 +42,7 @@ export default class Earthquake extends Applet {
     private eqEmitter: Actor = null;
     private message: Actor = null;
 
-    private soundBaseURL = 'https://d16l1eke1uksqy.cloudfront.net/uploads/audio_clip/audio/1223998432612451279/';
+    private soundBaseURL = 'https://d16l1eke1uksqy.cloudfront.net/uploads/audio_clip/audio/1223998432612451279';
     private humSoundURL = `${this.soundBaseURL}/Machine_Hum.ogg`;
     private laserSoundURL = `${this.soundBaseURL}/Particle_Beam_Firing.ogg`;
     private humSound: SoundInstance = null;
