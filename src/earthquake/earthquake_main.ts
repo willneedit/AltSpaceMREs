@@ -159,7 +159,7 @@ export default class Earthquake extends Applet {
             resourceId: this.eqgIdleId
         });
 
-        this.eqIdle.setBehavior(ButtonBehavior).onClick('pressed', (user: User) => this.activate(user));
+        this.eqIdle.setBehavior(ButtonBehavior).onClick((user: User) => this.activate(user));
 
         this.humSound = initSound(this.terrain, this.humSoundURL, {
             looping: true

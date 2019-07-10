@@ -125,7 +125,7 @@ export default class BasicDoor {
             }).value;
 
             if (dp.isHandle) {
-                dp.actor.setBehavior(ButtonBehavior).onClick('pressed', (user: User) => { this.handlePressed(user); } );
+                dp.actor.setBehavior(ButtonBehavior).onClick((user: User) => { this.handlePressed(user); } );
             }
         } else if (updateopenstate) {
             if (this._open && dp.open) {

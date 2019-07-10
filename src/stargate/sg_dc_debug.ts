@@ -49,7 +49,7 @@ export default class SGDCDebug extends SGDCBase {
                     }
                 }).value;
 
-            key.setBehavior(ButtonBehavior).onClick('pressed', this.makeKeyCallback(i));
+            key.setBehavior(ButtonBehavior).onClick(this.makeKeyCallback(i));
         }
     }
 

@@ -149,7 +149,7 @@ export default class SGDCDHD extends SGDCBase {
                     }
                 }).value;
 
-            collider.setBehavior(ButtonBehavior).onClick('pressed', this.makeKeyCallback(i));
+            collider.setBehavior(ButtonBehavior).onClick(this.makeKeyCallback(i));
         }
 
         const button = this.context.CreatePrimitive({
@@ -168,7 +168,7 @@ export default class SGDCDHD extends SGDCBase {
                 }
             }).value;
 
-        button.setBehavior(ButtonBehavior).onClick('pressed', this.makeKeyCallback(0));
+        button.setBehavior(ButtonBehavior).onClick(this.makeKeyCallback(0));
 
     }
 }

@@ -143,8 +143,7 @@ export default class BlastDoor extends Applet {
             }
         });
 
-        this.blastDoorLock.setBehavior(ButtonBehavior).onClick('pressed',
-            (user: User) => this.doorUsed(user) );
+        this.blastDoorLock.setBehavior(ButtonBehavior).onClick((user: User) => this.doorUsed(user));
 
         this.blastDoorSoundFX = initSound(this.blastDoorRoot, this.blastDoorSoundFXURL).value;
     }

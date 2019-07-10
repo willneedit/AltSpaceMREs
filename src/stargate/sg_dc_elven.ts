@@ -128,7 +128,7 @@ export default class SGDCElven extends SGDCBase {
                     }
                 }).value;
 
-            collider.setBehavior(ButtonBehavior).onClick('pressed', this.makeKeyCallback(i));
+            collider.setBehavior(ButtonBehavior).onClick(this.makeKeyCallback(i));
         }
     }
 }

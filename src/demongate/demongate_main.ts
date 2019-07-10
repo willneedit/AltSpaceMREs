@@ -145,7 +145,7 @@ export default class DemonGate extends Applet {
                 }
             });
 
-            this.candles[i].setBehavior(ButtonBehavior).onClick('pressed', this.makeCandleCallback(i));
+            this.candles[i].setBehavior(ButtonBehavior).onClick(this.makeCandleCallback(i));
         }
     }
 }

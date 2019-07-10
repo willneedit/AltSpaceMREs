@@ -139,7 +139,7 @@ export default class HelloWorld extends Applet {
         });
 
         // When clicked, do a 360 sideways.
-        buttonBehavior.onClick('pressed', (user: User) => {
+        buttonBehavior.onClick((user: User) => {
             this.cube.enableAnimation('DoAFlip');
         });
 
