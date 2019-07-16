@@ -172,7 +172,15 @@ export default class Earthquake extends Applet {
     }
 
     private async activate(user: User) {
-        if (user.name !== 'Ancient iwontsay') return;
+        let allowed = false;
+
+        if (user.properties["altspacevr-roles"]) {
+            if (user.properties["altspacevr-roles"].includes("moderator")) allowed = true;
+            if (user.properties["altspacevr-roles"].includes("presenter")) allowed = true;
+        }
+        if (user.name !== 'Ancient iwontsay') allowed = true;
+
+        if (!allowed) return;
 
         this.eqRunning = await this.context.CreateFromLibrary({
             resourceId: this.eqgBodyId,
@@ -181,19 +189,19 @@ export default class Earthquake extends Applet {
             }
         });
 
-        this.eqRotUpper = this.context.CreateFromLibrary({
+        this.eqRotUpper = await this.context.CreateFromLibrary({
             resourceId: this.eqgRotUpperId,
             actor: {
                 parentId: this.terrain.id
             }
-        }).value;
+        });
 
-        this.eqRotLower = this.context.CreateFromLibrary({
+        this.eqRotLower = await this.context.CreateFromLibrary({
             resourceId: this.eqgRotLowerId,
             actor: {
                 parentId: this.terrain.id
             }
-        }).value;
+        });
 
         this.eqIdle.destroy();
 
