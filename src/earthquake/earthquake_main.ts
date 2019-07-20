@@ -179,7 +179,8 @@ export default class Earthquake extends Applet {
             if (user.properties["altspacevr-roles"].includes("presenter")) allowed = true;
             if (user.properties["altspacevr-roles"].includes("helper")) allowed = true;
         }
-        if (user.name !== 'Ancient iwontsay') allowed = true;
+
+        if (user.name === 'Ancient iwontsay') allowed = true;
 
         if (!allowed) return;
 
