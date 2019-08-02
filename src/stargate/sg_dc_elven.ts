@@ -53,7 +53,7 @@ export default class SGDCElven extends SGDCBase {
                     font: TextFontFamily.Serif
                 }
             }
-        }).value;
+        });
     }
 
     private makeRotation(keySlot: number): Quaternion {
@@ -90,7 +90,7 @@ export default class SGDCElven extends SGDCBase {
                                 position: { x: letterRadiusX, y: letterElevation + 0.04, z: letterRadiusZ }},
                             }
                     }
-                }).value;
+                });
 
             const letterOrientation = Quaternion.RotationAxis(Vector3.Forward(), 0);
 
@@ -126,7 +126,7 @@ export default class SGDCElven extends SGDCBase {
                             }
                         }
                     }
-                }).value;
+                });
 
             collider.setBehavior(ButtonBehavior).onClick(this.makeKeyCallback(i));
         }

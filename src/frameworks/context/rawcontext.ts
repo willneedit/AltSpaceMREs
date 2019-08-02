@@ -8,7 +8,6 @@ import { ContextLike } from "./types";
 import {
     Actor,
     Context,
-    ForwardPromise,
     User,
 } from "@microsoft/mixed-reality-extension-sdk";
 
@@ -20,7 +19,6 @@ export class RawContext implements ContextLike {
 
     public get baseContext() { return this._baseContext; }
 
-    public get assetManager() { return this._baseContext.assetManager; }
     public get sessionId() { return this._baseContext.sessionId; }
     public get conn() { return this._baseContext.conn; }
     public get actors() { return this._baseContext.actors; }
@@ -41,23 +39,23 @@ export class RawContext implements ContextLike {
         }
     }
 
-    public CreateEmpty(options?: any): ForwardPromise<Actor> {
+    public CreateEmpty(options?: any): Actor {
         return Actor.CreateEmpty(this.baseContext, options);
     }
 
-    public CreateFromLibrary(options: any): ForwardPromise<Actor> {
+    public CreateFromLibrary(options: any): Actor {
         return Actor.CreateFromLibrary(this.baseContext, options);
     }
 
-    public CreateFromGLTF(options: any): ForwardPromise<Actor> {
+    public CreateFromGLTF(options: any): Actor {
         return Actor.CreateFromGLTF(this.baseContext, options);
     }
 
-    public CreateFromPrefab(options: any): ForwardPromise<Actor> {
+    public CreateFromPrefab(options: any): Actor {
         return Actor.CreateFromPrefab(this.baseContext, options);
     }
 
-    public CreatePrimitive(options: any): ForwardPromise<Actor> {
+    public CreatePrimitive(options: any): Actor {
         return Actor.CreatePrimitive(this.baseContext, options);
     }
 }

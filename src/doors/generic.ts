@@ -26,6 +26,7 @@ export default class GenericDoor extends Applet {
         super.init(context, params, baseUrl);
         this.context.onUserJoined(this.userjoined);
         this.context.onStarted(this.started);
+        this.context.onStopped(this.stopped);
     }
 
     private userjoined = async (user: User) => {
@@ -36,5 +37,9 @@ export default class GenericDoor extends Applet {
     private started = () => {
         this.door = new BasicDoor();
         this.door.started(this.context, this.parameter.def as string);
+    }
+
+    private stopped = () => {
+        this.door.stopped();
     }
 }

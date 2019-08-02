@@ -85,7 +85,7 @@ export abstract class SGDCBase extends SGDialCompLike {
                     color: { r: 0.5, g: 1.0, b: 1.0 }
                 }
             }
-        }).value;
+        });
     }
 
     protected getLetter(key: number): string {

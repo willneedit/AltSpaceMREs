@@ -6,9 +6,10 @@
 import {
     Actor,
     AnimationKeyframe,
+    AssetContainer,
     DegreesToRadians,
+    MediaInstance,
     Quaternion,
-    SoundInstance,
     Vector3,
 } from "@microsoft/mixed-reality-extension-sdk";
 
@@ -33,11 +34,11 @@ export default class StargateSG1 extends Stargate {
     private gateChevronUnlitId = 'artifact:1144171776629015542';
 
     private externBaseURL = 'https://raw.githubusercontent.com/willneedit/willneedit.github.io/master/MRE/stargate';
+
     private soundChevronLockURL = `${this.externBaseURL}/SG_Chevron_lock.wav`;
     private soundGateTurningURL = `${this.externBaseURL}/SG_Turn_Grind.wav`;
-
-    private soundChevronLock: SoundInstance = null;
-    private soundGateTurning: SoundInstance = null;
+    private soundChevronLock: MediaInstance = null;
+    private soundGateTurning: MediaInstance = null;
 
     /**
      * Light up or switch off the given chevron
@@ -54,7 +55,7 @@ export default class StargateSG1 extends Stargate {
                     transform: { local: { rotation: Quaternion.RotationAxis(
                         Vector3.Forward(), this.chevronAngles[index] * DegreesToRadians) } }
                 }
-            }).value;
+            });
 
         const chevronModel = this.context.CreateFromLibrary({
                 resourceId: (state ? this.gateChevronLitId : this.gateChevronUnlitId),
@@ -96,10 +97,10 @@ export default class StargateSG1 extends Stargate {
                     name: 'Gate Ring'
                 }
             }
-        ).value;
+        );
 
-        this.soundGateTurning = initSound(this.gateRing, this.soundGateTurningURL, { looping: true }).value;
-        this.soundChevronLock = initSound(this.gateRing, this.soundChevronLockURL).value;
+        this.soundGateTurning = initSound(this.assets, this.gateRing, this.soundGateTurningURL, { looping: true });
+        this.soundChevronLock = initSound(this.assets, this.gateRing, this.soundChevronLockURL);
 
         this.resetGate();
 

@@ -21,7 +21,7 @@ export default class SGDCDebug extends SGDCBase {
                 actor: {
                     transform: { local: { rotation: Quaternion.RotationAxis(Vector3.Right(), 45 * DegreesToRadians)} }
                 }
-            }).value;
+            });
 
         for (let i = 0; i < 39; i++) {
             const xpos = (i % 8) * 0.10 + -0.35;
@@ -35,7 +35,7 @@ export default class SGDCDebug extends SGDCBase {
                         transform: { local: { position: { x: xpos, y: ypos, z: 0 }} },
                         name: 'button ' + i
                     }
-                }).value;
+                });
 
             const letter = this.context.CreateEmpty({
                     actor: {
@@ -47,7 +47,7 @@ export default class SGDCDebug extends SGDCBase {
                             height: 0.07
                         }
                     }
-                }).value;
+                });
 
             key.setBehavior(ButtonBehavior).onClick(this.makeKeyCallback(i));
         }

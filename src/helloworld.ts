@@ -67,7 +67,7 @@ export default class HelloWorld extends Applet {
 
         // Even though the actor is not yet created in Altspace (because we didn't wait for the promise),
         // we can still get a reference to it by grabbing the `value` field from the forward promise.
-        this.text = textPromise.value;
+        this.text = textPromise;
 
         // Here we create an animation on our text actor. Animations have three mandatory arguments:
         // a name, an array of keyframes, and an array of events.
@@ -104,7 +104,7 @@ export default class HelloWorld extends Applet {
         });
 
         // Grab that early reference again.
-        this.cube = cubePromise.value;
+        this.cube = cubePromise;
 
         // Create some animations on the cube.
         this.cube.createAnimation('GrowIn', {

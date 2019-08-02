@@ -67,7 +67,7 @@ export default class DemonGate extends Applet {
                             }
                         }
                     }
-                }).value;
+                });
             }
         }
 
@@ -77,7 +77,7 @@ export default class DemonGate extends Applet {
         } else if (allLit && this.gateInset === null ) {
             this.gateInset = this.context.CreateFromLibrary({
                 resourceId: this.gateInsetId,
-            }).value;
+            });
         }
     }
 
@@ -96,7 +96,7 @@ export default class DemonGate extends Applet {
                         }
                     }
                 }
-            }).value;
+            });
         }
 
         this.evaluatePentLines();

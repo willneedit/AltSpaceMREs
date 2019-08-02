@@ -6,9 +6,10 @@
 import {
     Actor,
     AnimationEaseCurves,
+    AssetContainer,
     DegreesToRadians,
+    MediaInstance,
     Quaternion,
-    SoundInstance,
     Vector3,
 } from "@microsoft/mixed-reality-extension-sdk";
 
@@ -25,7 +26,7 @@ interface ChevronData {
     y: number;
     pitch: number;
     actor: Actor;
-    si: SoundInstance;
+    si: MediaInstance;
 }
 
 export default class StargateElven extends Stargate {
@@ -52,7 +53,7 @@ export default class StargateElven extends Stargate {
 
     private gateFrame: Actor = null;
     private symbolRingLights: Actor[] = [ ];
-    private soundDialChime: SoundInstance = null;
+    private soundDialChime: MediaInstance = null;
     private gateRingAngle = 0;
 
     /**
@@ -121,12 +122,12 @@ export default class StargateElven extends Stargate {
         );
 
         for (let i = 0; i < 9; i++) {
-            this.chevronData[i].si = initSound(this.gateFrame, this.soundChevronLockURL, {
+            this.chevronData[i].si = initSound(this.assets, this.gateFrame, this.soundChevronLockURL, {
                 pitch: this.chevronData[i].pitch
-            }).value;
+            });
         }
 
-        this.soundDialChime = initSound(this.gateFrame, this.soundDialChimeURL, { looping: true }).value;
+        this.soundDialChime = initSound(this.assets, this.gateFrame, this.soundDialChimeURL, { looping: true });
 
         this.resetGate();
 
@@ -175,7 +176,7 @@ export default class StargateElven extends Stargate {
                     local: { rotation: Quaternion.RotationAxis(Vector3.Backward(), srcAngle * DegreesToRadians) }
                 }
             }
-        }).value;
+        });
 
         await this.context.CreateFromLibrary({
             resourceId: this.symbolLightId,

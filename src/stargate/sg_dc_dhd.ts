@@ -51,7 +51,7 @@ export default class SGDCDHD extends SGDCBase {
                     color: { r: 0.5, g: 1.0, b: 1.0 }
                 }
             }
-        }).value;
+        });
     }
 
     private makeRotation(keySlot: number): Quaternion {
@@ -71,7 +71,7 @@ export default class SGDCDHD extends SGDCBase {
                         }
                     }
                 }
-            }).value;
+            });
 
         const letterRotation = Quaternion.RotationAxis(Vector3.Right(), 76 * DegreesToRadians);
 
@@ -99,7 +99,7 @@ export default class SGDCDHD extends SGDCBase {
                             }
                         }
                     }
-                }).value;
+                });
 
             const letterRotRoot = this.context.CreateEmpty({
                     actor: {
@@ -110,7 +110,7 @@ export default class SGDCDHD extends SGDCBase {
                                 position: { x: 0, y: 0.03, z: letterRadius }},
                             }
                     }
-                }).value;
+                });
 
             const letterOrientation = (keySlot < 3 || keySlot > 9)
                 ? Quaternion.RotationAxis(Vector3.Forward(), 180 * DegreesToRadians)
@@ -147,7 +147,7 @@ export default class SGDCDHD extends SGDCBase {
                             }
                         }
                     }
-                }).value;
+                });
 
             collider.setBehavior(ButtonBehavior).onClick(this.makeKeyCallback(i));
         }
@@ -166,7 +166,7 @@ export default class SGDCDHD extends SGDCBase {
                         }
                     }
                 }
-            }).value;
+            });
 
         button.setBehavior(ButtonBehavior).onClick(this.makeKeyCallback(0));
 

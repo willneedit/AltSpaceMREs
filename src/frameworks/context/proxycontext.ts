@@ -8,7 +8,6 @@ import { RawContext } from "./rawcontext";
 import {
     Actor,
     Context,
-    ForwardPromise,
     TransformLike
 } from "@microsoft/mixed-reality-extension-sdk";
 
@@ -38,7 +37,7 @@ export class ProxyContext extends RawContext {
                         local: this._rootTransform
                     }
                 }
-            }).value;
+            });
         }
 
         // Overlay the parent ID with the one given in the options, add the root actor as the parent
@@ -50,23 +49,23 @@ export class ProxyContext extends RawContext {
         return options;
     }
 
-    public CreateEmpty(options?: any): ForwardPromise<Actor> {
+    public CreateEmpty(options?: any): Actor {
         return Actor.CreateEmpty(this.baseContext, this.addRootActor(options));
     }
 
-    public CreateFromLibrary(options: any): ForwardPromise<Actor> {
+    public CreateFromLibrary(options: any): Actor {
         return Actor.CreateFromLibrary(this.baseContext, this.addRootActor(options));
     }
 
-    public CreateFromGLTF(options: any): ForwardPromise<Actor> {
+    public CreateFromGLTF(options: any): Actor {
         return Actor.CreateFromGLTF(this.baseContext, this.addRootActor(options));
     }
 
-    public CreateFromPrefab(options: any): ForwardPromise<Actor> {
+    public CreateFromPrefab(options: any): Actor {
         return Actor.CreateFromPrefab(this.baseContext, this.addRootActor(options));
     }
 
-    public CreatePrimitive(options: any): ForwardPromise<Actor> {
+    public CreatePrimitive(options: any): Actor {
         return Actor.CreatePrimitive(this.baseContext, this.addRootActor(options));
     }
 

@@ -54,7 +54,7 @@ export default class DragNDropTest extends Applet {
                 name: "Receptacle",
                 transform: { local: { position: { x: 0.0, y: 0.0, z: 0.0 } } }
             }
-        }).value;
+        });
 
         this.sphere = this.context.CreatePrimitive({
             definition: {
@@ -67,7 +67,7 @@ export default class DragNDropTest extends Applet {
                 transform: { local: { position: { x: 1.0, y: 0.0, z: 0.0 } } },
                 subscriptions: [ 'transform' ]
             }
-        }).value;
+        });
 
         this.announce = this.context.CreateEmpty({
             actor: {
@@ -80,7 +80,7 @@ export default class DragNDropTest extends Applet {
                     height: 0.3
                 }
             }
-        }).value;
+        });
 
         this.sphere.grabbable = true;
         this.sphere.onGrab('begin', (user: User) => { this.handleAction(user, 1); } );

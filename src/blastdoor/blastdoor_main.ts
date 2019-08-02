@@ -6,13 +6,14 @@
 import {
     Actor,
     AnimationEaseCurves,
+    AssetContainer,
     ButtonBehavior,
     Context,
+    MediaInstance,
     ParameterSet,
     Quaternion,
-    SoundInstance,
     User,
-    Vector3,
+    Vector3
 } from "@microsoft/mixed-reality-extension-sdk";
 
 import Applet from "../Applet";
@@ -30,26 +31,32 @@ export default class BlastDoor extends Applet {
     private blastDoorLockId = 'artifact:1155082317299974906';
 
     private externBaseURL = 'https://raw.githubusercontent.com/willneedit/willneedit.github.io/master/MRE/BlastDoor';
-    private blastDoorSoundFXURL = `${this.externBaseURL}/Powered_Sliding_Door.wav`;
 
     private blastDoorRoot: Actor = null;
     private blastDoorLeft: Actor = null;
     private blastDoorRight: Actor = null;
     private blastDoorLock: Actor = null;
 
-    private blastDoorSoundFX: SoundInstance = null;
-
     private open = false;
+
+    private assets = new AssetContainer(this.context.baseContext);
+    private blastDoorSoundFX: MediaInstance = null;
+    private blastDoorSoundFXURL = `${this.externBaseURL}/Powered_Sliding_Door.wav`;
 
     public init(context: ContextLike, params: ParameterSet, baseUrl: string) {
         super.init(context, params, baseUrl);
         this.context.onUserJoined(this.userjoined);
+        this.context.onStopped(this.stopped);
     }
 
     private userjoined = async (user: User) => {
         console.log(`Connection request by ${user.name} from ${user.properties.remoteAddress}`);
         DoorGuard.greeted(user.properties.remoteAddress);
         this.started();
+    }
+
+    private stopped = async () => {
+        this.assets.unload();
     }
 
     private async closeDoor() {
@@ -121,15 +128,15 @@ export default class BlastDoor extends Applet {
 
         this.initialized = true;
 
-        this.blastDoorRoot = this.context.CreateEmpty().value;
+        this.blastDoorRoot = this.context.CreateEmpty();
 
         this.blastDoorLeft = this.context.CreateFromLibrary({
             resourceId: this.blastDoorLeftId
-        }).value;
+        });
 
         this.blastDoorRight = this.context.CreateFromLibrary({
             resourceId: this.blastDoorRightId
-        }).value;
+        });
 
         this.blastDoorLock = await this.context.CreateFromLibrary({
             resourceId: this.blastDoorLockId,
@@ -145,6 +152,6 @@ export default class BlastDoor extends Applet {
 
         this.blastDoorLock.setBehavior(ButtonBehavior).onClick((user: User) => this.doorUsed(user));
 
-        this.blastDoorSoundFX = initSound(this.blastDoorRoot, this.blastDoorSoundFXURL).value;
+        this.blastDoorSoundFX = initSound(this.assets, this.blastDoorRoot, this.blastDoorSoundFXURL);
     }
 }

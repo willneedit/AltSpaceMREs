@@ -29,7 +29,7 @@ export default class Message {
             }
         });
 
-        this.msgActor = textPromise.value;
+        this.msgActor = textPromise;
         if (timeout > 0) {
             this.showtimed();
         }

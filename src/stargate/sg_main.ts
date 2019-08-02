@@ -5,7 +5,7 @@
 
 import {
     Actor,
-    Context,
+    AssetContainer,
     ParameterSet,
     Quaternion,
     User,
@@ -54,6 +54,8 @@ export default abstract class Stargate extends StargateLike {
     public get currentTimeStamp() { return this._connectionTimeStamp; }
 
     private abortRequested = false;
+
+    protected assets = new AssetContainer(this.context.baseContext);
 
     public init(context: ContextLike, params: ParameterSet, baseUrl: string) {
         super.init(context, params, baseUrl);
@@ -130,6 +132,7 @@ export default abstract class Stargate extends StargateLike {
             }
         }
         SGNetwork.deregisterGate(this.id);
+        this.assets.unload();
     }
 
     /**
@@ -169,35 +172,35 @@ export default abstract class Stargate extends StargateLike {
         this._gateStatus = GateStatus.engaged;
 
         SGNetwork.getTarget(this.currentTarget).then((loc: string) => {
-            this.context.CreateFromLibrary({
+            if (this.gateHorizon != null) this.gateHorizon.destroy();
+
+            this.gateHorizon = this.context.CreateFromLibrary({
                 resourceId: this.gateHorizonOpening,
                 actor: {
                     transform: {
                         local: { rotation: Quaternion.RotationAxis(Vector3.Right(), Math.PI / 2) }
                     }
                 }
-            }).then((gateHorizon) => {
-                if (this.gateHorizon != null) this.gateHorizon.destroy();
-                this.gateHorizon = gateHorizon;
+            });
 
-                this.gateHorizonTeleporter = this.context.CreateFromLibrary({
-                    resourceId: `Teleporter:${loc}`,
-                    actor: {
-                        parentId: gateHorizon.id,
-                        transform: {
-                            local: {
-                                // Teleporter is a bit bugged and need an explicit PRS setting,
-                                // else it spawns at (0,0,0), regardless of parenting.
-                                position: { x: 0, y: 0, z: 0 },
-                                rotation: Quaternion.RotationAxis(Vector3.Right(), 0),
-                                scale: { x: 5.4, y: 0.01, z: 5.4 }
-                            }
+            this.gateHorizonTeleporter = this.context.CreateFromLibrary({
+                resourceId: `Teleporter:${loc}`,
+                actor: {
+                    parentId: this.gateHorizon.id,
+                    transform: {
+                        local: {
+                            // Teleporter is a bit bugged and need an explicit PRS setting,
+                            // else it spawns at (0,0,0), regardless of parenting.
+                            position: { x: 0, y: 0, z: 0 },
+                            rotation: Quaternion.RotationAxis(Vector3.Right(), 0),
+                            scale: { x: 5.4, y: 0.01, z: 5.4 }
                         }
                     }
-                }).value;
+                }
             });
 
             this.reportStatus(`${this.currentDirection ? 'Incoming w' : 'W'}ormhole active`);
+
             if (!this.currentDirection) {
                 delay(this.whTimeout * 1000).then(
                     () => this.timeOutGate(this.currentTimeStamp));
@@ -227,17 +230,17 @@ export default abstract class Stargate extends StargateLike {
                 this.gateHorizonTeleporter = null;
             }
 
-            this.context.CreateFromLibrary({
+            if (this.gateHorizon != null) this.gateHorizon.destroy();
+
+            this.gateHorizon = this.context.CreateFromLibrary({
                 resourceId: this.gateHorizonClosing,
                 actor: {
                     transform: {
                         local: { rotation: Quaternion.RotationAxis(Vector3.Right(), Math.PI / 2) }
                     }
                 }
-            }).then((gateHorizon) => {
-                if (this.gateHorizon != null) this.gateHorizon.destroy();
-                this.gateHorizon = gateHorizon;
             });
+
         }
 
         if (this.gateStatus === GateStatus.dialing) {

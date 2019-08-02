@@ -12,10 +12,11 @@ import {
     Actor,
     ActorLike,
     AnimationEaseCurves,
+    AssetContainer,
     ButtonBehavior,
     DegreesToRadians,
+    MediaInstance,
     Quaternion,
-    SoundInstance,
     User,
 } from "@microsoft/mixed-reality-extension-sdk";
 
@@ -38,9 +39,11 @@ export default class BasicDoor {
     public set open(toOpen: boolean) { this.updateDoorState(toOpen, this._locked); }
 
     private doorRoot: Actor = null;
-    private openSoundFX: SoundInstance = null;
-    private closeSoundFX: SoundInstance = null;
-    private lockedSoundFX: SoundInstance = null;
+
+    private assets = new AssetContainer(this.context.baseContext);
+    private openSoundFX: MediaInstance = null;
+    private closeSoundFX: MediaInstance = null;
+    private lockedSoundFX: MediaInstance = null;
 
     private translateRotations(dp: DoorPart) {
         if (dp.closed && dp.closed.rotation) {
@@ -107,6 +110,10 @@ export default class BasicDoor {
         this.loadDoorStructure(source).then((ds: DoorStructure) => { this.initDoor(ds); });
     }
 
+    public stopped = async () => {
+        this.assets.unload();
+    }
+
     private updateDoorPart(pid: string, dp: DoorPart, updateopenstate: boolean, updatelockstate: boolean) {
         if (!dp.actor || updatelockstate) {
             const actorDef: Partial<ActorLike> = {
@@ -122,7 +129,7 @@ export default class BasicDoor {
             dp.actor = this.context.CreateFromLibrary({
                 resourceId: this._locked && dp.lockedprefabid ? dp.lockedprefabid : dp.prefabid,
                 actor: actorDef
-            }).value;
+            });
 
             if (dp.isHandle) {
                 dp.actor.setBehavior(ButtonBehavior).onClick((user: User) => { this.handlePressed(user); } );
@@ -149,11 +156,11 @@ export default class BasicDoor {
     }
 
     private initDoor(ds: DoorStructure) {
-        this.doorRoot = this.context.CreateEmpty().value;
+        this.doorRoot = this.context.CreateEmpty();
 
-        if (ds.opensound) this.openSoundFX = initSound(this.doorRoot, ds.opensound).value;
-        if (ds.closesound) this.closeSoundFX = initSound(this.doorRoot, ds.closesound).value;
-        if (ds.lockedsound) this.lockedSoundFX = initSound(this.doorRoot, ds.closesound).value;
+        if (ds.opensound) this.openSoundFX = initSound(this.assets, this.doorRoot, ds.opensound);
+        if (ds.closesound) this.closeSoundFX = initSound(this.assets, this.doorRoot, ds.closesound);
+        if (ds.lockedsound) this.lockedSoundFX = initSound(this.assets, this.doorRoot, ds.closesound);
 
         // Deep clone the door structure to avoid backscatter into the cache
         this.doorstate = JSON.parse(JSON.stringify(ds));

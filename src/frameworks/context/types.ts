@@ -6,10 +6,8 @@
 import {
     Actor,
     ActorLike,
-    AssetManager,
     Connection,
     Context,
-    ForwardPromise,
     PrimitiveDefinition,
     SubscriptionType,
     User,
@@ -20,7 +18,6 @@ import { CreateColliderType } from "@microsoft/mixed-reality-extension-sdk/built
 // tslint:disable:variable-name
 export interface ContextLike {
     readonly baseContext: Context;
-    readonly assetManager: AssetManager;
     readonly sessionId: string;
     readonly conn: Connection;
     readonly actors: Actor[];
@@ -97,13 +94,13 @@ export interface ContextLike {
     CreateEmpty(options?: {
         actor?: Partial<ActorLike>;
         subscriptions?: SubscriptionType[];
-    }): ForwardPromise<Actor>;
+    }): Actor;
 
     CreateFromLibrary(options?: {
         resourceId: string;
         actor?: Partial<ActorLike>;
         subscriptions?: SubscriptionType[];
-    }): ForwardPromise<Actor>;
+    }): Actor;
 
     CreateFromGLTF(options: {
         resourceUrl: string;
@@ -111,20 +108,20 @@ export interface ContextLike {
         colliderType?: CreateColliderType;
         actor?: Partial<ActorLike>;
         subscriptions?: SubscriptionType[];
-    }): ForwardPromise<Actor>;
+    }): Actor;
 
     CreateFromPrefab(options: {
         prefabId: string;
         actor?: Partial<ActorLike>;
         subscriptions?: SubscriptionType[];
-    }): ForwardPromise<Actor>;
+    }): Actor;
 
     CreatePrimitive(options: {
         definition: PrimitiveDefinition;
         addCollider?: boolean;
         actor?: Partial<ActorLike>;
         subscriptions?: SubscriptionType[];
-    }): ForwardPromise<Actor>;
+    }): Actor;
 
     announceSelf(): void;
 }

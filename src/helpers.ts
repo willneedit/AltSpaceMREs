@@ -5,9 +5,9 @@
 
 import {
     Actor,
-    ForwardPromise,
-    SetSoundStateOptions,
-    SoundInstance,
+    AssetContainer,
+    MediaInstance,
+    SetAudioStateOptions,
 } from "@microsoft/mixed-reality-extension-sdk";
 
 /**
@@ -53,14 +53,14 @@ export function destroyActors(actors: Actor | Actor[]): Actor[] {
  * @param sssoOvr Partial set of SetSoundStateOptions to deviate from common standards
  */
 export function initSound(
-    actor: Actor, url: string, sssoOvr?: Partial<SetSoundStateOptions>): ForwardPromise<SoundInstance> {
-    const context = actor.context;
+    assets: AssetContainer,
+    actor: Actor, url: string, sssoOvr?: Partial<SetAudioStateOptions>): MediaInstance {
 
-    const soundAsset = context.assetManager.createSound('default', {
+    const soundAsset = assets.createSound('default', {
         uri: url
-    }).value;
+    });
 
-    const sssoDefaults: SetSoundStateOptions = {
+    const sssoDefaults: SetAudioStateOptions = {
         volume: 0.5,
         looping: false,
         doppler: 1.0,
@@ -68,7 +68,7 @@ export function initSound(
     };
 
     const si = actor.startSound(soundAsset.id, { ...sssoDefaults, ...(sssoOvr || { })});
-    si.value.pause();
+    si.pause();
 
     return si;
 }
@@ -77,15 +77,14 @@ export function initSound(
  * Restarts the sound from the start or a given offset
  * @param si Sound instance to start over
  * @param sssoOvr Optional: SoundStateOptions to override
- * @param startTimeOffset Optional: Start Time offset
  */
-export function restartSound(si: SoundInstance, sssoOvr?: Partial<SetSoundStateOptions>, startTimeOffset?: number) {
-    const sssoDefaults: SetSoundStateOptions = {
+export function restartSound(si: MediaInstance, sssoOvr?: Partial<SetAudioStateOptions>) {
+    const sssoDefaults: SetAudioStateOptions = {
         volume: 0.5,
         looping: false,
         doppler: 1.0,
         rolloffStartDistance: 2.0
     };
     si.stop();
-    si.start({ ...sssoDefaults, ...(sssoOvr || { })}, startTimeOffset);
+    si.start({ ...sssoDefaults, ...(sssoOvr || { })});
 }
