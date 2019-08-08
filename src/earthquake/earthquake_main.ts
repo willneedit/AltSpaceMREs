@@ -43,7 +43,7 @@ export default class Earthquake extends Applet {
     private eqEmitter: Actor = null;
     private message: Actor = null;
 
-    private assets = new AssetContainer(this.context.baseContext);
+    private assets: AssetContainer = null;
     private soundBaseURL = 'https://raw.githubusercontent.com/willneedit/willneedit.github.io/master/MRE/earthquake';
     private humSoundURL = `${this.soundBaseURL}/Machine_Hum.ogg`;
     private laserSoundURL = `${this.soundBaseURL}/Particle_Beam_Firing.ogg`;
@@ -155,6 +155,7 @@ export default class Earthquake extends Applet {
     }
 
     private started = async () => {
+        this.assets = new AssetContainer(this.context.baseContext);
         this.terrain = await this.context.CreateFromLibrary({
             resourceId: this.terrainId
         });

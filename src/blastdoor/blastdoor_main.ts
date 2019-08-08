@@ -39,7 +39,7 @@ export default class BlastDoor extends Applet {
 
     private open = false;
 
-    private assets = new AssetContainer(this.context.baseContext);
+    private assets: AssetContainer = null;
     private blastDoorSoundFX: MediaInstance = null;
     private blastDoorSoundFXURL = `${this.externBaseURL}/Powered_Sliding_Door.wav`;
 
@@ -127,6 +127,8 @@ export default class BlastDoor extends Applet {
         if (this.initialized) return;
 
         this.initialized = true;
+
+        this.assets = new AssetContainer(this.context.baseContext);
 
         this.blastDoorRoot = this.context.CreateEmpty();
 

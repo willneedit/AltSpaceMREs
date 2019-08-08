@@ -40,7 +40,7 @@ export default class BasicDoor {
 
     private doorRoot: Actor = null;
 
-    private assets = new AssetContainer(this.context.baseContext);
+    private assets: AssetContainer = null;
     private openSoundFX: MediaInstance = null;
     private closeSoundFX: MediaInstance = null;
     private lockedSoundFX: MediaInstance = null;
@@ -107,6 +107,7 @@ export default class BasicDoor {
 
     public started(ctx: ContextLike, source: string | DoorStructure) {
         this.context = ctx;
+        this.assets = new AssetContainer(this.context.baseContext);
         this.loadDoorStructure(source).then((ds: DoorStructure) => { this.initDoor(ds); });
     }
 

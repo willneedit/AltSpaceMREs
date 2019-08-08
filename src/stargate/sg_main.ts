@@ -55,7 +55,7 @@ export default abstract class Stargate extends StargateLike {
 
     private abortRequested = false;
 
-    protected assets = new AssetContainer(this.context.baseContext);
+    protected assets: AssetContainer = null;
 
     public init(context: ContextLike, params: ParameterSet, baseUrl: string) {
         super.init(context, params, baseUrl);
@@ -115,6 +115,7 @@ export default abstract class Stargate extends StargateLike {
     private started = () => {
         this.initstatus = InitStatus.initializing;
 
+        this.assets = new AssetContainer(this.context.baseContext);
         this.initGate();
     }
 
