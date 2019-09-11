@@ -6,9 +6,7 @@
 import {
     Actor,
     AnimationEaseCurves,
-    AssetContainer,
     ButtonBehavior,
-    Context,
     MediaInstance,
     ParameterSet,
     Quaternion,
@@ -39,24 +37,18 @@ export default class BlastDoor extends Applet {
 
     private open = false;
 
-    private assets: AssetContainer = null;
     private blastDoorSoundFX: MediaInstance = null;
     private blastDoorSoundFXURL = `${this.externBaseURL}/Powered_Sliding_Door.wav`;
 
     public init(context: ContextLike, params: ParameterSet, baseUrl: string) {
         super.init(context, params, baseUrl);
         this.context.onUserJoined(this.userjoined);
-        this.context.onStopped(this.stopped);
     }
 
     private userjoined = async (user: User) => {
         console.log(`Connection request by ${user.name} from ${user.properties.remoteAddress}`);
         DoorGuard.greeted(user.properties.remoteAddress);
         this.started();
-    }
-
-    private stopped = async () => {
-        this.assets.unload();
     }
 
     private async closeDoor() {
@@ -128,8 +120,6 @@ export default class BlastDoor extends Applet {
 
         this.initialized = true;
 
-        this.assets = new AssetContainer(this.context.baseContext);
-
         this.blastDoorRoot = this.context.CreateEmpty();
 
         this.blastDoorLeft = this.context.CreateFromLibrary({
@@ -154,6 +144,6 @@ export default class BlastDoor extends Applet {
 
         this.blastDoorLock.setBehavior(ButtonBehavior).onClick((user: User) => this.doorUsed(user));
 
-        this.blastDoorSoundFX = initSound(this.assets, this.blastDoorRoot, this.blastDoorSoundFXURL);
+        this.blastDoorSoundFX = initSound(this.context.assets, this.blastDoorRoot, this.blastDoorSoundFXURL);
     }
 }

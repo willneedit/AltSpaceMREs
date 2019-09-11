@@ -5,7 +5,6 @@
 
 import {
     Actor,
-    AssetContainer,
     ParameterSet,
     Quaternion,
     User,
@@ -54,8 +53,6 @@ export default abstract class Stargate extends StargateLike {
     public get currentTimeStamp() { return this._connectionTimeStamp; }
 
     private abortRequested = false;
-
-    protected assets: AssetContainer = null;
 
     public init(context: ContextLike, params: ParameterSet, baseUrl: string) {
         super.init(context, params, baseUrl);
@@ -115,7 +112,6 @@ export default abstract class Stargate extends StargateLike {
     private started = () => {
         this.initstatus = InitStatus.initializing;
 
-        this.assets = new AssetContainer(this.context.baseContext);
         this.initGate();
     }
 
@@ -133,7 +129,6 @@ export default abstract class Stargate extends StargateLike {
             }
         }
         SGNetwork.deregisterGate(this.id);
-        this.assets.unload();
     }
 
     /**

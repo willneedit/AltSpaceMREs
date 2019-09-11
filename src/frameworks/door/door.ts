@@ -12,7 +12,6 @@ import {
     Actor,
     ActorLike,
     AnimationEaseCurves,
-    AssetContainer,
     ButtonBehavior,
     DegreesToRadians,
     MediaInstance,
@@ -40,7 +39,6 @@ export default class BasicDoor {
 
     private doorRoot: Actor = null;
 
-    private assets: AssetContainer = null;
     private openSoundFX: MediaInstance = null;
     private closeSoundFX: MediaInstance = null;
     private lockedSoundFX: MediaInstance = null;
@@ -107,12 +105,10 @@ export default class BasicDoor {
 
     public started(ctx: ContextLike, source: string | DoorStructure) {
         this.context = ctx;
-        this.assets = new AssetContainer(this.context.baseContext);
         this.loadDoorStructure(source).then((ds: DoorStructure) => { this.initDoor(ds); });
     }
 
     public stopped = async () => {
-        this.assets.unload();
     }
 
     private updateDoorPart(pid: string, dp: DoorPart, updateopenstate: boolean, updatelockstate: boolean) {
@@ -159,9 +155,9 @@ export default class BasicDoor {
     private initDoor(ds: DoorStructure) {
         this.doorRoot = this.context.CreateEmpty();
 
-        if (ds.opensound) this.openSoundFX = initSound(this.assets, this.doorRoot, ds.opensound);
-        if (ds.closesound) this.closeSoundFX = initSound(this.assets, this.doorRoot, ds.closesound);
-        if (ds.lockedsound) this.lockedSoundFX = initSound(this.assets, this.doorRoot, ds.closesound);
+        if (ds.opensound) this.openSoundFX = initSound(this.context.assets, this.doorRoot, ds.opensound);
+        if (ds.closesound) this.closeSoundFX = initSound(this.context.assets, this.doorRoot, ds.closesound);
+        if (ds.lockedsound) this.lockedSoundFX = initSound(this.context.assets, this.doorRoot, ds.closesound);
 
         // Deep clone the door structure to avoid backscatter into the cache
         this.doorstate = JSON.parse(JSON.stringify(ds));

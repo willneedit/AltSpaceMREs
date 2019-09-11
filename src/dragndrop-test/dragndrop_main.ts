@@ -59,7 +59,7 @@ export default class DragNDropTest extends Applet {
         this.sphere = this.context.CreatePrimitive({
             definition: {
                 shape: PrimitiveShape.Sphere,
-                radius: 0.10,
+                dimensions: { x: 0.1, y: 0.1, z: 0.1 }
             },
             addCollider: true,
             actor: {

@@ -17,6 +17,7 @@ export class ProxyContext extends RawContext {
         baseContext: Context,
         private _index: number,
         private _rootTransform: Partial<TransformLike>) {
+
             super(baseContext);
     }
 
@@ -58,7 +59,7 @@ export class ProxyContext extends RawContext {
     }
 
     public CreateFromGLTF(options: any): Actor {
-        return Actor.CreateFromGLTF(this.baseContext, this.addRootActor(options));
+        return Actor.CreateFromGltf(this.assets, this.addRootActor(options));
     }
 
     public CreateFromPrefab(options: any): Actor {
@@ -66,7 +67,7 @@ export class ProxyContext extends RawContext {
     }
 
     public CreatePrimitive(options: any): Actor {
-        return Actor.CreatePrimitive(this.baseContext, this.addRootActor(options));
+        return Actor.CreatePrimitive(this.assets, this.addRootActor(options));
     }
 
 }

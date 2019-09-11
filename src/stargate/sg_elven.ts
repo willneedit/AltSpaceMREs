@@ -6,7 +6,6 @@
 import {
     Actor,
     AnimationEaseCurves,
-    AssetContainer,
     DegreesToRadians,
     MediaInstance,
     Quaternion,
@@ -122,12 +121,12 @@ export default class StargateElven extends Stargate {
         );
 
         for (let i = 0; i < 9; i++) {
-            this.chevronData[i].si = initSound(this.assets, this.gateFrame, this.soundChevronLockURL, {
+            this.chevronData[i].si = initSound(this.context.assets, this.gateFrame, this.soundChevronLockURL, {
                 pitch: this.chevronData[i].pitch
             });
         }
 
-        this.soundDialChime = initSound(this.assets, this.gateFrame, this.soundDialChimeURL, { looping: true });
+        this.soundDialChime = initSound(this.context.assets, this.gateFrame, this.soundDialChimeURL, { looping: true });
 
         this.resetGate();
 

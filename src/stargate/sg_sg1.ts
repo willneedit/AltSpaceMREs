@@ -6,7 +6,6 @@
 import {
     Actor,
     AnimationKeyframe,
-    AssetContainer,
     DegreesToRadians,
     MediaInstance,
     Quaternion,
@@ -99,8 +98,12 @@ export default class StargateSG1 extends Stargate {
             }
         );
 
-        this.soundGateTurning = initSound(this.assets, this.gateRing, this.soundGateTurningURL, { looping: true });
-        this.soundChevronLock = initSound(this.assets, this.gateRing, this.soundChevronLockURL);
+        this.soundGateTurning = initSound(this.context.assets,
+            this.gateRing,
+            this.soundGateTurningURL,
+            { looping: true });
+
+        this.soundChevronLock = initSound(this.context.assets, this.gateRing, this.soundChevronLockURL);
 
         this.resetGate();
 

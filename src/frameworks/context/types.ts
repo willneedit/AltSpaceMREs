@@ -6,6 +6,7 @@
 import {
     Actor,
     ActorLike,
+    AssetContainer,
     Connection,
     Context,
     PrimitiveDefinition,
@@ -18,6 +19,7 @@ import { CreateColliderType } from "@microsoft/mixed-reality-extension-sdk/built
 // tslint:disable:variable-name
 export interface ContextLike {
     readonly baseContext: Context;
+    readonly assets: AssetContainer;
     readonly sessionId: string;
     readonly conn: Connection;
     readonly actors: Actor[];

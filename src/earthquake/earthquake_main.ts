@@ -7,13 +7,11 @@ import {
     Actor,
     AnimationKeyframe,
     AnimationWrapMode,
-    AssetContainer,
     ButtonBehavior,
     MediaInstance,
     ParameterSet,
     Quaternion,
     TextAnchorLocation,
-    Transform,
     User,
     Vector3,
 } from "@microsoft/mixed-reality-extension-sdk";
@@ -43,7 +41,6 @@ export default class Earthquake extends Applet {
     private eqEmitter: Actor = null;
     private message: Actor = null;
 
-    private assets: AssetContainer = null;
     private soundBaseURL = 'https://raw.githubusercontent.com/willneedit/willneedit.github.io/master/MRE/earthquake';
     private humSoundURL = `${this.soundBaseURL}/Machine_Hum.ogg`;
     private laserSoundURL = `${this.soundBaseURL}/Particle_Beam_Firing.ogg`;
@@ -145,8 +142,6 @@ export default class Earthquake extends Applet {
 
         this.context.onUserJoined(this.userjoined);
         this.context.onStarted(this.started);
-        this.context.onStopped(this.stopped);
-
     }
 
     private userjoined = async (user: User) => {
@@ -155,7 +150,6 @@ export default class Earthquake extends Applet {
     }
 
     private started = async () => {
-        this.assets = new AssetContainer(this.context.baseContext);
         this.terrain = await this.context.CreateFromLibrary({
             resourceId: this.terrainId
         });
@@ -166,18 +160,14 @@ export default class Earthquake extends Applet {
 
         this.eqIdle.setBehavior(ButtonBehavior).onClick((user: User) => this.activate(user));
 
-        this.humSound = initSound(this.assets, this.terrain, this.humSoundURL, {
+        this.humSound = initSound(this.context.assets, this.terrain, this.humSoundURL, {
             looping: true
         });
 
-        this.laserSound = initSound(this.assets, this.terrain, this.laserSoundURL, {
+        this.laserSound = initSound(this.context.assets, this.terrain, this.laserSoundURL, {
             looping: true
         });
 
-    }
-
-    private stopped = async () => {
-        this.assets.unload();
     }
 
     private async activate(user: User) {

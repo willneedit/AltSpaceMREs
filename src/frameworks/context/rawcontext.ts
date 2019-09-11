@@ -7,17 +7,23 @@ import { ContextLike } from "./types";
 
 import {
     Actor,
+    AssetContainer,
     Context,
     User,
 } from "@microsoft/mixed-reality-extension-sdk";
+import { AssetManager } from "./assetmgmt";
 
 // tslint:disable:variable-name
 export class RawContext implements ContextLike {
 
+    private _assets: AssetContainer = null;
+
     constructor(private _baseContext: Context) {
+        this._assets = AssetManager.getAssetContainer(_baseContext);
     }
 
     public get baseContext() { return this._baseContext; }
+    public get assets() { return this._assets; }
 
     public get sessionId() { return this._baseContext.sessionId; }
     public get conn() { return this._baseContext.conn; }
@@ -29,6 +35,10 @@ export class RawContext implements ContextLike {
     public onStopped(handler: () => void): this { this._baseContext.onStopped(handler); return this; }
     public onUserJoined(handler: (user: User) => void): this { this._baseContext.onUserJoined(handler); return this; }
     public onUserLeft(handler: (user: User) => void): this { this._baseContext.onUserLeft(handler); return this; }
+
+    private cleanup() {
+        this.assets.unload();
+    }
 
     public announceSelf() {
         this.baseContext.emitter.emit('started');
@@ -48,7 +58,7 @@ export class RawContext implements ContextLike {
     }
 
     public CreateFromGLTF(options: any): Actor {
-        return Actor.CreateFromGLTF(this.baseContext, options);
+        return Actor.CreateFromGltf(this.assets, options);
     }
 
     public CreateFromPrefab(options: any): Actor {
@@ -56,6 +66,6 @@ export class RawContext implements ContextLike {
     }
 
     public CreatePrimitive(options: any): Actor {
-        return Actor.CreatePrimitive(this.baseContext, options);
+        return Actor.CreatePrimitive(this.assets, options);
     }
 }
