@@ -38,7 +38,7 @@ export default class ShowGLTF extends Applet {
         const anim = this.parameter.animate !== undefined;
 
         const model = await this.context.CreateFromGLTF({
-            resourceUrl: gltfName,
+            uri: gltfName,
             actor: {
                 name: `Model URL: ${gltfName}`
             }

@@ -86,7 +86,7 @@ export default class HelloWorld extends Applet {
         // Load a glTF model
         const cubePromise = this.context.CreateFromGLTF({
             // at the given URL
-            resourceUrl: `${this.baseUrl}/altspace-cube.glb`,
+            uri: `${this.baseUrl}/altspace-cube.glb`,
             // and spawn box colliders around the meshes.
             colliderType: 'box',
             // Also apply the following generic actor properties.

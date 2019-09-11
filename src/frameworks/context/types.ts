@@ -105,7 +105,7 @@ export interface ContextLike {
     }): Actor;
 
     CreateFromGLTF(options: {
-        resourceUrl: string;
+        uri: string;
         assetName?: string;
         colliderType?: CreateColliderType;
         actor?: Partial<ActorLike>;
