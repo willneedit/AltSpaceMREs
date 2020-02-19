@@ -26,12 +26,12 @@ import { double } from "@microsoft/mixed-reality-extension-sdk/built/math/types"
 import { initSound, restartSound } from "../helpers";
 
 export default class Earthquake extends Applet {
-    private eqgIdleId = 'artifact:1223307477978710734';
-    private eqgBodyId = 'artifact:1223307461864194762';
-    private eqgRotLowerId = 'artifact:1223307467132240588';
-    private eqgRotUpperId = 'artifact:1223307483053818578';
-    private eqgEmitterId = 'artifact:1223307467006411467';
-    private terrainId = 'artifact:1219695717304501115';
+    private eqgIdleId = 'artifact:1411071212997575195';
+    private eqgBodyId = 'artifact:1411071190448996884';
+    private eqgRotLowerId = 'artifact:1411071199366087191';
+    private eqgRotUpperId = 'artifact:1411071219020595742';
+    private eqgEmitterId = 'artifact:1411071199097651734';
+    private terrainId = 'artifact:1411071225706316321';
 
     private terrain: Actor = null;
     private eqIdle: Actor = null;
