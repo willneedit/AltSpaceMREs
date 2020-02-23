@@ -34,11 +34,10 @@ export default class Earthquake extends Applet {
     private terrainId = 'artifact:1411071225706316321';
 
     private terrain: Actor = null;
+    private eqRoot: Actor = null;
     private eqIdle: Actor = null;
-    private eqRunning: Actor = null;
     private eqRotLower: Actor = null;
     private eqRotUpper: Actor = null;
-    private eqEmitter: Actor = null;
     private message: Actor = null;
 
     private soundBaseURL = 'https://raw.githubusercontent.com/willneedit/willneedit.github.io/master/MRE/earthquake';
@@ -150,12 +149,26 @@ export default class Earthquake extends Applet {
     }
 
     private started = async () => {
-        this.terrain = await this.context.CreateFromLibrary({
+        this.terrain = this.context.CreateFromLibrary({
             resourceId: this.terrainId
         });
 
-        this.eqIdle = await this.context.CreateFromLibrary({
-            resourceId: this.eqgIdleId
+        this.eqRoot = this.context.CreateEmpty({
+            actor: {
+                parentId: this.terrain.id,
+                transform: {
+                    local: {
+                        position: { x: -3, y: 1, z: 1 }
+                    }
+                }
+            }
+        });
+
+        this.eqIdle = this.context.CreateFromLibrary({
+            resourceId: this.eqgIdleId,
+            actor: {
+                parentId: this.eqRoot.id
+            }
         });
 
         this.eqIdle.setBehavior(ButtonBehavior).onClick((user: User) => this.activate(user));
@@ -183,24 +196,24 @@ export default class Earthquake extends Applet {
 
         if (!allowed) return;
 
-        this.eqRunning = await this.context.CreateFromLibrary({
+        await this.context.CreateFromLibrary({
             resourceId: this.eqgBodyId,
             actor: {
-                parentId: this.terrain.id
+                parentId: this.eqRoot.id
             }
         });
 
         this.eqRotUpper = await this.context.CreateFromLibrary({
             resourceId: this.eqgRotUpperId,
             actor: {
-                parentId: this.terrain.id
+                parentId: this.eqRoot.id
             }
         });
 
         this.eqRotLower = await this.context.CreateFromLibrary({
             resourceId: this.eqgRotLowerId,
             actor: {
-                parentId: this.terrain.id
+                parentId: this.eqRoot.id
             }
         });
 
@@ -208,7 +221,7 @@ export default class Earthquake extends Applet {
 
         this.message = this.context.CreateEmpty({
             actor: {
-                parentId: this.terrain.id,
+                parentId: this.eqRoot.id,
                 transform: {
                     local: {
                         position: { x: 0, y: 1, z: -0.7 }
@@ -260,10 +273,10 @@ export default class Earthquake extends Applet {
         this.message.text.contents = 'Resonance frequency found\nFiring...';
         this.message.text.color = { r: 1.0, g: 0.5, b: 0.5 };
 
-        this.eqEmitter = this.context.CreateFromLibrary({
+        this.context.CreateFromLibrary({
             resourceId: this.eqgEmitterId,
             actor: {
-                parentId: this.terrain.id
+                parentId: this.eqRoot.id
             }
         });
 
