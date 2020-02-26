@@ -5,7 +5,9 @@
 
 import {
     AttachPoint,
+    DegreesToRadians,
     ParameterSet,
+    Quaternion,
     Transform,
     User,
     Vector3,
@@ -30,6 +32,18 @@ export default class ShowKitObj extends Applet {
         if (params.x) this.offset.position.x = +params.x;
         if (params.y) this.offset.position.y = +params.y;
         if (params.z) this.offset.position.z = +params.z;
+
+        if (params.rx || params.ry || params.rz) {
+            const euler = new Vector3(0.0, 0.0, 0.0);
+            if (params.rx) euler.x = +params.rx;
+            if (params.ry) euler.y = +params.ry;
+            if (params.rz) euler.z = +params.rz;
+
+            this.offset.rotation = Quaternion.RotationYawPitchRoll(
+                euler.y * DegreesToRadians,
+                euler.x * DegreesToRadians,
+                euler.z * DegreesToRadians);
+        }
 
         this.context.onUserJoined(this.userjoined);
     }
