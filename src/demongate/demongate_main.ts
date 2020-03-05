@@ -23,11 +23,11 @@ import { ContextLike } from "../frameworks/context/types";
 export default class DemonGate extends Applet {
     private initialized = false;
 
-    private candleId = 'artifact:1149165753065275931';
-    private candleFlameId = 'artifact:1149165752914280986';
-    private pentagramLineId = 'artifact:1149165752729731609';
-    private gateFrameId = 'artifact:1149165758366876188';
-    private gateInsetId = 'artifact:1149165763660087837';
+    private candleId = 'artifact:1421875914324575051';
+    private candleFlameId = 'artifact:1421875905667531533';
+    private pentagramLineId = 'artifact:1421875905801749264';
+    private gateFrameId = 'artifact:1421875905935966995';
+    private gateInsetId = 'artifact:1421875898067452661';
 
     private candles: Actor[] = [ null, null, null, null, null ];
     private candleFlames: Actor[] = [ null, null, null, null, null ];
@@ -63,7 +63,8 @@ export default class DemonGate extends Applet {
                         parentId: this.candles[i].id,
                         transform: {
                             local: {
-                                position: { x: 0.0, y: 0.1, z: 0.0 }
+                                position: { x: 0.0, y: 0.1, z: 0.0 },
+                                rotation: Quaternion.RotationAxis(Vector3.Up(), DegreesToRadians * -108)
                             }
                         }
                     }
@@ -77,6 +78,13 @@ export default class DemonGate extends Applet {
         } else if (allLit && this.gateInset === null ) {
             this.gateInset = this.context.CreateFromLibrary({
                 resourceId: this.gateInsetId,
+                actor: {
+                    transform: {
+                        local: {
+                            rotation: Quaternion.RotationAxis(Vector3.Right(), -Math.PI / 2)
+                        }
+                    }
+                }
             });
         }
     }
@@ -92,7 +100,8 @@ export default class DemonGate extends Applet {
                     parentId: this.candles[i].id,
                     transform: {
                         local: {
-                            position: { x: 0.0, y: 0.11, z: 0.0 }
+                            position: { x: 0.0, y: 0.11, z: 0.0 },
+                            rotation: Quaternion.RotationAxis(Vector3.Right(), -Math.PI / 2)
                         }
                     }
                 }
@@ -116,7 +125,8 @@ export default class DemonGate extends Applet {
             actor: {
                 transform: {
                     local: {
-                        scale: { x: 0.01, y: 0.01, z: 0.01 } // Why? Oculus Medium import oddity?
+                        scale: { x: 0.01, y: 0.01, z: 0.01 }, // Why? Oculus Medium import oddity?
+                        rotation: Quaternion.RotationAxis(Vector3.Right(), -Math.PI / 2)
                     }
                 }
             }
