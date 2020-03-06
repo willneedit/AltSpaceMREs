@@ -42,8 +42,8 @@ export default abstract class Stargate extends StargateLike {
     private gateHorizon: Actor = null;
     private gateHorizonTeleporter: Actor = null;
 
-    private gateHorizonOpening = 'artifact:1144997990889422905';
-    private gateHorizonClosing = 'artifact:1144997995519934522';
+    private gateHorizonOpening = 'artifact:1422743190183609048';
+    private gateHorizonClosing = 'artifact:1422743203949314783';
 
     public get gateStatus() { return this._gateStatus; }
     public get id() { return this._gateID; }

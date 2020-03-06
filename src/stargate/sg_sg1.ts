@@ -27,10 +27,10 @@ export default class StargateSG1 extends Stargate {
     private gateChevrons: Actor[] = [ null, null, null, null, null, null, null, null, null ];
     private chevronAngles: number[] = [ 240, 280, 320, 0, 40, 80, 120, 160, 200 ];
 
-    private gateFrameId = 'artifact:1144171771746845684';
-    private gateRingId = 'artifact:1144171766839510003';
-    private gateChevronLitId = 'artifact:1144171760086680562';
-    private gateChevronUnlitId = 'artifact:1144171776629015542';
+    private gateFrameId = 'artifact:1422743170000618191';
+    private gateRingId = 'artifact:1422743156369130168';
+    private gateChevronLitId = 'artifact:1422743149029098129';
+    private gateChevronUnlitId = 'artifact:1422743183497888468';
 
     private externBaseURL = 'https://raw.githubusercontent.com/willneedit/willneedit.github.io/master/MRE/stargate';
 

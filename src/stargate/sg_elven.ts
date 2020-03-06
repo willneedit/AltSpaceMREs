@@ -46,9 +46,9 @@ export default class StargateElven extends Stargate {
     private soundChevronLockURL = `${this.externBaseURL}/SG_Elven_Chevron_Bell.wav`;
     private soundDialChimeURL = `${this.externBaseURL}/SG_Elven_DialChime.wav`;
 
-    private gateFrameId = 'artifact:1159527056246047334';
-    private chevronLightId = 'artifact:1160112871800046491';
-    private symbolLightId = 'artifact:1160112866473280299';
+    private gateFrameId = 'artifact:1422743141160583791';
+    private chevronLightId = 'artifact:1422743176946385618';
+    private symbolLightId = 'artifact:1422743162920633035';
 
     private gateFrame: Actor = null;
     private symbolRingLights: Actor[] = [ ];

@@ -24,7 +24,7 @@ interface TierDefinition {
 
 export default class SGDCElven extends SGDCBase {
 
-    private dhdModelId = 'artifact:1164532025785319509';
+    private dhdModelId = 'artifact:1422743196869329628';
 
     private tiers: TierDefinition[] = [
         { letterRadius: 1.10, letterHeight: 0.08, letterElevation: 1.10 }, // Inner Circle
