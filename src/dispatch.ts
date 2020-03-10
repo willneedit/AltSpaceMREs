@@ -35,6 +35,7 @@ import { ContextLike } from "./frameworks/context/types";
 import got from "got";
 import DragNDropTest from "./dragndrop-test/dragndrop_main";
 
+import Doorbell from "./doorbell/doorbell_main";
 import GenericDoor from "./doors/generic";
 import Earthquake from "./earthquake/earthquake_main";
 
@@ -43,6 +44,7 @@ import Earthquake from "./earthquake/earthquake_main";
  */
 const registry: { [key: string]: () => Applet } = {
     dragndrop: (): Applet => new DragNDropTest(),
+    doorbell: (): Applet => new Doorbell(),
     helloworld: (): Applet => new HelloWorld(),
     stargate: (): Applet => new StargateSG1(),
     sg_elven: (): Applet => new StargateElven(),
