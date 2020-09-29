@@ -45,31 +45,31 @@ export class SGDB {
 
     public static async getLocationDataId(idstr: string): Promise<SGDBLocationEntry> {
         const str = pgescape('SELECT id,location,locked FROM gate_locations WHERE id=%L', idstr);
-        const res = await this.db.query(str);
+        return this.db.query(str).then((res: QueryResult) => {
+            if (res.rowCount === 0) return Promise.reject('Empty result');
 
-        if (res.rowCount === 0) return Promise.reject('Empty result');
-
-        return {
-            id: idstr,
-            location: res.rows[0].location as string,
-            locked: res.rows[0].locked as boolean
-        };
-
+            return Promise.resolve({
+                id: idstr,
+                location: res.rows[0].location as string,
+                locked: res.rows[0].locked as boolean
+            });
+        });
     }
 
     public static async getLocationDataLoc(location: string): Promise<SGDBLocationEntry> {
         const str = pgescape('SELECT id,location,locked FROM gate_locations WHERE location=%L', location);
-        const res = await this.db.query(str);
+        return this.db.query(str).then((res: QueryResult) => {
+            if (res.rowCount === 0) return Promise.reject('Empty result');
 
-        if (res.rowCount === 0) return Promise.reject('Empty result');
+            if (res.rowCount > 1) return Promise.reject('Location has more than one ID');
 
-        if (res.rowCount > 1) return Promise.reject('Location has more than one ID');
+            return Promise.resolve({
+                id: res.rows[0].id as string,
+                location: res.rows[0].location as string,
+                locked: res.rows[0].locked as boolean
+            });
 
-        return {
-            id: res.rows[0].id as string,
-            location: res.rows[0].location as string,
-            locked: res.rows[0].locked as boolean
-        };
+        });
     }
 
     public static async getIdForSid(sid: string): Promise<string> {
