@@ -16,6 +16,8 @@ import DoorGuard from './DoorGuard';
 
 import { RawContext } from './frameworks/context/rawcontext';
 
+import { initReSTServer } from './rest';
+
 /*
 import { log } from '@microsoft/mixed-reality-extension-sdk/built/log';
 
@@ -36,6 +38,7 @@ function initServer() {
     const mrePort = publicPort + 1;
     const controlPort = publicPort + 2;
     const banPort = publicPort + 3;
+    const restPort = publicPort + 4;
 
     // Start listening for connections, and serve static files
     const server = new WebHost({
@@ -63,16 +66,23 @@ function initServer() {
         }, 50000);
     }).listen(banPort);
 
+    const restServer = initReSTServer(restPort);
+
     // Use a lean HTTP proxy to multiplex the connections onto a single port, as follows:
+    // http://rest/.* --> localhost:3905 (the ReST accessor)
     // http://.* --> localhost:3902 (the MRE WebHost)
-    // ws://.*/control --> localhost:3903 (the control connection)
+    // ws://control --> localhost:3903 (the control connection)
     // ws://.* --> localhost:3902 (the MRE webHost)
     const proxy = HttpProxy.createProxyServer({
     });
 
     const proxyServer = Http.createServer(
         (req, res) => {
-            proxy.web(req, res, { target: `http://localhost:${mrePort}` });
+            if (req.url.substr(0, 6) === '/rest/') {
+                proxy.web(req, res, { target: `http://localhost:${restPort}`});
+            } else {
+                proxy.web(req, res, { target: `http://localhost:${mrePort}` });
+            }
         });
 
     proxyServer.on('upgrade',
