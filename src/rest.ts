@@ -4,6 +4,7 @@
  */
 
 import RS from 'restify';
+import { SGDB, SGDBLocationEntry } from './stargate/sg_database';
 
 function wrapAsync(fn: (req: RS.Request, res: RS.Response, next: RS.Next) => Promise<void>) {
     return (req: RS.Request, res: RS.Response, next: RS.Next) => {
@@ -14,17 +15,36 @@ function wrapAsync(fn: (req: RS.Request, res: RS.Response, next: RS.Next) => Pro
     };
 }
 
-async function locateSG(req: RS.Request, res: RS.Response, next: RS.Next) {
-    res.send({
-        sgaddress: req.params.sgaddress as string,
-        location: 'unknown'
+function locateSGperID(req: RS.Request, res: RS.Response, next: RS.Next) {
+    SGDB.getLocationDataId(req.params.sgaddress as string).then((le: SGDBLocationEntry) => {
+        res.send(le);
+        next();
+    }).catch((err: any) => {
+        res.send(404, err);
+        next();
     });
-    next();
+}
+
+function locateSGperLoc(req: RS.Request, res: RS.Response, next: RS.Next) {
+    if ((req.params.galaxy as string) !== 'altspace') {
+        res.send(404, 'Unknown galaxy');
+        next();
+        return;
+    }
+
+    SGDB.getLocationDataLoc(req.params.sglocation as string).then((le: SGDBLocationEntry) => {
+        res.send(le);
+        next();
+    }).catch((err: any) => {
+        res.send(404, err);
+        next();
+    });
 }
 
 export function initReSTServer(port: number): RS.Server {
     const restServer = RS.createServer();
-    restServer.get('/rest/locate/:sgaddress', wrapAsync(locateSG));
+    restServer.get('/rest/locate_id/:sgaddress', locateSGperID);
+    restServer.get('/rest/locate_loc/:galaxy/:sglocation', locateSGperLoc);
     restServer.listen(port, () => {
         // console.log("%s listening at %s", restServer.name, restServer.url);
     });
