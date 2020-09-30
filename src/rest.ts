@@ -4,6 +4,7 @@
  */
 
 import RS from 'restify';
+import SGAddressing, { SGLocationData } from './stargate/sg_addressing';
 import { SGDB, SGDBLocationEntry } from './stargate/sg_database';
 
 function wrapAsync(fn: (req: RS.Request, res: RS.Response, next: RS.Next) => Promise<void>) {
@@ -16,7 +17,9 @@ function wrapAsync(fn: (req: RS.Request, res: RS.Response, next: RS.Next) => Pro
 }
 
 function locateSGperID(req: RS.Request, res: RS.Response, next: RS.Next) {
-    SGDB.getLocationDataId(req.params.sgaddress as string).then((le: SGDBLocationEntry) => {
+    SGAddressing.lookupDialedTarget(
+        req.params.sgaddress, 38, req.params.galaxy
+    ).then((le: SGLocationData) => {
         res.send(le);
         next();
     }).catch((err: any) => {
@@ -26,8 +29,10 @@ function locateSGperID(req: RS.Request, res: RS.Response, next: RS.Next) {
 }
 
 function locateSGperLoc(req: RS.Request, res: RS.Response, next: RS.Next) {
-    SGDB.getLocationDataLoc(req.params.sglocation, req.params.galaxy)
-    .then((le: SGDBLocationEntry) => {
+    const lid = SGAddressing.getLocationId(req.params.sglocation);
+    SGAddressing.lookupDialedTarget(
+        lid, 38, req.params.galaxy
+    ).then((le: SGLocationData) => {
         res.send(le);
         next();
     }).catch((err: any) => {
@@ -38,7 +43,7 @@ function locateSGperLoc(req: RS.Request, res: RS.Response, next: RS.Next) {
 
 export function initReSTServer(port: number): RS.Server {
     const restServer = RS.createServer();
-    restServer.get('/rest/locate_id/:sgaddress', locateSGperID);
+    restServer.get('/rest/locate_id/:galaxy/:sgaddress', locateSGperID);
     restServer.get('/rest/locate_loc/:galaxy/:sglocation', locateSGperLoc);
     restServer.listen(port, () => {
         // console.log("%s listening at %s", restServer.name, restServer.url);

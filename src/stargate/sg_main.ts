@@ -24,6 +24,7 @@ import SGNetwork from "./sg_network";
 import DoorGuard from "../DoorGuard";
 
 import { ContextLike } from "../frameworks/context/types";
+import SGAddressing from "./sg_addressing";
 
 export default abstract class Stargate extends StargateLike {
 
@@ -295,7 +296,7 @@ export default abstract class Stargate extends StargateLike {
     public async startDialing(sequence: number[]) {
         SGNetwork.controlGateOperation(
             this.id,
-            SGNetwork.stringifySequence(sequence),
+            SGAddressing.toLetters(sequence),
             GateOperation.startSequence,
             (new Date().getTime() / 1000));
 
