@@ -179,21 +179,24 @@ export default abstract class Stargate extends StargateLike {
                 }
             });
 
-            this.gateHorizonTeleporter = this.context.CreateFromLibrary({
-                resourceId: `Teleporter:${loc}`,
-                actor: {
-                    parentId: this.gateHorizon.id,
-                    transform: {
-                        local: {
-                            // Teleporter is a bit bugged and need an explicit PRS setting,
-                            // else it spawns at (0,0,0), regardless of parenting.
-                            position: { x: 0, y: 0, z: 0 },
-                            rotation: Quaternion.RotationAxis(Vector3.Right(), 0),
-                            scale: { x: 5.4, y: 0.01, z: 5.4 }
+            // Gate allows ownly outgoing travel
+            if (!this.currentDirection) {
+                this.gateHorizonTeleporter = this.context.CreateFromLibrary({
+                    resourceId: `Teleporter:${loc}`,
+                    actor: {
+                        parentId: this.gateHorizon.id,
+                        transform: {
+                            local: {
+                                // Teleporter is a bit bugged and need an explicit PRS setting,
+                                // else it spawns at (0,0,0), regardless of parenting.
+                                position: { x: 0, y: 0, z: 0 },
+                                rotation: Quaternion.RotationAxis(Vector3.Right(), 0),
+                                scale: { x: 5.4, y: 0.01, z: 5.4 }
+                            }
                         }
                     }
-                }
-            });
+                });
+            }
 
             this.reportStatus(`${this.currentDirection ? 'Incoming w' : 'W'}ormhole active`);
 
