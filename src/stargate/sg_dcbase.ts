@@ -169,7 +169,7 @@ export abstract class SGDCBase extends SGDialCompLike {
         if (this.initstatus === InitStatus.initializing) {
             this.initstatus = InitStatus.initialized;
 
-            SGNetwork.registerDCForUser(user.name, this);
+            SGNetwork.meetup({ id: user.name, comp: this });
         }
     }
 

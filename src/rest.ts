@@ -26,13 +26,8 @@ function locateSGperID(req: RS.Request, res: RS.Response, next: RS.Next) {
 }
 
 function locateSGperLoc(req: RS.Request, res: RS.Response, next: RS.Next) {
-    if ((req.params.galaxy as string) !== 'altspace') {
-        res.send(404, 'Unknown galaxy');
-        next();
-        return;
-    }
-
-    SGDB.getLocationDataLoc(req.params.sglocation as string).then((le: SGDBLocationEntry) => {
+    SGDB.getLocationDataLoc(req.params.sglocation, req.params.galaxy)
+    .then((le: SGDBLocationEntry) => {
         res.send(le);
         next();
     }).catch((err: any) => {

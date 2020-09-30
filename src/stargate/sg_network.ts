@@ -21,9 +21,15 @@ interface TargetReg {
     comp: SGDialCompLike;
 }
 
+interface MeetupInfo {
+    id: string;
+    gate?: StargateLike;
+    comp?: SGDialCompLike;
+}
+
 export default class SGNetwork {
     private static targets: { [id: string]: TargetReg } = { };
-    private static userMeetup: { [id: string]: TargetReg } = { };
+    private static meetupInfo: { [id: string]: TargetReg } = { };
 
     public static loadNetwork() {
         SGDB.init();
@@ -78,28 +84,28 @@ export default class SGNetwork {
         });
     }
 
-    public static registerGateForUser(user: string, gate: StargateLike) {
-        if (!this.userMeetup[user]) this.userMeetup[user] = { gate: null, comp: null };
+    public static meetup({ id, gate, comp }: MeetupInfo) {
+        if (!this.meetupInfo[id]) this.meetupInfo[id] = { gate: null, comp: null };
 
-        this.userMeetup[user].gate = gate;
-        console.info(`Deferred registration: Stargate found by ${user}`);
+        if (gate) {
+            this.meetupInfo[id].gate = gate;
+            console.info(`Deferred registration: Stargate found by ${id}`);
+        }
+
+        if (comp) {
+            this.meetupInfo[id].comp = comp;
+            console.info(`Deferred registration: Dialing computer found by ${id}`);
+        }
     }
 
-    public static registerDCForUser(user: string, comp: SGDialCompLike) {
-        if (!this.userMeetup[user]) this.userMeetup[user] = { gate: null, comp: null };
-
-        this.userMeetup[user].comp = comp;
-        console.info(`Deferred registration: Dialing computer found by ${user}`);
-    }
-
-    public static removeUser(user: string) {
+    public static removeMeetup(id: string) {
         // Unhook old data when user leaves to avoid stale data messing things up when he transitions
         // to a new space with a stargate
-        this.userMeetup[user] = { gate: null, comp: null };
+        this.meetupInfo[id] = { gate: null, comp: null };
     }
 
-    public static getInfoForUser(user: string): TargetReg {
-        return this.userMeetup[user];
+    public static getMeetupInfo(id: string): TargetReg {
+        return this.meetupInfo[id];
     }
 
     public static async getIdBySessId(sessid: string) {
@@ -139,94 +145,6 @@ export default class SGNetwork {
     public static getLocationId(location: string): string {
         const seq = this.getLocationIdSequence(location);
         return this.stringifySequence(seq);
-    }
-
-    public static async sgRegisterInitResponse(
-        ws: WebSocket,
-        myuser: string,
-        mysgid: string,
-        mylocation: string,
-        mystatus: string) {
-        const userInfo = this.getInfoForUser(myuser);
-
-        const getReg = async (sid: string): Promise<string> => {
-            return this.getIdBySessId(sid).then((id: string) => id ).catch((err) => 'unregistered');
-        };
-
-        const sids = [ ];
-        if (userInfo) {
-            if (userInfo.gate) {
-                const reg = await getReg(userInfo.gate.sessID);
-                sids.push(`Gate: ${userInfo.gate.sessID} - ${reg}`);
-            }
-            if (userInfo.comp) {
-                const reg = await getReg(userInfo.comp.sessID);
-                sids.push(`Dial Computer: ${userInfo.comp.sessID} - ${reg}`);
-            }
-        }
-
-        ws.send(JSON.stringify({
-            objlist: sids,
-            sgid: mysgid,
-            location: mylocation,
-            status: mystatus
-        }));
-    }
-
-    public static async sgRegisterInit(ws: WebSocket, data: ParameterSet) {
-        const mysgid = await SGDB.getLocationDataLoc(data.location as string)
-            .then((value) => value.id)
-            .catch(() => this.getLocationId(data.location as string));
-        const okAdmin = await SGNetwork.isAdminLevelReq(data);
-
-        SGNetwork.sgRegisterDisplayStatus(mysgid, ws, data);
-
-        ws.send(JSON.stringify({
-            response: 'init_response',
-            isAdmin: okAdmin
-        }));
-    }
-
-    private static sgRegisterDisplayStatus(mysgid: string, ws: WebSocket, data: ParameterSet) {
-        SGDB.getLocationDataId(mysgid).then(
-            (locdata) => this.sgRegisterInitResponse(
-                ws, data.userName as string, locdata.id,
-                locdata.location, locdata.locked ? 'locked' : 'unlocked')
-        ).catch(
-            (err) => this.sgRegisterInitResponse(
-                ws, data.userName as string, mysgid, data.location as string, 'unregistered')
-        );
-    }
-
-    public static async sgRegister(ws: WebSocket, data: ParameterSet) {
-        const okAdmin = await SGNetwork.isAdminLevelReq(data);
-
-        let mylocation = data.location && data.location as string;
-        let mysgid = data.sgid as string;
-        const customSgid = (data.custom_sgid as string) || '';
-        if (okAdmin && customSgid !== '') mysgid = customSgid;
-
-        const userInfo = this.getInfoForUser(data.userName as string);
-
-        await SGDB.registerLocation(mysgid, mylocation);
-
-        // Either read back the new entry or get the old one if the update was rejected
-        const locdata = await SGDB.getLocationDataId(mysgid);
-        mylocation = locdata.location;
-        mysgid = locdata.id;
-
-        if (userInfo && userInfo.gate) {
-            SGDB.registerIdForSid(userInfo.gate.sessID, mylocation && mysgid);
-            userInfo.gate.registerGate(mysgid);
-        }
-
-        if (userInfo && userInfo.comp) {
-            SGDB.registerIdForSid(userInfo.comp.sessID, mylocation && mysgid);
-            userInfo.comp.registerDC(mysgid);
-        }
-
-        this.sgRegisterDisplayStatus(mysgid, ws, data);
-
     }
 
     public static async sgAdmin(ws: WebSocket, data: ParameterSet) {

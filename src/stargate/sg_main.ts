@@ -58,7 +58,7 @@ export default abstract class Stargate extends StargateLike {
         super.init(context, params, baseUrl);
         this.context.onUserJoined(this.userjoined);
         this.context.onStarted(this.started);
-        this.context.onUserLeft((user: User) => SGNetwork.removeUser(user.name));
+        this.context.onUserLeft((user: User) => SGNetwork.removeMeetup(user.name));
         this.context.onStopped(this.stopped);
 
         // Try by ID, then look up in database
@@ -105,7 +105,7 @@ export default abstract class Stargate extends StargateLike {
         if (this.initstatus === InitStatus.initializing) {
             this.initstatus = InitStatus.initialized;
 
-            SGNetwork.registerGateForUser(user.name, this);
+            SGNetwork.meetup({ id: user.name, gate: this });
         }
     }
 

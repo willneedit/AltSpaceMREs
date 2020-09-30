@@ -10,6 +10,7 @@ import { QueryResult } from 'pg';
 
 export interface SGDBLocationEntry {
     id: string;
+    galaxy: string;
     location: string;
     locked: boolean;
 }
@@ -39,7 +40,12 @@ export class SGDB {
         const res = await this.db.query(str);
 
         for (const line of res.rows) {
-            f({ id: line.id, location: line.location, locked: line.locked });
+            f({
+                id: line.id,
+                galaxy: 'altspace',
+                location: line.location,
+                locked: line.locked
+            });
         }
     }
 
@@ -50,13 +56,18 @@ export class SGDB {
 
             return Promise.resolve({
                 id: idstr,
+                galaxy: 'altspace',
                 location: res.rows[0].location as string,
                 locked: res.rows[0].locked as boolean
             });
         });
     }
 
-    public static async getLocationDataLoc(location: string): Promise<SGDBLocationEntry> {
+    public static async getLocationDataLoc(location: string, galaxy: string): Promise<SGDBLocationEntry> {
+        if (galaxy !== 'altspace') {
+            return Promise.reject('Galaxy selection not yet available.');
+        }
+
         const str = pgescape('SELECT id,location,locked FROM gate_locations WHERE location=%L', location);
         return this.db.query(str).then((res: QueryResult) => {
             if (res.rowCount === 0) return Promise.reject('Empty result');
@@ -65,6 +76,7 @@ export class SGDB {
 
             return Promise.resolve({
                 id: res.rows[0].id as string,
+                galaxy: 'altspace',
                 location: res.rows[0].location as string,
                 locked: res.rows[0].locked as boolean
             });
@@ -99,18 +111,6 @@ export class SGDB {
     public static deleteLocation(id: string) {
         this.db.query(pgescape('DELETE FROM gate_locations WHERE id=%L', id));
         this.db.query(pgescape('DELETE FROM object_sids WHERE location=%L', id));
-    }
-
-    public static registerLocationList(callback: (id: string, location: string, locked: boolean) => void) {
-        this.db.query('SELECT id,location,locked from gate_locations').then(
-            (res: QueryResult) => {
-                for (const row of res.rows) {
-                    callback(
-                        row.id as string,
-                        row.location as string,
-                        row.locked as boolean);
-                }
-        });
     }
 
     // Passwords are entered using

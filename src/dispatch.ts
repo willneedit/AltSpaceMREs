@@ -62,8 +62,6 @@ const registry: { [key: string]: () => Applet } = {
  * Contains the names and the static functions for the control connections to be routed to
  */
 const registryControl: { [key: string]: (ws: WebSocket, data: ParameterSet) => void } = {
-    sg_register_init: (ws: WebSocket, data: ParameterSet) => SGNetwork.sgRegisterInit(ws, data),
-    sg_register: (ws: WebSocket, data: ParameterSet) => SGNetwork.sgRegister(ws, data),
     sg_admin: (ws: WebSocket, data: ParameterSet) => SGNetwork.sgAdmin(ws, data),
     hb: () => { }
 };
