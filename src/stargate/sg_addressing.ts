@@ -12,6 +12,7 @@ import { SGDB, SGDBLocationEntry } from './sg_database';
 export interface SGLocationData extends SGDBLocationEntry {
     seq_numbers: number[];
     seq_string: string;
+    galaxy: string;
 }
 
 export default class SGAddressing {
@@ -68,7 +69,7 @@ export default class SGAddressing {
         let digitvalue = 1;
 
         for (const digit of sequence) {
-            lid = lid + digit * digitvalue;
+            lid = lid + (digit - 1) * digitvalue;
             digitvalue = digitvalue * base;
         }
 
@@ -132,17 +133,25 @@ export default class SGAddressing {
      * @param base number base of the dial computer
      * @param srcgalaxy the source galaxy the dial computer and its gate resides in
      */
-    public static analyzeLocationId(seq: string | number[] | number, base: number, srcgalaxy: string): SGLocationData {
+    public static analyzeLocationId(
+        seq: string | number[] | number,
+        base: number,
+        srcgalaxy: string | number): SGLocationData {
         const result: SGLocationData = {
             seq_numbers: [],
             seq_string: '',
-            id: 'unknown',
-            galaxy: 'unknown',
+            lid: 0,
+            gid: 0,
             location: 'unknown',
-            locked: true
+            lastseen: 'unknown',
+            galaxy: 'unknown'
         };
 
-        let galaxyDigit = this.getGalaxyDigit(srcgalaxy);
+        if (typeof srcgalaxy === 'string') {
+            result.gid = this.getGalaxyDigit(srcgalaxy);
+        } else {
+            result.gid = srcgalaxy;
+        }
 
         if (typeof seq === 'number') {
             seq = this.getLocationIdSequence(seq, base);
@@ -153,7 +162,7 @@ export default class SGAddressing {
         }
 
         if (seq.length === 0) {
-            result.id = '@empty_sequence';
+            result.lastseen = '@empty_sequence';
             return result;
         }
 
@@ -163,41 +172,74 @@ export default class SGAddressing {
         if (seq[seq.length - 1] === 0) seq.pop();
 
         // Remove and save the galaxy area digit if given
-        if (seq.length > digits) galaxyDigit = seq.pop();
+        if (seq.length > digits) result.gid = seq.pop();
 
         // Still there's a mistake in the address
         if (seq.length !== digits) {
-            result.id = '@malformed_address';
+            result.lastseen = '@malformed_address';
             return result;
         }
 
         result.seq_numbers = seq;
         result.seq_string = this.toLetters(seq);
-        result.galaxy = this.lookupGalaxy(galaxyDigit);
-        result.id = this.getLocationIdNumber(seq, base).toString();
+        result.galaxy = this.lookupGalaxy(result.gid);
+        result.lid = this.getLocationIdNumber(seq, base);
 
         return result;
     }
 
+    /**
+     * Looks up a dialed target and fills in the gaps
+     * @param seq Entered sequence, as string or as numbers, or location id (if in same galaxy)
+     * @param base The numbering base of the sequence, usu. 38
+     * @param srcgalaxy Source galaxy, either by name or by ID.
+     */
     public static async lookupDialedTarget(
         seq: string | number[] | number,
         base: number,
-        srcgalaxy: string): Promise<SGLocationData> {
+        srcgalaxy: string | number): Promise<SGLocationData> {
 
         const result = this.analyzeLocationId(seq, base, srcgalaxy);
-        if (result.id[0] === '@') return Promise.reject(result.id.substr(1));
+        if (result.lastseen[0] === '@') return Promise.reject(result.lastseen.substr(1));
 
-        // FIXME: Database refactoring to contain numeric id rather than dial strings
-        // Old database format doesn't take base into account.
-        const baseChar = "a".charCodeAt(0) - 1;
-        const galaxy = result.galaxy;
-        const str = result.seq_string + String.fromCharCode(this.getGalaxyDigit(galaxy) + baseChar);
+        return SGDB.getLocationData(result.lid, result.gid).then((res: SGDBLocationEntry) => {
+            return Promise.resolve({ ...result, ...res});
+        }).catch((err) => Promise.reject(result));
+    }
 
-        return SGDB.getLocationDataId(str).then((res: SGDBLocationEntry) => {
-            res.id = result.id;
-            res.galaxy = result.galaxy;
+    /**
+     * Looks up a location and either returns what a gate address could be (if not in database)
+     * or the actual gate address within its galaxy
+     * @param location Location, as known in the galaxy
+     * @param base Numbering base to generate the sequence with
+     * @param srcgalaxy Source galaxy, either by name or by ID
+     */
+    public static async lookupGateAddress(
+        location: string,
+        base: number,
+        srcgalaxy: string | number): Promise<SGLocationData> {
+        let result: SGLocationData = {
+            seq_numbers: [],
+            seq_string: '',
+            lid: 0,
+            gid: 0,
+            location: 'unknown',
+            lastseen: 'unknown',
+            galaxy: 'unknown'
+        };
+
+        if (typeof srcgalaxy === 'string') {
+            result.gid = this.getGalaxyDigit(srcgalaxy);
+        } else {
+            result.gid = srcgalaxy;
+        }
+
+        return SGDB.getLocationData(location, result.gid).then((res: SGDBLocationEntry) => {
+            result = this.analyzeLocationId(res.lid, base, res.gid);
             return Promise.resolve({ ...result, ...res});
         }).catch((err) => {
+            const locid = this.getLocationId(location);
+            result = this.analyzeLocationId(locid, base, result.gid);
             return Promise.resolve(result);
         });
     }

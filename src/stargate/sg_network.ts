@@ -75,7 +75,7 @@ export default class SGNetwork {
     }
 
     public static async getTarget(id: string): Promise<string> {
-        return SGDB.getLocationDataId(id).then((res: SGDBLocationEntry) => {
+        return SGDB.getLocationData(id, 1).then((res: SGDBLocationEntry) => {
             return res.location;
         });
     }

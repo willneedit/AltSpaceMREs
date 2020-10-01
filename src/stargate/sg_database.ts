@@ -7,16 +7,58 @@ import pgescape from 'pg-escape';
 import PGBackend from "../pg_backend";
 
 import { QueryResult } from 'pg';
+import SGAddressing from './sg_addressing';
 
 export interface SGDBLocationEntry {
-    id: string;
-    galaxy: string;
+    lid: number;
+    gid: number;
     location: string;
-    locked: boolean;
+    lastseen: string;
 }
 
 export class SGDB {
     private static db = PGBackend.instance;
+
+    private static async forEachLocationOld(f: (val: any) => void) {
+        const str = 'SELECT id,location,locked FROM gate_locations';
+        const res = await this.db.query(str);
+
+        for (const line of res.rows) {
+            f({
+                id: line.id,
+                location: line.location,
+                locked: line.locked
+            });
+        }
+    }
+
+    private static async migrateLocationsDB() {
+        this.forEachLocationOld((val: any) => {
+            const idres = SGAddressing.analyzeLocationId(val.id, 38, 1);
+            const locid = SGAddressing.getLocationId(val.location);
+            const idloc = SGAddressing.analyzeLocationId(locid, 38, 1);
+
+            let usingid = idres.lid;
+
+            if (val.id[val.id.length - 1] !== 'a') {
+                console.log(`Nonstandard location for ${val.location}: Using computed one, ${idloc.seq_string}`);
+                usingid = idloc.lid;
+            } else if (idres.seq_string !== idloc.seq_string) {
+                console.log(`Location ID mismatch for ${val.location}: ` +
+                    `given=${idres.seq_string}, computed=${idloc.seq_string}, using given one`);
+            }
+
+            const str = pgescape('INSERT INTO known_locations ' +
+                '(lid,gid,location,lastseen) VALUES (%L, 1, %L, %L)',
+                usingid.toString(),
+                val.location,
+                "epoch"
+            );
+
+            this.db.query(str);
+
+        });
+    }
 
     public static async init() {
         await this.db.query('CREATE TABLE IF NOT EXISTS gate_locations (' +
@@ -33,54 +75,58 @@ export class SGDB {
             'password TEXT NOT NULL)');
 
         await this.db.query('CREATE EXTENSION IF NOT EXISTS pgcrypto');
+
+        await this.db.query('CREATE TABLE known_locations (' +
+            'lid BIGINT NOT NULL,' +
+            'gid INTEGER NOT NULL,' +
+            'location VARCHAR NOT NULL,' +
+            'lastseen TIMESTAMP NOT NULL,' +
+            'PRIMARY KEY (lid,gid) )').then((res: QueryResult) => {
+                console.log('Database of V2 format created, migrating contents...');
+                this.migrateLocationsDB();
+            }).catch(err => {
+                console.log('Database of V2 format already exists');
+            });
+
     }
 
     public static async forEachLocation(f: (val: SGDBLocationEntry) => void) {
-        const str = 'SELECT id,location,locked FROM gate_locations';
+        const str = 'SELECT lid, gid, location, lastseen FROM known_locations';
         const res = await this.db.query(str);
 
         for (const line of res.rows) {
-            f({
-                id: line.id,
-                galaxy: 'altspace',
-                location: line.location,
-                locked: line.locked
-            });
+            line.lid = +line.lid;
+            line.gid = +line.gid;
+            f(line);
         }
     }
 
-    public static async getLocationDataId(idstr: string): Promise<SGDBLocationEntry> {
-        const str = pgescape('SELECT id,location,locked FROM gate_locations WHERE id=%L', idstr);
-        return this.db.query(str).then((res: QueryResult) => {
-            if (res.rowCount === 0) return Promise.reject('Empty result');
+    /**
+     * Retrieve the location database entry for the given location
+     * @param lid numerical location ID or in-galaxy location
+     * @param gid Galaxy ID
+     */
+    public static async getLocationData(lid: number | string, gid: number): Promise<SGDBLocationEntry> {
+        let str = '';
 
-            return Promise.resolve({
-                id: idstr,
-                galaxy: 'altspace',
-                location: res.rows[0].location as string,
-                locked: res.rows[0].locked as boolean
-            });
-        });
-    }
-
-    public static async getLocationDataLoc(location: string, galaxy: string): Promise<SGDBLocationEntry> {
-        if (galaxy !== 'altspace') {
-            return Promise.reject('Galaxy selection not yet available.');
+        if (typeof lid === 'number') {
+            str = pgescape(
+                'SELECT lid, gid, location, lastseen FROM known_locations WHERE (lid=%L AND gid=%L)',
+                    lid.toString(),
+                    gid.toString());
+        } else {
+            str = pgescape(
+                'SELECT lid, gid, location, lastseen FROM known_locations WHERE (location=%L AND gid=%L)',
+                lid,
+                gid.toString());
         }
 
-        const str = pgescape('SELECT id,location,locked FROM gate_locations WHERE location=%L', location);
         return this.db.query(str).then((res: QueryResult) => {
             if (res.rowCount === 0) return Promise.reject('Empty result');
 
-            if (res.rowCount > 1) return Promise.reject('Location has more than one ID');
-
-            return Promise.resolve({
-                id: res.rows[0].id as string,
-                galaxy: 'altspace',
-                location: res.rows[0].location as string,
-                locked: res.rows[0].locked as boolean
-            });
-
+            res.rows[0].lid = +res.rows[0].lid;
+            res.rows[0].gid = +res.rows[0].gid;
+            return Promise.resolve(res.rows[0]);
         });
     }
 
