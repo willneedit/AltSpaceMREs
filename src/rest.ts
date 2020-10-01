@@ -29,7 +29,6 @@ function locateSGperID(req: RS.Request, res: RS.Response, next: RS.Next) {
 }
 
 function locateSGperLoc(req: RS.Request, res: RS.Response, next: RS.Next) {
-    const lid = SGAddressing.getLocationId(req.params.sglocation);
     SGAddressing.lookupGateAddress(
         req.params.sglocation, 38, req.params.galaxy
     ).then((le: SGLocationData) => {

@@ -240,7 +240,7 @@ export default class SGAddressing {
         }).catch((err) => {
             const locid = this.getLocationId(location);
             result = this.analyzeLocationId(locid, base, result.gid);
-            return Promise.resolve(result);
+            return Promise.reject(result);
         });
     }
 }
