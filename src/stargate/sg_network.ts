@@ -74,12 +74,6 @@ export default class SGNetwork {
         return this.targets[id] && this.targets[id].comp;
     }
 
-    public static async getTarget(id: string): Promise<string> {
-        return SGDB.getLocationData(id, 1).then((res: SGDBLocationEntry) => {
-            return res.location;
-        });
-    }
-
     public static meetup({ id, gate, comp }: MeetupInfo) {
         if (!this.meetupInfo[id]) this.meetupInfo[id] = { gate: null, comp: null };
 

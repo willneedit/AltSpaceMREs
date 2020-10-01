@@ -114,7 +114,7 @@ export default class SGAddressing {
 
     // At this moment a complete database would be overkill....
 
-    private static getGalaxyDigit(srcgalaxy: string): number {
+    public static getGalaxyDigit(srcgalaxy: string): number {
         if (srcgalaxy === 'altspace') return 1;
         if (srcgalaxy === 'sansar') return 2;
         return 0;
@@ -200,7 +200,7 @@ export default class SGAddressing {
         srcgalaxy: string | number): Promise<SGLocationData> {
 
         const result = this.analyzeLocationId(seq, base, srcgalaxy);
-        if (result.lastseen[0] === '@') return Promise.reject(result.lastseen.substr(1));
+        if (result.lastseen[0] === '@') return Promise.reject(result);
 
         return SGDB.getLocationData(result.lid, result.gid).then((res: SGDBLocationEntry) => {
             return Promise.resolve({ ...result, ...res});

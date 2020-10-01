@@ -24,7 +24,7 @@ import SGNetwork from "./sg_network";
 import DoorGuard from "../DoorGuard";
 
 import { ContextLike } from "../frameworks/context/types";
-import SGAddressing from "./sg_addressing";
+import SGAddressing, { SGLocationData } from "./sg_addressing";
 
 export default abstract class Stargate extends StargateLike {
 
@@ -168,7 +168,8 @@ export default abstract class Stargate extends StargateLike {
 
         this._gateStatus = GateStatus.engaged;
 
-        SGNetwork.getTarget(this.currentTarget).then((loc: string) => {
+        SGAddressing.lookupDialedTarget(this.currentTarget, 38, 'altspace').then((result: SGLocationData) => {
+
             if (this.gateHorizon != null) this.gateHorizon.destroy();
 
             this.gateHorizon = this.context.CreateFromLibrary({
@@ -182,21 +183,7 @@ export default abstract class Stargate extends StargateLike {
 
             // Gate allows ownly outgoing travel
             if (!this.currentDirection) {
-                this.gateHorizonTeleporter = this.context.CreateFromLibrary({
-                    resourceId: `Teleporter:${loc}`,
-                    actor: {
-                        parentId: this.gateHorizon.id,
-                        transform: {
-                            local: {
-                                // Teleporter is a bit bugged and need an explicit PRS setting,
-                                // else it spawns at (0,0,0), regardless of parenting.
-                                position: { x: 0, y: 0, z: 0 },
-                                rotation: Quaternion.RotationAxis(Vector3.Right(), 0),
-                                scale: { x: 5.4, y: 0.01, z: 5.4 }
-                            }
-                        }
-                    }
-                });
+                this.constructWormhole(result);
             }
 
             this.reportStatus(`${this.currentDirection ? 'Incoming w' : 'W'}ormhole active`);
@@ -209,6 +196,28 @@ export default abstract class Stargate extends StargateLike {
             this.reportStatus('Error: Cannot establish wormhole - no endpoint');
             this.resetGate();
         });
+    }
+
+    private constructWormhole(result: SGLocationData) {
+        if (result.gid !== SGAddressing.getGalaxyDigit('altspace')) {
+            console.log('Cross realm transfer not yet supported');
+        } else {
+            this.gateHorizonTeleporter = this.context.CreateFromLibrary({
+                resourceId: `Teleporter:${result.location}`,
+                actor: {
+                    parentId: this.gateHorizon.id,
+                    transform: {
+                        local: {
+                            // Teleporter is a bit bugged and need an explicit PRS setting,
+                            // else it spawns at (0,0,0), regardless of parenting.
+                            position: { x: 0, y: 0, z: 0 },
+                            rotation: Quaternion.RotationAxis(Vector3.Right(), 0),
+                            scale: { x: 5.4, y: 0.01, z: 5.4 }
+                        }
+                    }
+                }
+            });
+        }
     }
 
     /**
