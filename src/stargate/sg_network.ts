@@ -41,10 +41,9 @@ export default class SGNetwork {
     }
 
     public static registerGate(gate: StargateLike) {
-        const id = gate.id;
+        const id = gate.fqlid;
 
-        SGNetwork.createDBEntry(id);
-
+        this.createDBEntry(id);
         this.targets[id].gate = gate;
         console.info(`Announcing gate for ID ${id}`);
     }
@@ -58,10 +57,9 @@ export default class SGNetwork {
     }
 
     public static registerDialComp(dial: SGDialCompLike) {
-        const id = dial.id;
+        const id = dial.fqlid;
 
-        SGNetwork.createDBEntry(id);
-
+        this.createDBEntry(id);
         this.targets[id].comp = dial;
         console.info(`Announcing dial computer for ID ${id}`);
     }

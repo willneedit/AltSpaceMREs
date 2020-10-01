@@ -6,7 +6,6 @@
 import {
     ActionHandler,
     Actor,
-    Context,
     ParameterSet,
     TextAnchorLocation,
     User,
@@ -24,11 +23,13 @@ import SGNetwork from "./sg_network";
 import DoorGuard from "../DoorGuard";
 
 import { ContextLike } from "../frameworks/context/types";
+import SGAddressing from "./sg_addressing";
+import SGLocator from "./sg_locator";
 
 export abstract class SGDCBase extends SGDialCompLike {
 
     // tslint:disable-next-line:variable-name
-    private _gateID: string;
+    private _gateFQLID: string;
     protected sequence: number[] = [];
     private statusline: Actor = null;
     private initstatus = InitStatus.uninitialized;
@@ -38,7 +39,7 @@ export abstract class SGDCBase extends SGDialCompLike {
 
     private openTime = 0;
 
-    public get id() { return this._gateID; }
+    public get fqlid() { return this._gateFQLID; }
     public get sessID() { return this.context.sessionId; }
 
     public init(context: ContextLike, params: ParameterSet, baseUrl: string) {
@@ -47,25 +48,13 @@ export abstract class SGDCBase extends SGDialCompLike {
         this.context.onUserJoined(this.userjoined);
         this.context.onUserLeft(this.userLeft);
 
-        // Try by ID, then look up in database
-        if (params.id) this.registerDC(params.id as string);
-        else {
-            SGNetwork.getIdBySessId(this.sessID).then((id: string) => {
-                this.registerDC(id);
-            }).catch(() => {
-                console.info('No ID given, and Dial Computer unregistered.');
-                this.updateStatus(
-                    'Gate Address not set. Please visit\n' +
-                    'https://willneedit-mre.herokuapp.com/register.html\n' +
-                    'to set up the system.');
-            });
-        }
+        this.updateStatus('Initializing...');
     }
 
     public registerDC(id: string) {
-        this._gateID = id;
+        this._gateFQLID = id;
         SGNetwork.registerDialComp(this);
-        this.updateStatus(`Initialized, Address: ${this._gateID}`);
+        this.updateStatus(`Initialized, Address: ${this._gateFQLID}`);
     }
 
     public updateStatus(message: string) {
@@ -88,20 +77,8 @@ export abstract class SGDCBase extends SGDialCompLike {
         });
     }
 
-    protected getLetter(key: number): string {
-        const lowerA = "a".charCodeAt(0);
-        const upperA = "A".charCodeAt(0);
-
-        if (key < 26) return String.fromCharCode(key + lowerA);
-        else return String.fromCharCode(key - 26 + upperA);
-    }
-
     protected listSequence() {
-        let seq = "";
-        for (const key of this.sequence) {
-            seq = seq + this.getLetter(key);
-        }
-
+        const seq = SGAddressing.toLetters(this.sequence);
         this.updateStatus(seq);
     }
 
@@ -112,10 +89,10 @@ export abstract class SGDCBase extends SGDialCompLike {
     }
 
     private keypressed(user: User, key: number) {
-        const gate = SGNetwork.getGate(this.id);
+        const gate = SGNetwork.getGate(this.fqlid);
 
         if (gate == null) {
-            this.updateStatus(`Error: Dialing device ${this.id || "(unconfigured)"} disconnected`);
+            this.updateStatus(`Error: Dialing device ${this.fqlid || "(unconfigured)"} disconnected`);
             return; // No gate - dialer is locked
         }
 
@@ -139,7 +116,7 @@ export abstract class SGDCBase extends SGDialCompLike {
         if (gate.gateStatus !== GateStatus.idle) {
             // 'a' (or big red button) cuts the wormhole if it's engaged - only when outgoing.
             if (key === 0 && !gate.currentDirection) { SGNetwork.controlGateOperation(
-                gate.id, gate.currentTarget, GateOperation.disconnect, this.openTime);
+                gate.fqlid, gate.currentTarget, GateOperation.disconnect, this.openTime);
             }
 
             return; // Busy message already came from the 'gate
@@ -170,6 +147,14 @@ export abstract class SGDCBase extends SGDialCompLike {
             this.initstatus = InitStatus.initialized;
 
             SGNetwork.meetup({ id: user.name, comp: this });
+
+            SGLocator.lookupMeInAltspace(user, 38).then(val => {
+                this.registerDC(SGAddressing.fqlid(val.location, val.galaxy));
+                if (val.lastseen === 'unknown') {
+                    this.updateStatus(`Gate is not registered,\nID would be ${val.seq_string}`);
+                }
+            });
+
         }
     }
 

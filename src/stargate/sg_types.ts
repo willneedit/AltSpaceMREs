@@ -30,7 +30,7 @@ export abstract class StargateLike extends Applet {
     public abstract startDialing(sequence: number[]): void;
     public abstract get gateStatus(): GateStatus;
     public abstract registerGate(id: string): void;
-    public abstract get id(): string;
+    public abstract get fqlid(): string;
     public abstract get currentTarget(): string;
     public abstract get currentDirection(): boolean;
 
@@ -43,7 +43,7 @@ export abstract class StargateLike extends Applet {
 export abstract class SGDialCompLike extends Applet {
     public abstract updateStatus(message: string): void;
     public abstract registerDC(id: string): void;
-    public abstract get id(): string;
+    public abstract get fqlid(): string;
 }
 
 export class StargateDespawned extends StargateLike {
@@ -51,7 +51,7 @@ export class StargateDespawned extends StargateLike {
 
     public get gateStatus(): GateStatus { return GateStatus.despawned; }
     public registerGate(id: string): void { }
-    public get id(): string { return undefined; }
+    public get fqlid(): string { return undefined; }
     public get sessID(): string { return undefined; }
     public get currentTarget() { return 'invalid-target'; }
     public get currentDirection() { return false; }

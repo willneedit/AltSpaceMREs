@@ -13,6 +13,7 @@ import {
     Vector3,
 } from "@microsoft/mixed-reality-extension-sdk";
 
+import SGAddressing from "./sg_addressing";
 import { SGDCBase } from "./sg_dcbase";
 
 interface TierDefinition {
@@ -126,7 +127,7 @@ export default class SGDCDHD extends SGDCBase {
                     },
                     text: {
                         anchor: TextAnchorLocation.MiddleCenter,
-                        contents: this.getLetter(i),
+                        contents: SGAddressing.toLetters(i),
                         color: { r: 1.0, g: 1.0, b: 1.0 },
                         height: letterHeight
                     }

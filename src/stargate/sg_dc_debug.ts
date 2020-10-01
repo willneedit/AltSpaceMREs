@@ -12,6 +12,7 @@ import {
     Vector3,
 } from "@microsoft/mixed-reality-extension-sdk";
 
+import SGAddressing from "./sg_addressing";
 import { SGDCBase } from "./sg_dcbase";
 
 export default class SGDCDebug extends SGDCBase {
@@ -42,7 +43,7 @@ export default class SGDCDebug extends SGDCBase {
                         parentId: key.id,
                         transform: { local: { position: { x: -0.002, y: 0.03, z: -0.011 }} },
                         text: {
-                            contents: this.getLetter(i),
+                            contents: SGAddressing.toLetters(i),
                             color: { r: 0.0, g: 0.0, b: 0.0 },
                             height: 0.07
                         }

@@ -25,6 +25,7 @@ import DoorGuard from "../DoorGuard";
 
 import { ContextLike } from "../frameworks/context/types";
 import SGAddressing, { SGLocationData } from "./sg_addressing";
+import SGLocator from "./sg_locator";
 
 export default abstract class Stargate extends StargateLike {
 
@@ -34,7 +35,7 @@ export default abstract class Stargate extends StargateLike {
 
     // tslint:disable:variable-name
     private _gateStatus: GateStatus = GateStatus.idle;
-    private _gateID: string;
+    private _gateFQLID: string;
     private _currentTarget: string;
     private _currentDirection: boolean;
     private _connectionTimeStamp: number;
@@ -47,7 +48,7 @@ export default abstract class Stargate extends StargateLike {
     private gateHorizonClosing = 'artifact:1422743203949314783';
 
     public get gateStatus() { return this._gateStatus; }
-    public get id() { return this._gateID; }
+    public get fqlid() { return this._gateFQLID; }
     public get sessID() { return this.context.sessionId; }
     public get currentTarget() { return this._currentTarget; }
     public get currentDirection() { return this._currentDirection; }
@@ -61,20 +62,10 @@ export default abstract class Stargate extends StargateLike {
         this.context.onStarted(this.started);
         this.context.onUserLeft((user: User) => SGNetwork.removeMeetup(user.name));
         this.context.onStopped(this.stopped);
-
-        // Try by ID, then look up in database
-        if (params.id) this.registerGate(params.id as string);
-        else {
-            SGNetwork.getIdBySessId(this.sessID).then((id: string) => {
-                this.registerGate(id);
-            }).catch(() => {
-                console.info('No ID given, and Gate unregistered.');
-            });
-        }
     }
 
     public registerGate(id: string) {
-        this._gateID = id;
+        this._gateFQLID = id;
         SGNetwork.registerGate(this);
     }
 
@@ -83,7 +74,7 @@ export default abstract class Stargate extends StargateLike {
      * @param message status message
      */
     protected reportStatus(message: string) {
-        const dial = SGNetwork.getDialComp(this.id);
+        const dial = SGNetwork.getDialComp(this.fqlid);
         if (dial) dial.updateStatus(message);
     }
 
@@ -107,6 +98,10 @@ export default abstract class Stargate extends StargateLike {
             this.initstatus = InitStatus.initialized;
 
             SGNetwork.meetup({ id: user.name, gate: this });
+
+            SGLocator.lookupMeInAltspace(user, 38).then(val => {
+                this.registerGate(SGAddressing.fqlid(val.location, val.galaxy));
+            });
         }
     }
 
@@ -129,7 +124,7 @@ export default abstract class Stargate extends StargateLike {
                 console.debug("World with incoming gate falls empty. Deregistering gate, leaving operations untouched");
             }
         }
-        SGNetwork.deregisterGate(this.id);
+        SGNetwork.deregisterGate(this.fqlid);
     }
 
     /**
@@ -225,7 +220,7 @@ export default abstract class Stargate extends StargateLike {
      */
     private timeOutGate(oldTs: number) {
         return SGNetwork.controlGateOperation(
-            this.id, this.currentTarget, GateOperation.disconnect, oldTs);
+            this.fqlid, this.currentTarget, GateOperation.disconnect, oldTs);
     }
 
     public async disconnect(oldTs: number) {
@@ -283,7 +278,7 @@ export default abstract class Stargate extends StargateLike {
         // Dial up the sequence, alternating directions
         for (const symbol of sequence) {
             await this.dialChevron(chevron, symbol, direction);
-            await SGNetwork.controlGateOperation(this.id, this.currentTarget, GateOperation.lightChevron, chevron++);
+            await SGNetwork.controlGateOperation(this.fqlid, this.currentTarget, GateOperation.lightChevron, chevron++);
             direction = !direction;
 
             if (this.abortRequested) {
@@ -294,7 +289,7 @@ export default abstract class Stargate extends StargateLike {
         // And light up the remaining chevrons.
         for (chevron; chevron < 9; chevron++) {
             await SGNetwork.controlGateOperation(
-                this.id, this.currentTarget, GateOperation.lightChevron, chevron, true);
+                this.fqlid, this.currentTarget, GateOperation.lightChevron, chevron, true);
         }
     }
 
@@ -304,7 +299,7 @@ export default abstract class Stargate extends StargateLike {
      */
     public async startDialing(sequence: number[]) {
         SGNetwork.controlGateOperation(
-            this.id,
+            this.fqlid,
             SGAddressing.toLetters(sequence),
             GateOperation.startSequence,
             (new Date().getTime() / 1000));
@@ -312,11 +307,11 @@ export default abstract class Stargate extends StargateLike {
         this._gateStatus = GateStatus.dialing;
         this.dialSequence(sequence)
             .then(
-                () => SGNetwork.controlGateOperation(this.id, this.currentTarget, GateOperation.connect, 0)
+                () => SGNetwork.controlGateOperation(this.fqlid, this.currentTarget, GateOperation.connect, 0)
             ).catch(
                 (reason) => {
                     SGNetwork.controlGateOperation(
-                        this.id, this.currentTarget, GateOperation.disconnect, this.currentTimeStamp);
+                        this.fqlid, this.currentTarget, GateOperation.disconnect, this.currentTimeStamp);
                     this.reportStatus(reason);
                     this.resetGate();
                 }

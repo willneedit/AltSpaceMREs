@@ -80,9 +80,11 @@ export default class SGAddressing {
      * Transforms the symbol sequence numbers to the representative sequence string
      * @param sequence gate symbol sequence represented in symbol numbers, any length, any base
      */
-    public static toLetters(sequence: number[]): string {
+    public static toLetters(sequence: number[] | number): string {
         const lowerA = "a".charCodeAt(0);
         const upperA = "A".charCodeAt(0);
+
+        if (typeof sequence === 'number') sequence = [ sequence ];
 
         let str = "";
         for (const key of sequence) {
@@ -242,5 +244,17 @@ export default class SGAddressing {
             result = this.analyzeLocationId(locid, base, result.gid);
             return Promise.reject(result);
         });
+    }
+
+    /**
+     * Return a fully qualified location string uniquely identifying the location even across galaxies'
+     * @param location In-Galaxy location string, architecture dependent
+     * @param galaxy numerical ID or name of the galaxy
+     */
+    public static fqlid(location: string, galaxy: number | string) {
+        if (typeof galaxy === 'number') {
+            galaxy = this.lookupGalaxy(galaxy);
+        }
+        return galaxy + "/" + location;
     }
 }
