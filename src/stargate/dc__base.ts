@@ -16,15 +16,15 @@ import {
     GateStatus,
     InitStatus,
     SGDialCompLike,
-} from "./sg_types";
+} from "./types";
 
-import SGNetwork from "./sg_network";
+import SGNetwork from "./network";
 
 import DoorGuard from "../DoorGuard";
 
 import { ContextLike } from "../frameworks/context/types";
-import SGAddressing from "./sg_addressing";
-import SGLocator from "./sg_locator";
+import SGAddressing from "./addressing";
+import SGLocator from "./locator";
 
 export abstract class SGDCBase extends SGDialCompLike {
 

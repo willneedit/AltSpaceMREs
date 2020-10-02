@@ -14,11 +14,11 @@ import {
 
 import {
     GateStatus,
-} from "./sg_types";
+} from "./types";
 
 import { delay, initSound, restartSound } from "../helpers";
 
-import Stargate from "./sg_main";
+import Stargate from "./sg__main";
 
 export default class StargateSG1 extends Stargate {
 

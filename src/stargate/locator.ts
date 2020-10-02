@@ -5,7 +5,7 @@
 
 import { User } from "@microsoft/mixed-reality-extension-sdk";
 import got = require("got");
-import SGAddressing, { SGLocationData } from "./sg_addressing";
+import SGAddressing, { SGLocationData } from "./addressing";
 
 /**
  * Provides services for self-location within different realms. So far, only Altspace is supported.

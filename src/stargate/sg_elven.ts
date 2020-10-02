@@ -14,11 +14,11 @@ import {
 
 import {
     GateStatus,
-} from "./sg_types";
+} from "./types";
 
 import { delay, destroyActors, initSound, restartSound } from "../helpers";
 
-import Stargate from "./sg_main";
+import Stargate from "./sg__main";
 
 interface ChevronData {
     x: number;

@@ -4,8 +4,8 @@
  */
 
 import RS from 'restify';
-import SGAddressing, { SGLocationData } from './stargate/sg_addressing';
-import { SGDB, SGDBLocationEntry } from './stargate/sg_database';
+import SGAddressing, { SGLocationData } from './stargate/addressing';
+import { SGDB, SGDBLocationEntry } from './stargate/database';
 
 function wrapAsync(fn: (req: RS.Request, res: RS.Response, next: RS.Next) => Promise<void>) {
     return (req: RS.Request, res: RS.Response, next: RS.Next) => {

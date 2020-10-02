@@ -7,7 +7,7 @@ import pgescape from 'pg-escape';
 import PGBackend from "../pg_backend";
 
 import { QueryResult } from 'pg';
-import SGAddressing from './sg_addressing';
+import SGAddressing from './addressing';
 
 export interface SGDBLocationEntry {
     lid: number;

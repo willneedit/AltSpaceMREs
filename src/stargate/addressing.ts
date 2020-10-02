@@ -7,7 +7,7 @@
 import SHA1 from 'sha1';
 
 import bigInt from 'big-integer';
-import { SGDB, SGDBLocationEntry } from './sg_database';
+import { SGDB, SGDBLocationEntry } from './database';
 
 export interface SGLocationData extends SGDBLocationEntry {
     seq_numbers: number[];

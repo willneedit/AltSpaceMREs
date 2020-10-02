@@ -4,11 +4,11 @@
  */
 
 import WebSocket from 'ws';
-import { GateOperation, SGDialCompLike, StargateDespawned, StargateLike } from "./sg_types";
+import { GateOperation, SGDialCompLike, StargateDespawned, StargateLike } from "./types";
 
 import QueryString from 'query-string';
 
-import { SGDB, SGDBLocationEntry } from './sg_database';
+import { SGDB, SGDBLocationEntry } from './database';
 
 import { ParameterSet } from '@microsoft/mixed-reality-extension-sdk';
 

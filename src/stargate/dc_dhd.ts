@@ -13,8 +13,8 @@ import {
     Vector3,
 } from "@microsoft/mixed-reality-extension-sdk";
 
-import SGAddressing from "./sg_addressing";
-import { SGDCBase } from "./sg_dcbase";
+import SGAddressing from "./addressing";
+import { SGDCBase } from "./dc__base";
 
 interface TierDefinition {
     letterRadius: number;   // Radius the hitbox is away from the rotation axis
