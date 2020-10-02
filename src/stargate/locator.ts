@@ -76,6 +76,12 @@ export default class SGLocator {
      */
     public static translateToURL(location: string, gid: number) {
         if (gid === 1) {
+            // Legacy location strings don't have a space or event directive.
+            // No idea how to distinguish between those two.
+            if (location.substr(0, 5) !== 'space/' && location.substr(0, 5) !== 'event/') {
+                location = "space/" + location;
+            }
+
             // Altspace: Translate 'event' to 'events' and 'space' to 'spaces' and decorate
             return "altspace://account.altvr.com/api/" +
                 location.substr(0, 5) + "s" +
