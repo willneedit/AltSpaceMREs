@@ -12,7 +12,6 @@ import {
 } from "@microsoft/mixed-reality-extension-sdk";
 
 import {
-    GateOperation,
     GateStatus,
     InitStatus,
     StargateLike,
@@ -25,6 +24,7 @@ import DoorGuard from "../DoorGuard";
 
 import { ContextLike } from "../frameworks/context/types";
 import SGAddressing, { SGLocationData } from "./addressing";
+import { SGDB } from "./database";
 import SGLocator from "./locator";
 
 export default abstract class Stargate extends StargateLike {
@@ -36,7 +36,8 @@ export default abstract class Stargate extends StargateLike {
     // tslint:disable:variable-name
     private _gateStatus: GateStatus = GateStatus.idle;
     private _gateFQLID: string;
-    private _currentTarget: string;
+    private _currentTargetFQLID: string;
+    private _currentTargetSequence: string;
     private _currentDirection: boolean;
     private _connectionTimeStamp: number;
     // tslint:enable:variable-name
@@ -50,7 +51,8 @@ export default abstract class Stargate extends StargateLike {
     public get gateStatus() { return this._gateStatus; }
     public get fqlid() { return this._gateFQLID; }
     public get sessID() { return this.context.sessionId; }
-    public get currentTarget() { return this._currentTarget; }
+    public get currentTargetFqlid() { return this._currentTargetFQLID; }
+    public get currentTargetSequence() { return this._currentTargetSequence; }
     public get currentDirection() { return this._currentDirection; }
     public get currentTimeStamp() { return this._connectionTimeStamp; }
 
@@ -60,7 +62,6 @@ export default abstract class Stargate extends StargateLike {
         super.init(context, params, baseUrl);
         this.context.onUserJoined(this.userjoined);
         this.context.onStarted(this.started);
-        this.context.onUserLeft((user: User) => SGNetwork.removeMeetup(user.name));
         this.context.onStopped(this.stopped);
     }
 
@@ -97,10 +98,11 @@ export default abstract class Stargate extends StargateLike {
         if (this.initstatus === InitStatus.initializing) {
             this.initstatus = InitStatus.initialized;
 
-            SGNetwork.meetup({ id: user.name, gate: this });
-
-            SGLocator.lookupMeInAltspace(user, 38).then(val => {
+            SGLocator.lookupMeInAltspace(user, this.gateNumberBase).then(val => {
                 this.registerGate(SGAddressing.fqlid(val.location, val.galaxy));
+                if (val.lastseen !== 'unknown') {
+                    SGDB.updateTimestamp(val.lid, val.gid);
+                }
             });
         }
     }
@@ -129,17 +131,20 @@ export default abstract class Stargate extends StargateLike {
 
     /**
      * Start the dialing up/incoming sequence
-     * @param to Where to connect to
+     * @param tgtFqlid Where to connect to
      */
-    public async startSequence(to: string, ts: number, direction: boolean) {
+    public async startSequence(tgtFqlid: string, tgtSequence: string, ts: number) {
 
         // Reject request if we're not in idle state
         if (this.gateStatus !== GateStatus.idle) return;
 
         this._gateStatus = GateStatus.dialing;
         this._connectionTimeStamp = ts;
-        this._currentTarget = to;
-        this._currentDirection = direction;
+        this._currentTargetFQLID = tgtFqlid;
+        this._currentTargetSequence = tgtSequence;
+
+        // true for incoming direction, they don't allow for reverse travel
+        this._currentDirection = (tgtSequence === null);
     }
 
     /**
@@ -163,34 +168,32 @@ export default abstract class Stargate extends StargateLike {
 
         this._gateStatus = GateStatus.engaged;
 
-        SGAddressing.lookupDialedTarget(this.currentTarget, 38, 'altspace').then((result: SGLocationData) => {
+        if (this.gateHorizon != null) this.gateHorizon.destroy();
 
-            if (this.gateHorizon != null) this.gateHorizon.destroy();
-
-            this.gateHorizon = this.context.CreateFromLibrary({
-                resourceId: this.gateHorizonOpening,
-                actor: {
-                    transform: {
-                        local: { rotation: Quaternion.RotationAxis(Vector3.Right(), Math.PI / 2) }
-                    }
+        this.gateHorizon = this.context.CreateFromLibrary({
+            resourceId: this.gateHorizonOpening,
+            actor: {
+                transform: {
+                    local: { rotation: Quaternion.RotationAxis(Vector3.Right(), Math.PI / 2) }
                 }
-            });
-
-            // Gate allows ownly outgoing travel
-            if (!this.currentDirection) {
-                this.constructWormhole(result);
             }
-
-            this.reportStatus(`${this.currentDirection ? 'Incoming w' : 'W'}ormhole active`);
-
-            if (!this.currentDirection) {
-                delay(this.whTimeout * 1000).then(
-                    () => this.timeOutGate(this.currentTimeStamp));
-            }
-        }).catch((err) => {
-            this.reportStatus('Error: Cannot establish wormhole - no endpoint');
-            this.resetGate();
         });
+
+        this.reportStatus(`${this.currentDirection ? 'Incoming w' : 'W'}ormhole active`);
+
+        if (!this.currentDirection) {
+            delay(this.whTimeout * 1000).then(() => this.timeOutGate(this.currentTimeStamp));
+
+            SGAddressing.lookupDialedTarget(
+                this.currentTargetSequence, this.gateNumberBase, 'altspace'
+            ).then((result: SGLocationData) => {
+                this.constructWormhole(result);
+            }).catch((err) => {
+                // Should never happen since the target location is checked before starting to dial.
+                this.reportStatus('Error: Cannot establish wormhole - no endpoint');
+                this.resetGate();
+            });
+        }
     }
 
     private constructWormhole(result: SGLocationData) {
@@ -205,7 +208,7 @@ export default abstract class Stargate extends StargateLike {
                         local: {
                             // Teleporter is a bit bugged and need an explicit PRS setting,
                             // else it spawns at (0,0,0), regardless of parenting.
-                            position: { x: 0, y: 0, z: 0 },
+                            position: { x: 0, y: 0.1, z: 0 },
                             rotation: Quaternion.RotationAxis(Vector3.Right(), 0),
                             scale: { x: 5.4, y: 0.01, z: 5.4 }
                         }
@@ -219,8 +222,8 @@ export default abstract class Stargate extends StargateLike {
      * Time out a wormhole, only if it's not manually disconnected.
      */
     private timeOutGate(oldTs: number) {
-        return SGNetwork.controlGateOperation(
-            this.fqlid, this.currentTarget, GateOperation.disconnect, oldTs);
+        return SGNetwork.gatesDisconnect(
+            this.fqlid, this.currentTargetFqlid, oldTs);
     }
 
     public async disconnect(oldTs: number) {
@@ -278,7 +281,11 @@ export default abstract class Stargate extends StargateLike {
         // Dial up the sequence, alternating directions
         for (const symbol of sequence) {
             await this.dialChevron(chevron, symbol, direction);
-            await SGNetwork.controlGateOperation(this.fqlid, this.currentTarget, GateOperation.lightChevron, chevron++);
+            await SGNetwork.gatesLightChevron(
+                this.fqlid,
+                this.currentTargetFqlid,
+                chevron++,
+                false);
             direction = !direction;
 
             if (this.abortRequested) {
@@ -288,8 +295,8 @@ export default abstract class Stargate extends StargateLike {
 
         // And light up the remaining chevrons.
         for (chevron; chevron < 9; chevron++) {
-            await SGNetwork.controlGateOperation(
-                this.fqlid, this.currentTarget, GateOperation.lightChevron, chevron, true);
+            await SGNetwork.gatesLightChevron(
+                this.fqlid, this.currentTargetFqlid, chevron, true);
         }
     }
 
@@ -297,26 +304,32 @@ export default abstract class Stargate extends StargateLike {
      * Initiate dialing sequence and portal establishment.
      * @param sequence Number sequence to dial
      */
-    public async startDialing(sequence: number[]) {
-        SGNetwork.controlGateOperation(
-            this.fqlid,
-            SGAddressing.toLetters(sequence),
-            GateOperation.startSequence,
-            (new Date().getTime() / 1000));
+    public async startDialing(sequence: number[], timestamp: number) {
+        SGAddressing.lookupDialedTarget(sequence, this.gateNumberBase, 'altspace').then(tgtLid => {
+            const tgtFqlid = SGAddressing.fqlid(tgtLid.location, tgtLid.galaxy);
 
-        this._gateStatus = GateStatus.dialing;
-        this.dialSequence(sequence)
-            .then(
-                () => SGNetwork.controlGateOperation(this.fqlid, this.currentTarget, GateOperation.connect, 0)
-            ).catch(
-                (reason) => {
-                    SGNetwork.controlGateOperation(
-                        this.fqlid, this.currentTarget, GateOperation.disconnect, this.currentTimeStamp);
-                    this.reportStatus(reason);
-                    this.resetGate();
-                }
-            );
-        this.reportStatus('Dialing...');
+            SGNetwork.gatesStartSequence(
+                this.fqlid,
+                tgtFqlid,
+                SGAddressing.toLetters(sequence),
+                timestamp);
+
+            this._gateStatus = GateStatus.dialing;
+            this.dialSequence(sequence)
+                .then(
+                    () => SGNetwork.gatesConnect(this.fqlid, this.currentTargetFqlid)
+                ).catch(
+                    (reason) => {
+                        SGNetwork.gatesDisconnect(
+                            this.fqlid, this.currentTargetFqlid, this.currentTimeStamp);
+                        this.reportStatus(reason);
+                        this.resetGate();
+                    }
+                );
+            this.reportStatus('Dialing...');
+        }).catch((err: SGLocationData) => {
+            this.reportStatus("Cannot dial target\nSequence doesn't match any known location.");
+        });
     }
 
 }

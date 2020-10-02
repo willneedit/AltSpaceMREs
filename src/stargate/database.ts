@@ -61,14 +61,17 @@ export class SGDB {
     }
 
     public static async init() {
+
+        // Obsolete, but still needs to be present for migration code
         await this.db.query('CREATE TABLE IF NOT EXISTS gate_locations (' +
             'id varchar(10) PRIMARY KEY NOT NULL,' +
             'location varchar NOT NULL,' +
             'locked boolean DEFAULT false)');
 
-        await this.db.query('CREATE TABLE IF NOT EXISTS object_sids (' +
-            'sid varchar(20) PRIMARY KEY NOT NULL,' +
-            'location varchar NOT NULL)');
+        // Obsolete
+        // await this.db.query('create table if not exists object_sids (' +
+        //     'sid varchar(20) primary key not null,' +
+        //     'location varchar not null)');
 
         await this.db.query('CREATE TABLE IF NOT EXISTS admin_access (' +
             'id SERIAL PRIMARY KEY,' +
@@ -107,43 +110,32 @@ export class SGDB {
      * @param gid Galaxy ID
      */
     public static async getLocationData(lid: number | string, gid: number): Promise<SGDBLocationEntry> {
-        let str = '';
+        const str = this.getWhereClause(lid, gid);
 
+        return this.db.query('SELECT lid, gid, location, lastseen FROM known_locations' + str
+            ).then((res: QueryResult) => {
+                if (res.rowCount === 0) return Promise.reject('Empty result');
+
+                res.rows[0].lid = +res.rows[0].lid;
+                res.rows[0].gid = +res.rows[0].gid;
+
+                return Promise.resolve(res.rows[0]);
+            }
+        );
+    }
+
+    public static async updateTimestamp(lid: number | string, gid: number): Promise<void> {
+        const str = this.getWhereClause(lid, gid);
+
+        this.db.query("UPDATE known_locations SET lastseen = now()" + str);
+    }
+
+    private static getWhereClause(lid: string | number, gid: number) {
         if (typeof lid === 'number') {
-            str = pgescape(
-                'SELECT lid, gid, location, lastseen FROM known_locations WHERE (lid=%L AND gid=%L)',
-                    lid.toString(),
-                    gid.toString());
+            return pgescape(' WHERE (lid=%L AND gid=%L)', lid.toString(), gid.toString());
         } else {
-            str = pgescape(
-                'SELECT lid, gid, location, lastseen FROM known_locations WHERE (location=%L AND gid=%L)',
-                lid,
-                gid.toString());
+            return pgescape(' WHERE (location=%L AND gid=%L)', lid, gid.toString());
         }
-
-        return this.db.query(str).then((res: QueryResult) => {
-            if (res.rowCount === 0) return Promise.reject('Empty result');
-
-            res.rows[0].lid = +res.rows[0].lid;
-            res.rows[0].gid = +res.rows[0].gid;
-            return Promise.resolve(res.rows[0]);
-        });
-    }
-
-    public static async getIdForSid(sid: string): Promise<string> {
-        const res = await this.db.query(pgescape('SELECT location FROM object_sids WHERE sid=%L', sid));
-
-        if (res.rowCount === 0) return Promise.reject('Object not registered');
-
-        return res.rows[0].location;
-    }
-
-    public static async registerIdForSid(sid: string, id: string) {
-        return id
-            ? this.db.query(
-                pgescape('INSERT INTO object_sids (sid,location) VALUES (%L,%L) ON CONFLICT DO NOTHING',
-                    sid, id))
-            : this.db.query('SELECT 0');
     }
 
     public static async registerLocation(id: string, location: string) {

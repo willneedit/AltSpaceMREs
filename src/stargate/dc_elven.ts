@@ -37,6 +37,8 @@ export default class SGDCElven extends SGDCBase {
     private keyEnd = 39;
     private keysInTier = Math.floor((this.keyEnd - this.keyStart) / this.tiers.length);
 
+    public get DCNumberBase(): number { return 38; }
+
     protected createStatusLine(message: string): Actor {
         return this.context.CreateEmpty({
             actor: {

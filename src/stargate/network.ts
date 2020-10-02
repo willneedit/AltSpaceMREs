@@ -4,7 +4,7 @@
  */
 
 import WebSocket from 'ws';
-import { GateOperation, SGDialCompLike, StargateDespawned, StargateLike } from "./types";
+import { SGDialCompLike, StargateDespawned, StargateLike } from "./types";
 
 import QueryString from 'query-string';
 
@@ -17,15 +17,8 @@ interface TargetReg {
     comp: SGDialCompLike;
 }
 
-interface MeetupInfo {
-    id: string;
-    gate?: StargateLike;
-    comp?: SGDialCompLike;
-}
-
 export default class SGNetwork {
     private static targets: { [id: string]: TargetReg } = { };
-    private static meetupInfo: { [id: string]: TargetReg } = { };
 
     public static loadNetwork() {
         SGDB.init();
@@ -45,7 +38,7 @@ export default class SGNetwork {
 
         this.createDBEntry(id);
         this.targets[id].gate = gate;
-        console.info(`Announcing gate for ID ${id}`);
+        console.info(`Announcing gate for FQLID ${id}`);
     }
 
     public static deregisterGate(id: string) {
@@ -53,7 +46,7 @@ export default class SGNetwork {
 
         this.targets[id].gate = new StargateDespawned();
 
-        console.info(`Removing gate for ID ${id}`);
+        console.info(`Removing gate for FQLID ${id}`);
     }
 
     public static registerDialComp(dial: SGDialCompLike) {
@@ -70,34 +63,6 @@ export default class SGNetwork {
 
     public static getDialComp(id: string) {
         return this.targets[id] && this.targets[id].comp;
-    }
-
-    public static meetup({ id, gate, comp }: MeetupInfo) {
-        if (!this.meetupInfo[id]) this.meetupInfo[id] = { gate: null, comp: null };
-
-        if (gate) {
-            this.meetupInfo[id].gate = gate;
-            console.info(`Deferred registration: Stargate found by ${id}`);
-        }
-
-        if (comp) {
-            this.meetupInfo[id].comp = comp;
-            console.info(`Deferred registration: Dialing computer found by ${id}`);
-        }
-    }
-
-    public static removeMeetup(id: string) {
-        // Unhook old data when user leaves to avoid stale data messing things up when he transitions
-        // to a new space with a stargate
-        this.meetupInfo[id] = { gate: null, comp: null };
-    }
-
-    public static getMeetupInfo(id: string): TargetReg {
-        return this.meetupInfo[id];
-    }
-
-    public static async getIdBySessId(sessid: string) {
-        return SGDB.getIdForSid(sessid);
     }
 
     public static async sgAdmin(ws: WebSocket, data: ParameterSet) {
@@ -126,23 +91,36 @@ export default class SGNetwork {
         return okAdmin;
     }
 
-    public static async controlGateOperation(
-        srcId: string, tgtId: string, command: GateOperation, index: number, silent?: boolean) {
-        const srcGate = this.getGate(srcId) || new StargateDespawned();
-        const tgtGate = this.getGate(tgtId) || new StargateDespawned();
+    /*
+     * Common entry points to sync the operations of source and target gates, irrespective of their target platform
+     */
 
-        if (command === GateOperation.startSequence) {
-            srcGate.startSequence(tgtId, index, false);
-            tgtGate.startSequence(srcId, index, true);
-        } else if (command === GateOperation.lightChevron) {
-            await srcGate.lightChevron(index, silent);
-            tgtGate.lightChevron(index, silent);
-        } else if (command === GateOperation.connect) {
-            srcGate.connect();
-            tgtGate.connect();
-        } else if (command === GateOperation.disconnect) {
-            srcGate.disconnect(index);
-            tgtGate.disconnect(index);
-        }
+    public static async gatesLightChevron(srcFqlid: string, tgtFqlid: string, chevron: number, silent: boolean) {
+        const srcGate = this.getGate(srcFqlid) || new StargateDespawned();
+        const tgtGate = this.getGate(tgtFqlid) || new StargateDespawned();
+        await srcGate.lightChevron(chevron, silent);
+        tgtGate.lightChevron(chevron, silent);
+    }
+
+    public static async gatesConnect(srcFqlid: string, tgtFqlid: string) {
+        const srcGate = this.getGate(srcFqlid) || new StargateDespawned();
+        const tgtGate = this.getGate(tgtFqlid) || new StargateDespawned();
+        srcGate.connect();
+        tgtGate.connect();
+    }
+
+    public static async gatesDisconnect(srcFqlid: string, tgtFqlid: string, timestamp: number) {
+        const srcGate = this.getGate(srcFqlid) || new StargateDespawned();
+        const tgtGate = this.getGate(tgtFqlid) || new StargateDespawned();
+        srcGate.disconnect(timestamp);
+        tgtGate.disconnect(timestamp);
+    }
+
+    public static async gatesStartSequence(srcFqlid: string, tgtFqlid: string,
+                                           tgtSequence: string, timestamp: number) {
+        const srcGate = this.getGate(srcFqlid) || new StargateDespawned();
+        const tgtGate = this.getGate(tgtFqlid) || new StargateDespawned();
+        srcGate.startSequence(tgtFqlid, tgtSequence, timestamp);
+        tgtGate.startSequence(srcFqlid, null, timestamp);
     }
 }

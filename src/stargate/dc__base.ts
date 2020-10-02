@@ -12,7 +12,6 @@ import {
 } from "@microsoft/mixed-reality-extension-sdk";
 
 import {
-    GateOperation,
     GateStatus,
     InitStatus,
     SGDialCompLike,
@@ -51,10 +50,10 @@ export abstract class SGDCBase extends SGDialCompLike {
         this.updateStatus('Initializing...');
     }
 
-    public registerDC(id: string) {
-        this._gateFQLID = id;
+    public registerDC(fqlId: string, location: string) {
+        this._gateFQLID = fqlId;
         SGNetwork.registerDialComp(this);
-        this.updateStatus(`Initialized, Address: ${this._gateFQLID}`);
+        this.updateStatus(`Initialized\nAddress: ${this._gateFQLID}\nDial Sequence: ${location}`);
     }
 
     public updateStatus(message: string) {
@@ -115,8 +114,8 @@ export abstract class SGDCBase extends SGDialCompLike {
 
         if (gate.gateStatus !== GateStatus.idle) {
             // 'a' (or big red button) cuts the wormhole if it's engaged - only when outgoing.
-            if (key === 0 && !gate.currentDirection) { SGNetwork.controlGateOperation(
-                gate.fqlid, gate.currentTarget, GateOperation.disconnect, this.openTime);
+            if (key === 0 && !gate.currentDirection) { SGNetwork.gatesDisconnect(
+                gate.fqlid, gate.currentTargetFqlid, this.openTime);
             }
 
             return; // Busy message already came from the 'gate
@@ -126,7 +125,7 @@ export abstract class SGDCBase extends SGDialCompLike {
 
         if (this.sequence.length === 7) {
             this.openTime = timestamp;
-            gate.startDialing(this.sequence);
+            gate.startDialing(this.sequence, this.openTime);
             this.sequence = [];
         } else if (key === 0) {
             // 'a' (or big red button) acts as a delete button for an incomplete sequence
@@ -146,10 +145,8 @@ export abstract class SGDCBase extends SGDialCompLike {
         if (this.initstatus === InitStatus.initializing) {
             this.initstatus = InitStatus.initialized;
 
-            SGNetwork.meetup({ id: user.name, comp: this });
-
-            SGLocator.lookupMeInAltspace(user, 38).then(val => {
-                this.registerDC(SGAddressing.fqlid(val.location, val.galaxy));
+            SGLocator.lookupMeInAltspace(user, this.DCNumberBase).then(val => {
+                this.registerDC(SGAddressing.fqlid(val.location, val.galaxy), val.seq_string + "a");
                 if (val.lastseen === 'unknown') {
                     this.updateStatus(`Gate is not registered,\nID would be ${val.seq_string}`);
                 }

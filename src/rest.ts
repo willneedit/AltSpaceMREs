@@ -18,7 +18,7 @@ function wrapAsync(fn: (req: RS.Request, res: RS.Response, next: RS.Next) => Pro
 
 function locateSGperID(req: RS.Request, res: RS.Response, next: RS.Next) {
     SGAddressing.lookupDialedTarget(
-        req.params.sgaddress, 38, req.params.galaxy
+        req.params.sgaddress, +req.params.base, req.params.galaxy
     ).then((le: SGLocationData) => {
         res.send(le);
         next();
@@ -30,7 +30,7 @@ function locateSGperID(req: RS.Request, res: RS.Response, next: RS.Next) {
 
 function locateSGperLoc(req: RS.Request, res: RS.Response, next: RS.Next) {
     SGAddressing.lookupGateAddress(
-        req.params.sglocation, 38, req.params.galaxy
+        req.params.sglocation, +req.params.base, req.params.galaxy
     ).then((le: SGLocationData) => {
         res.send(le);
         next();
@@ -42,8 +42,8 @@ function locateSGperLoc(req: RS.Request, res: RS.Response, next: RS.Next) {
 
 export function initReSTServer(port: number): RS.Server {
     const restServer = RS.createServer();
-    restServer.get('/rest/locate_id/:galaxy/:sgaddress', locateSGperID);
-    restServer.get('/rest/locate_loc/:galaxy/:sglocation', locateSGperLoc);
+    restServer.get('/rest/locate_id/:base/:galaxy/:sgaddress', locateSGperID);
+    restServer.get('/rest/locate_loc/:base/:galaxy/:sglocation', locateSGperLoc);
     restServer.listen(port, () => {
         // console.log("%s listening at %s", restServer.name, restServer.url);
     });

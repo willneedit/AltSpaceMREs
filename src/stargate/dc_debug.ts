@@ -17,6 +17,8 @@ import { SGDCBase } from "./dc__base";
 
 export default class SGDCDebug extends SGDCBase {
 
+    public get DCNumberBase(): number { return 38; }
+
     protected async makeKeyboard() {
         const rootNode = this.context.CreateEmpty({
                 actor: {

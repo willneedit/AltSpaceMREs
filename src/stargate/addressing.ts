@@ -171,10 +171,16 @@ export default class SGAddressing {
         const digits = this.getRequiredDigits(base);
 
         // Remove the 'a', if given
-        if (seq[seq.length - 1] === 0) seq.pop();
+        if (seq[seq.length - 1] === 0) {
+            seq = seq.concat();
+            seq.pop();
+        }
 
         // Remove and save the galaxy area digit if given
-        if (seq.length > digits) result.gid = seq.pop();
+        if (seq.length > digits)  {
+            seq = seq.concat();
+            result.gid = seq.pop();
+        }
 
         // Still there's a mistake in the address
         if (seq.length !== digits) {

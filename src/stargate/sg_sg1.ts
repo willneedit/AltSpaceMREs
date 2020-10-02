@@ -39,6 +39,8 @@ export default class StargateSG1 extends Stargate {
     private soundChevronLock: MediaInstance = null;
     private soundGateTurning: MediaInstance = null;
 
+    public get gateNumberBase(): number { return 38; }
+
     /**
      * Light up or switch off the given chevron
      * @param index No. of chevron (0-8)

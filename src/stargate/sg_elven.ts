@@ -55,6 +55,8 @@ export default class StargateElven extends Stargate {
     private soundDialChime: MediaInstance = null;
     private gateRingAngle = 0;
 
+    public get gateNumberBase(): number { return 38; }
+
     /**
      * Light up or switch off the given chevron
      * @param index No. of chevron (0-8)
