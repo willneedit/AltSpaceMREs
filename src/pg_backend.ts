@@ -13,7 +13,10 @@ export default class PGBackend {
 
     // Late constructed singleton.
     public static get instance() {
-        if (!this._instance) this._instance = new PGBackend();
+        if (!this._instance) {
+            console.log('Creating PGBackend...');
+            this._instance = new PGBackend();
+        }
         return this._instance;
     }
 

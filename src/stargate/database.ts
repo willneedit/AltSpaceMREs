@@ -17,7 +17,7 @@ export interface SGDBLocationEntry {
 }
 
 export class SGDB {
-    private static db = PGBackend.instance;
+    private static db: PGBackend = null;
 
     private static async forEachLocationOld(f: (val: any) => void) {
         const str = 'SELECT id,location,locked FROM gate_locations';
@@ -61,6 +61,8 @@ export class SGDB {
     }
 
     public static async init() {
+        console.log('Looking for DB backend...');
+        this.db = PGBackend.instance;
         console.log('Creating legacy table gate_locations...');
 
         // Obsolete, but still needs to be present for migration code
