@@ -99,7 +99,7 @@ export default class DragNDropTest extends Applet {
     }
 
     private userjoined = (user: User) => {
-        console.log(`Connection request by ${user.name} from ${user.properties.remoteAddress}`);
+        console.debug(`Connection request by ${user.name} from ${user.properties.remoteAddress}`);
         DoorGuard.greeted(user.properties.remoteAddress);
     }
 

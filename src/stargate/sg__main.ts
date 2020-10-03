@@ -92,7 +92,7 @@ export default abstract class Stargate extends StargateLike {
     protected abstract async initGate(): Promise<void>;
 
     private userjoined = (user: User) => {
-        console.log(`Connection request by ${user.id} (${user.name}) from ${user.properties.remoteAddress}`);
+        console.debug(`Connection request by ${user.id} (${user.name}) from ${user.properties.remoteAddress}`);
         DoorGuard.greeted(user.properties.remoteAddress);
         if (this.initstatus === InitStatus.initializing) {
             this.initstatus = InitStatus.initialized;
@@ -197,7 +197,7 @@ export default abstract class Stargate extends StargateLike {
 
     private constructWormhole(result: SGLocationData) {
         if (result.gid !== SGAddressing.getGalaxyDigit('altspace')) {
-            console.log('Cross realm transfer not yet supported');
+            console.debug('Cross realm transfer not yet supported');
         } else {
             this.gateHorizonTeleporter = this.context.CreateFromLibrary({
                 resourceId: `Teleporter:${result.location}`,

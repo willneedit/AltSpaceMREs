@@ -13,9 +13,9 @@ export default class PGBackend {
 
     // Late constructed singleton.
     public static get instance() {
-        console.log('PGBackend.instance called...');
+        console.debug('PGBackend.instance called...');
         if (!this._instance) {
-            console.log('Creating PGBackend...');
+            console.debug('Creating PGBackend...');
             this._instance = new PGBackend();
         }
         return this._instance;
@@ -24,13 +24,13 @@ export default class PGBackend {
     constructor() {
         if (!!process.env.DATABASE_URL) {
             // Running in Heroku, using provided information
-            console.log('Starting with provided database parameters');
+            console.debug('Starting with provided database parameters');
             this.dbConn = new PG({
                 connectionString: process.env.DATABASE_URL,
                 ssl: true,
             });
         } else {
-            console.log('No database parameteres passed, usine local config');
+            console.debug('No database parameteres passed, usine local config');
             // Running locally, for testing purposes
             // DATABASE MOVED, to ease use of Heroku's pg:push and pg:pull
             // Used with:

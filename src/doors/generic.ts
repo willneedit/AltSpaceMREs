@@ -30,7 +30,7 @@ export default class GenericDoor extends Applet {
     }
 
     private userjoined = async (user: User) => {
-        console.log(`Connection request by ${user.name} from ${user.properties.remoteAddress}`);
+        console.debug(`Connection request by ${user.name} from ${user.properties.remoteAddress}`);
         DoorGuard.greeted(user.properties.remoteAddress);
     }
 

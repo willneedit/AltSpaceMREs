@@ -15,7 +15,7 @@ async function sendInitMessage(socket)
 
 function processCommand(json)
 {
-    console.log(json);
+    console.debug(json);
 
     if (json.response === 'init_response') {
         if (!json.isAdmin) removeCustSgidEntry();

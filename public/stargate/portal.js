@@ -58,18 +58,18 @@ function receiveCommand(message) {
     try {
         var json = JSON.parse(message.data);
     } catch (e) {
-        console.log('Invalid JSON: ', message.data);
+        console.debug('Invalid JSON: ', message.data);
         return;
     }
     
     if(json.command === 'size=') {
-        console.log(`Received command: size=${json.size}`);
+        console.debug(`Received command: size=${json.size}`);
         horizonSize = 2.6 * json.size;
     } else if(json.command === 'engage') {
-        console.log(`Received command: Engage to ${json.location}`);
+        console.debug(`Received command: Engage to ${json.location}`);
         spawnPortal(json.location);
     } else if(json.command === 'disengage') {
-        console.log(`Received command: Disengage`);
+        console.debug(`Received command: Disengage`);
         despawnPortal();
     }
 }

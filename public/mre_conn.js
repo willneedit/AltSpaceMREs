@@ -20,7 +20,7 @@ function sock_receive(message) {
     try {
         var json = JSON.parse(message.data);
     } catch (e) {
-        console.log('Invalid JSON: ', message.data);
+        console.debug('Invalid JSON: ', message.data);
         return;
     }
     

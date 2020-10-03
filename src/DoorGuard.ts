@@ -69,7 +69,7 @@ export default class DoorGuard {
             const str = pgescape('SELECT ip FROM banned WHERE ip=%L', ip);
             const res: QueryResult = await this.db.query(str);
             this.banList[ip] = { until: currentTime + 3600, state: res.rowCount !== 0 };
-            console.log(`BanCheck Update: ${ip} is ${this.banList[ip].state ? '' : 'not'} banned`);
+            console.debug(`BanCheck Update: ${ip} is ${this.banList[ip].state ? '' : 'not'} banned`);
         }
 
         if (this.banList[ip].state) {

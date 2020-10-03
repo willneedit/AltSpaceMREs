@@ -41,10 +41,10 @@ export class SGDB {
             let usingid = idres.lid;
 
             if (val.id[val.id.length - 1] !== 'a') {
-                console.log(`Nonstandard location for ${val.location}: Using computed one, ${idloc.seq_string}`);
+                console.debug(`Nonstandard location for ${val.location}: Using computed one, ${idloc.seq_string}`);
                 usingid = idloc.lid;
             } else if (idres.seq_string !== idloc.seq_string) {
-                console.log(`Location ID mismatch for ${val.location}: ` +
+                console.debug(`Location ID mismatch for ${val.location}: ` +
                     `given=${idres.seq_string}, computed=${idloc.seq_string}, using given one`);
             }
 
@@ -61,16 +61,16 @@ export class SGDB {
     }
 
     public static async init() {
-        console.log('Looking for DB backend...');
+        console.debug('Looking for DB backend...');
         this.db = PGBackend.instance;
-        console.log('Creating legacy table gate_locations...');
+        console.debug('Creating legacy table gate_locations...');
 
         // Obsolete, but still needs to be present for migration code
         await this.db.query('CREATE TABLE IF NOT EXISTS gate_locations (' +
             'id varchar(10) PRIMARY KEY NOT NULL,' +
             'location varchar NOT NULL,' +
             'locked boolean DEFAULT false)').then(() => {
-                console.log('Creation of gate_location succeeded');
+                console.debug('Creation of gate_location succeeded');
             }).catch(err => {
                 console.error(`Creation of gate_locations failed, reason=${err}`);
             });
@@ -80,25 +80,25 @@ export class SGDB {
         //     'sid varchar(20) primary key not null,' +
         //     'location varchar not null)');
 
-        console.log('Creating table admin_access');
+        console.debug('Creating table admin_access');
 
         await this.db.query('CREATE TABLE IF NOT EXISTS admin_access (' +
             'id SERIAL PRIMARY KEY,' +
             'password TEXT NOT NULL)').then(() => {
-                console.log('Creation of admin_access succeeded');
+                console.debug('Creation of admin_access succeeded');
             }).catch(err => {
                 console.error(`Creation of admin_access failed, reason=${err}`);
             });
 
-        console.log('Creating extension pg_crypto');
+        console.debug('Creating extension pg_crypto');
 
         await this.db.query('CREATE EXTENSION IF NOT EXISTS pgcrypto').then(() => {
-            console.log('Creation of pg_crypto succeeded');
+            console.debug('Creation of pg_crypto succeeded');
         }).catch(err => {
             console.error(`Creation of pg_crypto failed, reason=${err}`);
         });
 
-        console.log('Creating table known_locations...');
+        console.debug('Creating table known_locations...');
 
         await this.db.query('CREATE TABLE known_locations (' +
             'lid BIGINT NOT NULL,' +
@@ -106,13 +106,13 @@ export class SGDB {
             'location VARCHAR NOT NULL,' +
             'lastseen TIMESTAMP NOT NULL,' +
             'PRIMARY KEY (lid,gid) )').then((res: QueryResult) => {
-                console.log('Database of V2 format created, migrating contents...');
+                console.debug('Database of V2 format created, migrating contents...');
                 this.migrateLocationsDB();
             }).catch(err => {
-                console.log('Database of V2 format already exists');
+                console.debug('Database of V2 format already exists');
             });
 
-        console.log('Database creation finished');
+        console.debug('Database creation finished');
     }
 
     public static async forEachLocation(f: (val: SGDBLocationEntry) => void) {

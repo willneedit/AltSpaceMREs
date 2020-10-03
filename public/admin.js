@@ -38,7 +38,7 @@ function mkVisitButton(id)
 
 function processCommand(json)
 {
-    console.log(json);
+    console.debug(json);
     var contents = '<table>';
 
     for(var line of json.lines) {

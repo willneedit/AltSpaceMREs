@@ -28,8 +28,8 @@ log.enable('network');
 // tslint:disable-next-line:no-var-requires
 const forwarded = require('forwarded-for');
 
-process.on('uncaughtException', err => console.log('uncaughtException', err));
-process.on('unhandledRejection', reason => console.log('unhandledRejection', reason));
+process.on('uncaughtException', err => console.debug('uncaughtException', err));
+process.on('unhandledRejection', reason => console.debug('unhandledRejection', reason));
 
 function initServer() {
     // The port number we make available. Either use the PORT environment variable
@@ -51,7 +51,7 @@ function initServer() {
     server.adapter.onConnection((context, params) => dispatch(
         new RawContext(context), params, server.baseUrl));
 
-    console.log("Initialized Multipeer server");
+    console.debug("Initialized Multipeer server");
 
     // Start a remote control server to maintain connection between the server and the Altspace Enclosure items
     // const controlserver = new websocket.server({ port: controlport });
@@ -70,7 +70,7 @@ function initServer() {
     // }).listen(banport);
 
     const restServer = initReSTServer(restPort);
-    console.log("Initialized ReST server");
+    console.debug("Initialized ReST server");
 
     // Use a lean HTTP proxy to multiplex the connections onto a single port, as follows:
     // http://rest/.* --> localhost:3905 (the ReST accessor)
@@ -112,12 +112,12 @@ function initServer() {
     // or the usual default one of 3901
     proxyServer.listen(publicPort);
 
-    console.log("Initialized proxy server");
+    console.debug("Initialized proxy server");
 
     // ... now everything's good to go!
 }
 
-console.log("Server starting up...");
+console.debug("Server starting up...");
 
 // Initialize the submodules
 dispatchStartup().then(() => initServer());

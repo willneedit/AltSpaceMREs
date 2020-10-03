@@ -54,7 +54,7 @@ export function initReSTServer(port: number): RS.Server {
     restServer.get('/rest/locate_loc/:base/:galaxy/:sglocation', locateSGperLoc);
     restServer.get('/rest/toURL/:galaxy/:location', translateToURL);
     restServer.listen(port, () => {
-        // console.log("%s listening at %s", restServer.name, restServer.url);
+        // console.debug("%s listening at %s", restServer.name, restServer.url);
     });
     return restServer;
 }

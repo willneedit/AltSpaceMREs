@@ -198,7 +198,7 @@ export abstract class SGDCBase extends SGDialCompLike {
     }
 
     private userjoined = (user: User) => {
-        console.log(`Connection request by ${user.id} (${user.name}) from ${user.properties.remoteAddress}`);
+        console.debug(`Connection request by ${user.id} (${user.name}) from ${user.properties.remoteAddress}`);
         DoorGuard.greeted(user.properties.remoteAddress);
         if (this.initstatus === InitStatus.initializing) {
             this.initstatus = InitStatus.initialized;
