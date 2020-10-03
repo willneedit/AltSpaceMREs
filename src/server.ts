@@ -36,9 +36,9 @@ function initServer() {
     // (Heroku defines one) or take the standard 3901.
     const publicPort = Number(process.env.PORT || 3901);
     const mrePort = publicPort + 1;
-    const controlPort = publicPort + 2;
-    const banPort = publicPort + 3;
-    const restPort = publicPort + 4;
+    const restPort = publicPort + 2;
+    const controlPort = publicPort + 3;
+    const banPort = publicPort + 4;
 
     // Start listening for connections, and serve static files
     const server = new WebHost({
@@ -51,23 +51,26 @@ function initServer() {
     server.adapter.onConnection((context, params) => dispatch(
         new RawContext(context), params, server.baseUrl));
 
-    // Start a remote control server to maintain connection between the server and the Altspace Enclosure items
-    const controlserver = new WebSocket.Server({ port: controlPort });
+    console.log("Initialized Multipeer server");
 
-    controlserver.on('connection', (ws) => {
-        ws.on('message', (payload) => dispatchControl(ws, payload as string));
-    });
+    // Start a remote control server to maintain connection between the server and the Altspace Enclosure items
+    // const controlserver = new websocket.server({ port: controlport });
+
+    // controlserver.on('connection', (ws) => {
+    //     ws.on('message', (payload) => dispatchcontrol(ws, payload as string));
+    // });
 
     // Yet another server that delays an incoming request and then denies it.
-    const banServer = Http.createServer((req: Http.IncomingMessage, res: Http.ServerResponse) => {
-        setTimeout(() => {
-            res.writeHead(403, { 'Content-type': 'text/plain'});
-            res.write('Banned! Your IP address sent too many bogus requests that it had to be blacklisteed.');
-            res.end();
-        }, 50000);
-    }).listen(banPort);
+    // const banserver = http.createserver((req: http.incomingmessage, res: http.serverresponse) => {
+    //     settimeout(() => {
+    //         res.writehead(403, { 'content-type': 'text/plain'});
+    //         res.write('banned! your ip address sent too many bogus requests that it had to be blacklisteed.');
+    //         res.end();
+    //     }, 50000);
+    // }).listen(banport);
 
     const restServer = initReSTServer(restPort);
+    console.log("Initialized ReST server");
 
     // Use a lean HTTP proxy to multiplex the connections onto a single port, as follows:
     // http://rest/.* --> localhost:3905 (the ReST accessor)
@@ -109,8 +112,12 @@ function initServer() {
     // or the usual default one of 3901
     proxyServer.listen(publicPort);
 
+    console.log("Initialized proxy server");
+
     // ... now everything's good to go!
 }
+
+console.log("Server starting up...");
 
 // Initialize the submodules
 dispatchStartup().then(() => initServer());

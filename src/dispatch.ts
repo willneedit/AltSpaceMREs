@@ -38,6 +38,7 @@ import DragNDropTest from "./dragndrop-test/dragndrop_main";
 import Doorbell from "./doorbell/doorbell_main";
 import GenericDoor from "./doors/generic";
 import Earthquake from "./earthquake/earthquake_main";
+import { SGDB } from "./stargate/database";
 
 /**
  * Contains the names and the factories for the given applets
@@ -70,7 +71,7 @@ const registryControl: { [key: string]: (ws: WebSocket, data: ParameterSet) => v
  * Contains a list of functions needed to call before the service goes online.
  */
 const registryStartup: { [key: string]: () => void } = {
-    sgnetwork: async () => await SGNetwork.loadNetwork(),
+    sgnetwork: async () => await SGDB.init(),
     DoorGuard: async () => await DoorGuard.init(),
 };
 
@@ -177,7 +178,9 @@ export function dispatchControl(ws: WebSocket, payload: string) {
 export async function dispatchStartup() {
     for ( const key in registryStartup) {
         if (registryStartup.hasOwnProperty(key)) {
+            console.log(`Starting ${key}...`);
             await registryStartup[key]();
+            console.log(`Startup ${key} succeeded`);
         }
     }
 }

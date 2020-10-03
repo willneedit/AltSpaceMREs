@@ -20,10 +20,6 @@ interface TargetReg {
 export default class SGNetwork {
     private static targets: { [id: string]: TargetReg } = { };
 
-    public static loadNetwork() {
-        SGDB.init();
-    }
-
     private static createDBEntry(id: string): boolean {
         if (!this.targets[id]) {
             this.targets[id] = { gate: null, comp: null };
