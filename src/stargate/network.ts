@@ -69,7 +69,8 @@ export default class SGNetwork {
         const okAdmin = await SGNetwork.isAdminLevelReq(data);
 
         if (data.command === 'delete') {
-            if (okAdmin) SGDB.deleteLocation(data.id as string);
+            // FIXME: Rework web admin panel?
+            // if (okAdmin) SGDB.deleteLocation(data.id as string);
             data.command = 'getlist';
         }
 

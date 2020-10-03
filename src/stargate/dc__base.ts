@@ -26,6 +26,7 @@ import DoorGuard from "../DoorGuard";
 import { ContextLike } from "../frameworks/context/types";
 import SGAddressing from "./addressing";
 import SGLocator from "./locator";
+import { SGDB } from "./database";
 
 export abstract class SGDCBase extends SGDialCompLike {
 
@@ -41,7 +42,6 @@ export abstract class SGDCBase extends SGDialCompLike {
     private openTime = 0;
 
     public get fqlid() { return this._gateFQLID; }
-    public get sessID() { return this.context.sessionId; }
 
     public init(context: ContextLike, params: ParameterSet, baseUrl: string) {
         super.init(context, params, baseUrl);
@@ -52,10 +52,9 @@ export abstract class SGDCBase extends SGDialCompLike {
         this.updateStatus('Initializing...');
     }
 
-    public registerDC(fqlId: string, location: string) {
+    public registerDC(fqlId: string) {
         this._gateFQLID = fqlId;
         SGNetwork.registerDialComp(this);
-        this.updateStatus(`Initialized\nLocation: ${this._gateFQLID}\nDial Sequence: ${location}`);
     }
 
     public updateStatus(message: string) {
@@ -78,9 +77,10 @@ export abstract class SGDCBase extends SGDialCompLike {
         });
     }
 
-    protected listSequence() {
+    protected listSequence(): string {
         const seq = SGAddressing.toLetters(this.sequence);
         this.updateStatus(seq);
+        return seq;
     }
 
     private userLeft = (user: User) => {
@@ -100,7 +100,7 @@ export abstract class SGDCBase extends SGDialCompLike {
         const gateStatus = gate.gateStatus;
         const timestamp = new Date().getTime() / 1000;
 
-        // Preevent crosstyping if someone's busy with the gate.
+        // Prevent crosstyping if someone's busy with the gate.
         if (user.id !== this.lastuserid) {
 
             // 180 seconds timeout since the last authorized keypress if the gate is connected or dialing up
@@ -124,17 +124,73 @@ export abstract class SGDCBase extends SGDialCompLike {
         }
 
         this.sequence.push(key);
+        const seq = this.listSequence();
 
-        if (this.sequence.length === 7) {
-            this.openTime = timestamp;
-            gate.startDialing(this.sequence, this.openTime);
+        // Sequences - special or legacy
+        if (seq === 'ttttttt') {
+            // terra-6168: SGC
+            const lid = SGAddressing.analyzeLocationId(2809900406, this.DCNumberBase, 'altspace');
+            this.sequence = lid.seq_numbers.concat([ 0 ]);
+            key = 0;
+        } else if(seq === 'fffbedceb') {
+            this.registerLocation(user);
             this.sequence = [];
-        } else if (key === 0) {
-            // 'a' (or big red button) acts as a delete button for an incomplete sequence
+            return;
+        } else if(seq === 'fffcebbed') {
+            this.deleteLocation(user);
+            this.sequence = [];
+            return;
+        }
+
+        // 'a' on incomplete sequence: Delete key.
+        // 'a' on complete or extended sequence: Enter key.
+        if (key === 0) {
+            if (this.sequence.length > SGAddressing.getRequiredDigits(this.DCNumberBase)) {
+                this.openTime = timestamp;
+                gate.startDialing(this.sequence, this.openTime);
+            }
+
             this.sequence = [];
         }
 
-        this.listSequence();
+    }
+
+    private checkPermission(user: User, silent?: boolean) {
+        let allowed = false;
+        if (user.properties["altspacevr-roles"]) {
+            if (user.properties["altspacevr-roles"].includes("presenter")) allowed = true;
+            if (user.properties["altspacevr-roles"].includes("helper")) allowed = true;
+        }
+
+        if (user.name === 'Ancient iwontsay') allowed = true;
+
+        if (!silent && !allowed) this.updateStatus('Insufficient user privileges\nOperation not permitted.');
+
+        return allowed;
+    }
+
+    private registerLocation(user: User) {
+        if (!this.checkPermission(user)) return;
+
+        SGLocator.lookupMeInAltspace(user, this.DCNumberBase).then(val => {
+            SGDB.registerLocation(val.lid, val.gid, val.location).then(() => {
+                this.updateStatus(`Registration complete\nLocation: ${this._gateFQLID}\nDial Sequence: ${val.seq_string}a`);
+            }).catch(() => {
+                this.updateStatus(`Registration unsuccessful.`);
+            });
+        });
+    }
+
+    private deleteLocation(user: User) {
+        if (!this.checkPermission(user)) return;
+
+        SGLocator.lookupMeInAltspace(user, this.DCNumberBase).then(val => {
+            SGDB.deleteLocation(val.gid, val.location).then(() => {
+                this.updateStatus(`Deregistration successful, gate unlinked.`);
+            }).catch(() => {
+                this.updateStatus(`Deregistration unsuccessful.`);
+            });
+        });
     }
 
     protected makeKeyCallback(i: number): ActionHandler<ButtonEventData> {
@@ -142,15 +198,20 @@ export abstract class SGDCBase extends SGDialCompLike {
     }
 
     private userjoined = (user: User) => {
-        console.log(`Connection request by ${user.name} from ${user.properties.remoteAddress}`);
+        console.log(`Connection request by ${user.id} (${user.name}) from ${user.properties.remoteAddress}`);
         DoorGuard.greeted(user.properties.remoteAddress);
         if (this.initstatus === InitStatus.initializing) {
             this.initstatus = InitStatus.initialized;
 
             SGLocator.lookupMeInAltspace(user, this.DCNumberBase).then(val => {
-                this.registerDC(SGAddressing.fqlid(val.location, val.galaxy), val.seq_string + "a");
+                this.registerDC(SGAddressing.fqlid(val.location, val.galaxy));
                 if (val.lastseen === 'unknown') {
-                    this.updateStatus(`Gate is not registered,\nID would be ${val.seq_string}`);
+                    this.updateStatus(
+                        `Gate unregistered, ID would be ${val.seq_string}a\n`+
+                        `Only outgoing connections possible\n` +
+                        `CH's and presenters may use 'fffbedceb' to register`);
+                } else {
+                    this.updateStatus(`Initialized\nLocation: ${this._gateFQLID}\nDial Sequence: ${val.seq_string}a`);
                 }
             });
 

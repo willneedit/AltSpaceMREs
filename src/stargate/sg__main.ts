@@ -50,7 +50,6 @@ export default abstract class Stargate extends StargateLike {
 
     public get gateStatus() { return this._gateStatus; }
     public get fqlid() { return this._gateFQLID; }
-    public get sessID() { return this.context.sessionId; }
     public get currentTargetFqlid() { return this._currentTargetFQLID; }
     public get currentTargetSequence() { return this._currentTargetSequence; }
     public get currentDirection() { return this._currentDirection; }
@@ -93,7 +92,7 @@ export default abstract class Stargate extends StargateLike {
     protected abstract async initGate(): Promise<void>;
 
     private userjoined = (user: User) => {
-        console.log(`Connection request by ${user.name} from ${user.properties.remoteAddress}`);
+        console.log(`Connection request by ${user.id} (${user.name}) from ${user.properties.remoteAddress}`);
         DoorGuard.greeted(user.properties.remoteAddress);
         if (this.initstatus === InitStatus.initializing) {
             this.initstatus = InitStatus.initialized;

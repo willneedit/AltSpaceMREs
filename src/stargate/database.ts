@@ -138,17 +138,20 @@ export class SGDB {
         }
     }
 
-    public static async registerLocation(id: string, location: string) {
-            return location
-                ? this.db.query(
-                    pgescape('INSERT INTO gate_locations (id,location) VALUES (%L,%L) ON CONFLICT DO NOTHING',
-                        id, location))
-                : this.db.query('SELECT 0');
+    public static async registerLocation(lid: number, gid: number, location: string) {
+        const str = pgescape('INSERT INTO known_locations (lid,gid,location,lastseen) VALUES (%L, %L, %L, %L)',
+            lid.toString(),
+            gid.toString(),
+            location,
+            "now()");
+
+        return this.db.query(str);
     }
 
-    public static deleteLocation(id: string) {
-        this.db.query(pgescape('DELETE FROM gate_locations WHERE id=%L', id));
-        this.db.query(pgescape('DELETE FROM object_sids WHERE location=%L', id));
+    public static deleteLocation(gid: number, location: string) {
+        return this.db.query(pgescape('DELETE FROM known_locations WHERE (gid=%L AND location=%L)',
+            gid.toString(),
+            location));
     }
 
     // Passwords are entered using

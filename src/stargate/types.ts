@@ -39,7 +39,7 @@ export abstract class StargateLike extends Applet {
 export abstract class SGDialCompLike extends Applet {
     public abstract get DCNumberBase(): number;
     public abstract updateStatus(message: string): void;
-    public abstract registerDC(fqlid: string, seq: string): void;
+    public abstract registerDC(fqlid: string): void;
     public abstract get fqlid(): string;
 }
 
@@ -51,7 +51,6 @@ export class StargateDespawned extends StargateLike {
 
     public startDialing(sequence: number[], timestamp: number): void { }
     public get fqlid(): string { return undefined; }
-    public get sessID(): string { return undefined; }
     public get currentTargetFqlid() { return 'invalid-target'; }
     public get currentTargetSequence(): string { return 'invalid-target'; }
     public get currentDirection() { return false; }
