@@ -20,11 +20,13 @@ export default class PGBackend {
     constructor() {
         if (!!process.env.DATABASE_URL) {
             // Running in Heroku, using provided information
+            console.log('Starting with provided database parameters');
             this.dbConn = new PG({
                 connectionString: process.env.DATABASE_URL,
                 ssl: true,
             });
         } else {
+            console.log('No database parameteres passed, usine local config');
             // Running locally, for testing purposes
             // DATABASE MOVED, to ease use of Heroku's pg:push and pg:pull
             // Used with:
@@ -39,11 +41,16 @@ export default class PGBackend {
             });
         }
 
-        this.dbConn.connect();
+        this.dbConn.connect().catch(err => {
+            console.error(`DATABASE CONNECTION FAILED, err=${err}`);
+        });
 
         // Test the connection, throw an error if it fails.
         this.dbConn.query('SELECT table_schema,table_name FROM information_schema.tables', (err, res) => {
-            if (err) throw err;
+            if (err) {
+                console.error(`ERROR WITH DATABASE CONNECTION, err=${err}`);
+                throw err;
+            }
         });
     }
 
