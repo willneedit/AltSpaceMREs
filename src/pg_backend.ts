@@ -27,7 +27,7 @@ export default class PGBackend {
             console.debug('Starting with provided database parameters');
             this.dbConn = new PG({
                 connectionString: process.env.DATABASE_URL,
-                ssl: true,
+                ssl: { rejectUnauthorized: false }, // New with pg8: Trouble with Heroku's self-signed cert
             });
         } else {
             console.debug('No database parameteres passed, usine local config');
