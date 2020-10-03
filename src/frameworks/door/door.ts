@@ -17,6 +17,7 @@ import {
     MediaInstance,
     Quaternion,
     User,
+    Guid,
 } from "@microsoft/mixed-reality-extension-sdk";
 
 import { delay, initSound, restartSound } from "../../helpers";
@@ -111,7 +112,7 @@ export default class BasicDoor {
     public stopped = async () => {
     }
 
-    private updateDoorPart(pid: string, dp: DoorPart, updateopenstate: boolean, updatelockstate: boolean) {
+    private updateDoorPart(pid: Guid, dp: DoorPart, updateopenstate: boolean, updatelockstate: boolean) {
         if (!dp.actor || updatelockstate) {
             const actorDef: Partial<ActorLike> = {
                 parentId: pid

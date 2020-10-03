@@ -74,7 +74,7 @@ export default class ShowKitObj extends Applet {
 
         if (anim) {
             const animName = (this.parameter.animate == null) ? 'animation:0' : this.parameter.animate as string;
-            model.enableAnimation(animName);
+            model.targetingAnimationsByName.get(animName).play();
         }
 
         if (this.attachPoint !== "none") model.attach(user, this.attachPoint);

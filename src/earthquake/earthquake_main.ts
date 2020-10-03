@@ -5,9 +5,12 @@
 
 import {
     Actor,
-    AnimationKeyframe,
+    ActorPath,
+    Animation,
+    AnimationEaseCurves,
     AnimationWrapMode,
     ButtonBehavior,
+    Keyframe,
     MediaInstance,
     ParameterSet,
     Quaternion,
@@ -20,8 +23,6 @@ import Applet from "../Applet";
 import DoorGuard from "../DoorGuard";
 
 import { ContextLike } from "../frameworks/context/types";
-
-import { double } from "@microsoft/mixed-reality-extension-sdk/built/math/types";
 
 import { initSound, restartSound } from "../helpers";
 
@@ -45,45 +46,48 @@ export default class Earthquake extends Applet {
     private laserSoundURL = `${this.soundBaseURL}/Particle_Beam_Firing.ogg`;
     private humSound: MediaInstance = null;
     private laserSound: MediaInstance = null;
+    private rotUpperAnim: Animation = null;
+    private rotLowerAnim: Animation = null;
+    private shakeTerrainAnim: Animation = null;
 
-    private generateShakeBaseKeyFrames(offset: double, amp: double): AnimationKeyframe[] {
+    private generateShakeBaseKeyFrames(offset: number, amp: number): Array<Keyframe<Vector3> > {
         return [
             {
                 time: 0 + offset,
-                value: { transform: { local: { position: { x: 0.0, y: 0.0, z: 0.0 } } } }
+                value: { x: 0.0, y: 0.0, z: 0.0 }
             }, {
                 time: 0.05 + offset,
-                value: { transform: { local: { position: { x: 0.1 * amp, y: 0.0, z: 0.0 } } } }
+                value: { x: 0.1 * amp, y: 0.0, z: 0.0 }
             }, {
                 time: 0.10 + offset,
-                value: { transform: { local: { position: { x: -0.1 * amp, y: 0.0, z: 0.0 } } } }
+                value: { x: -0.1 * amp, y: 0.0, z: 0.0 }
             }, {
                 time: 0.15 + offset,
-                value: { transform: { local: { position: { x: 0.0, y: 0.0, z: 0.1 * amp } } } }
+                value: { x: 0.0, y: 0.0, z: 0.1 * amp }
             }, {
                 time: 0.20 + offset,
-                value: { transform: { local: { position: { x: 0.0, y: 0.0, z: -0.2 * amp } } } }
+                value: { x: 0.0, y: 0.0, z: -0.2 * amp }
             }, {
                 time: 0.25 + offset,
-                value: { transform: { local: { position: { x: 0.1 * amp, y: 0.0, z: 0.0 } } } }
+                value: { x: 0.1 * amp, y: 0.0, z: 0.0 }
             }, {
                 time: 0.30 + offset,
-                value: { transform: { local: { position: { x: 0.0, y: 0.0, z: 0.1 * amp } } } }
+                value: { x: 0.0, y: 0.0, z: 0.1 * amp }
             }, {
                 time: 0.35 + offset,
-                value: { transform: { local: { position: { x: 0.2 * amp, y: 0.0, z: 0.0 } } } }
+                value: { x: 0.2 * amp, y: 0.0, z: 0.0 }
             }, {
                 time: 0.40 + offset,
-                value: { transform: { local: { position: { x: 0.0, y: 0.0, z: 0.1 * amp } } } }
+                value: { x: 0.0, y: 0.0, z: 0.1 * amp }
             }, {
                 time: 0.45 + offset,
-                value: { transform: { local: { position: { x: 0.0, y: 0.0, z: -0.1 * amp } } } }
+                value: { x: 0.0, y: 0.0, z: -0.1 * amp }
             }
 
         ];
     }
-    private generateShakeKeyframes(): AnimationKeyframe[] {
-        let res: AnimationKeyframe[] = [];
+    private generateShakeKeyframes(): Array<Keyframe<Vector3> > {
+        let res: Array<Keyframe<Vector3> > = [];
         res = res.concat(
             this.generateShakeBaseKeyFrames(0.0, 0.25)
         );
@@ -111,28 +115,28 @@ export default class Earthquake extends Applet {
 
         res.push({
             time: 8.0,
-            value: { transform: { local: { position: { x: 0.0, y: 0.0, z: 0.0 } } } }
+            value: { x: 0.0, y: 0.0, z: 0.0 }
         });
 
         return res;
     }
 
-    private generateSpinKeyframes(duration: number, axis: Vector3): AnimationKeyframe[] {
+    private generateSpinKeyframes(duration: number, axis: Vector3): Array<Keyframe<Quaternion> > {
         return [{
             time: 0 * duration,
-            value: { transform: { local: { rotation: Quaternion.RotationAxis(axis, 0) } } }
+            value: Quaternion.RotationAxis(axis, 0)
         }, {
             time: 0.25 * duration,
-            value: { transform: { local: { rotation: Quaternion.RotationAxis(axis, Math.PI / 2) } } }
+            value: Quaternion.RotationAxis(axis, Math.PI / 2)
         }, {
             time: 0.5 * duration,
-            value: { transform: { local: { rotation: Quaternion.RotationAxis(axis, Math.PI) } } }
+            value: Quaternion.RotationAxis(axis, Math.PI)
         }, {
             time: 0.75 * duration,
-            value: { transform: { local: { rotation: Quaternion.RotationAxis(axis, 3 * Math.PI / 2) } } }
+            value: Quaternion.RotationAxis(axis, 3 * Math.PI / 2)
         }, {
             time: 1 * duration,
-            value: { transform: { local: { rotation: Quaternion.RotationAxis(axis, 2 * Math.PI) } } }
+            value: Quaternion.RotationAxis(axis, 2 * Math.PI)
         }];
     }
 
@@ -236,25 +240,43 @@ export default class Earthquake extends Applet {
             }
         });
 
-        this.eqRotUpper.createAnimation('spin', {
-            keyframes: this.generateSpinKeyframes(8, Vector3.Up()),
-            events: [],
-            wrapMode: AnimationWrapMode.Loop
+        const rotUpperAnimData = this.context.assets.createAnimationData('rotUpper', {
+            tracks: [{
+                target: ActorPath('rotUpper').transform.local.rotation,
+                keyframes: this.generateSpinKeyframes(8, Vector3.Up()),
+                easing: AnimationEaseCurves.Linear
+            }]
         });
+        this.rotUpperAnim = await rotUpperAnimData.bind(
+            { rotUpper: this.eqRotUpper },
+            { wrapMode: AnimationWrapMode.Loop }
+        );
 
-        this.eqRotLower.createAnimation('spin', {
-            keyframes: this.generateSpinKeyframes(8, Vector3.Down()),
-            events: [],
-            wrapMode: AnimationWrapMode.Loop
+        const rotLowerAnimData = this.context.assets.createAnimationData('rotLower', {
+            tracks: [{
+                target: ActorPath('rotLower').transform.local.rotation,
+                keyframes: this.generateSpinKeyframes(8, Vector3.Down()),
+                easing: AnimationEaseCurves.Linear
+            }]
         });
+        this.rotLowerAnim = await rotLowerAnimData.bind(
+            { rotLower: this.eqRotLower },
+            { wrapMode: AnimationWrapMode.Loop }
+        );
 
-        this.terrain.createAnimation('shake', {
-            keyframes: this.generateShakeKeyframes(),
-            events: [],
-            wrapMode: AnimationWrapMode.Loop
+        const shakeTerrainAnimData = this.context.assets.createAnimationData('shakeTerrain', {
+            tracks: [{
+                target: ActorPath('terrain').transform.local.position,
+                keyframes: this.generateShakeKeyframes(),
+                easing: AnimationEaseCurves.Linear
+            }]
         });
+        this.shakeTerrainAnim = await shakeTerrainAnimData.bind(
+            { terrain: this.terrain },
+            { wrapMode: AnimationWrapMode.Loop }
+        );
 
-        this.eqRotUpper.enableAnimation('spin');
+        this.rotUpperAnim.play();
 
         restartSound(this.humSound, { looping: true });
 
@@ -262,7 +284,7 @@ export default class Earthquake extends Applet {
     }
 
     private activateStage2() {
-        this.eqRotLower.enableAnimation('spin');
+        this.rotLowerAnim.play();
         this.message.text.contents = 'Fault line detected\nDetermining resonance frequency...';
         this.message.text.color = { r: 1.0, g: 1.0, b: 0.5 };
 
@@ -286,6 +308,6 @@ export default class Earthquake extends Applet {
     }
 
     private activateStage4() {
-        this.terrain.enableAnimation('shake');
+        this.shakeTerrainAnim.play();
     }
 }

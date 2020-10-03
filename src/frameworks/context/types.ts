@@ -7,21 +7,18 @@ import {
     Actor,
     ActorLike,
     AssetContainer,
-    Connection,
     Context,
     PrimitiveDefinition,
-    SubscriptionType,
     User,
+    Prefab,
+    Guid,
 } from "@microsoft/mixed-reality-extension-sdk";
-
-import { CreateColliderType } from "@microsoft/mixed-reality-extension-sdk/built/types/network/payloads";
 
 // tslint:disable:variable-name
 export interface ContextLike {
     readonly baseContext: Context;
     readonly assets: AssetContainer;
     readonly sessionId: string;
-    readonly conn: Connection;
     readonly actors: Actor[];
     readonly rootActors: Actor[];
     readonly users: User[];
@@ -95,34 +92,29 @@ export interface ContextLike {
 
     CreateEmpty(options?: {
         actor?: Partial<ActorLike>;
-        subscriptions?: SubscriptionType[];
     }): Actor;
 
     CreateFromLibrary(options?: {
         resourceId: string;
         actor?: Partial<ActorLike>;
-        subscriptions?: SubscriptionType[];
     }): Actor;
 
     CreateFromGLTF(options: {
         uri: string;
-        assetName?: string;
-        colliderType?: CreateColliderType;
+        colliderType?: "box" | "mesh";
         actor?: Partial<ActorLike>;
-        subscriptions?: SubscriptionType[];
     }): Actor;
 
     CreateFromPrefab(options: {
-        prefabId: string;
+        prefabId?: Guid;
+        prefab?: Prefab;
         actor?: Partial<ActorLike>;
-        subscriptions?: SubscriptionType[];
     }): Actor;
 
     CreatePrimitive(options: {
         definition: PrimitiveDefinition;
         addCollider?: boolean;
         actor?: Partial<ActorLike>;
-        subscriptions?: SubscriptionType[];
     }): Actor;
 
     announceSelf(): void;

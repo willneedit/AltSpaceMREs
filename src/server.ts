@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { WebHost } from '@microsoft/mixed-reality-extension-sdk';
+import { WebHost, Permissions } from '@microsoft/mixed-reality-extension-sdk';
 import { resolve as resolvePath } from 'path';
 import { dispatch, dispatchControl, dispatchStartup } from './dispatch';
 
@@ -43,7 +43,8 @@ function initServer() {
     // Start listening for connections, and serve static files
     const server = new WebHost({
         baseDir: resolvePath(__dirname, '../public'),
-        port: mrePort
+        port: mrePort,
+        permissions: [ Permissions.UserTracking, Permissions.UserInteraction ]
     });
 
     // Handle new application sessions

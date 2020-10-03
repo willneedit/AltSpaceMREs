@@ -9,6 +9,8 @@ import {
     ParameterSet,
     TextAnchorLocation,
     User,
+    Guid,
+    ButtonEventData,
 } from "@microsoft/mixed-reality-extension-sdk";
 
 import {
@@ -33,7 +35,7 @@ export abstract class SGDCBase extends SGDialCompLike {
     private statusline: Actor = null;
     private initstatus = InitStatus.uninitialized;
 
-    private lastuserid = '';
+    private lastuserid: Guid = null;
     private lasttyped = 0;
 
     private openTime = 0;
@@ -135,7 +137,7 @@ export abstract class SGDCBase extends SGDialCompLike {
         this.listSequence();
     }
 
-    protected makeKeyCallback(i: number): ActionHandler {
+    protected makeKeyCallback(i: number): ActionHandler<ButtonEventData> {
         return (user: User) => this.keypressed(user, i);
     }
 

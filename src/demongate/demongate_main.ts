@@ -13,6 +13,7 @@ import {
     Quaternion,
     User,
     Vector3,
+    ButtonEventData,
 } from "@microsoft/mixed-reality-extension-sdk";
 
 import Applet from "../Applet";
@@ -111,7 +112,7 @@ export default class DemonGate extends Applet {
         this.evaluatePentLines();
     }
 
-    protected makeCandleCallback(i: number): ActionHandler {
+    protected makeCandleCallback(i: number): ActionHandler<ButtonEventData> {
         return (user: User) => this.candleTouched(user, i);
     }
 

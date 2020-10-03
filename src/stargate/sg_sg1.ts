@@ -5,11 +5,13 @@
 
 import {
     Actor,
-    AnimationKeyframe,
+    Keyframe,
     DegreesToRadians,
     MediaInstance,
     Quaternion,
     Vector3,
+    ActorPath,
+    AnimationEaseCurves,
 } from "@microsoft/mixed-reality-extension-sdk";
 
 import {
@@ -123,8 +125,7 @@ export default class StargateSG1 extends Stargate {
      * @param direction Direction of rotation, true for counter-clockwise
      */
     private generateRotationKeyFrames(
-
-        srcAngle: number, tgtAngle: number, direction: boolean): AnimationKeyframe[] {
+        srcAngle: number, tgtAngle: number, direction: boolean): Array<Keyframe<Quaternion> > {
 
         tgtAngle = tgtAngle % 360;
         srcAngle = srcAngle % 360;
@@ -133,7 +134,7 @@ export default class StargateSG1 extends Stargate {
         if (direction && tgtAngle < srcAngle) tgtAngle = tgtAngle + 360;
 
         if (!direction && tgtAngle > srcAngle) tgtAngle = tgtAngle - 360;
-        const kf: AnimationKeyframe[] = [];
+        const kf: Array<Keyframe<Quaternion> > = [];
 
         // Take six seconds for a full revolution at full speed, calculate the time needed to travel the
         // given distance.
@@ -141,7 +142,6 @@ export default class StargateSG1 extends Stargate {
         const angularMaxSpeed = 360 / (6 * timescale); // Angular max speed in degrees/timescale of seconds
         const accelStep = angularMaxSpeed / timescale; // Number of timescale steps (one second) to get to top speed
         let currentAngularSpeed = 0;
-        let lastAngularSpeed = 0;
         let accelDist = 0;
         let t = 0;
         const angleDistance = Math.abs(tgtAngle - srcAngle);
@@ -155,26 +155,19 @@ export default class StargateSG1 extends Stargate {
                 accelDist = angle;
             }
 
-            // Add a keyframe if the angular speed did change.
-//            if (lastAngularSpeed !== currentAngularSpeed) {
             const rAngle = srcAngle + angle * (direction ? 1 : -1);
-            const rot =  Quaternion.RotationAxis(Vector3.Forward(), rAngle * DegreesToRadians);
             kf.push({
                     time: t / timescale,
-                    value: { transform: { local: { rotation: rot } } }
+                    value: Quaternion.RotationAxis(Vector3.Forward(), rAngle * DegreesToRadians)
             });
-//            }
             t++;
 
-            lastAngularSpeed = currentAngularSpeed;
         }
 
         kf.push(
             {
                 time: (t++) / timescale,
-                value: { transform: {
-                    local: { rotation: Quaternion.RotationAxis(Vector3.Forward(), tgtAngle * DegreesToRadians) }
-                } }
+                value: Quaternion.RotationAxis(Vector3.Forward(), tgtAngle * DegreesToRadians)
             });
 
         return kf;
@@ -209,16 +202,22 @@ export default class StargateSG1 extends Stargate {
         const tgtAngle = (this.chevronAngles[chevron] + (symbol * 360 / 39)) % 360;
         const srcAngle = this.gateRingAngle;
 
-        const rotAnim = this.generateRotationKeyFrames(srcAngle, tgtAngle, dialDirection);
+        const rotAnimData = this.context.assets.createAnimationData('rotation',{
+            tracks: [{
+                target: ActorPath('ring').transform.local.rotation,
+                keyframes: this.generateRotationKeyFrames(srcAngle, tgtAngle, dialDirection),
+                easing: AnimationEaseCurves.Linear
+            }]
+        });
 
-        await this.gateRing.createAnimation('rotation', {keyframes: rotAnim, events: []});
-
-        this.gateRing.enableAnimation('rotation');
+        const rotAnim = await rotAnimData.bind({ ring: this.gateRing });
+        rotAnim.play();
         this.soundGateTurning.resume();
-        await delay(rotAnim[rotAnim.length - 1].time * 1000 + 200);
+        await rotAnim.finished();
+        // await delay(rotAnimFrames[rotAnimFrames.length - 1].time * 1000 + 200);
         this.soundGateTurning.pause();
 
-        await this.gateRing.disableAnimation('rotation');
+        rotAnim.delete();
 
         this.gateRingAngle = tgtAngle;
     }

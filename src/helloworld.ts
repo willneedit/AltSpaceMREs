@@ -9,11 +9,8 @@
   */
 import {
     Actor,
-    AnimationKeyframe,
     AnimationWrapMode,
     ButtonBehavior,
-    Context,
-    LookAtMode,
     ParameterSet,
     Quaternion,
     TextAnchorLocation,
@@ -69,20 +66,6 @@ export default class HelloWorld extends Applet {
         // we can still get a reference to it by grabbing the `value` field from the forward promise.
         this.text = textPromise;
 
-        // Here we create an animation on our text actor. Animations have three mandatory arguments:
-        // a name, an array of keyframes, and an array of events.
-        this.text.createAnimation("Spin", {
-            // Keyframes define the timeline for the animation: where the actor should be, and when.
-            // We're calling the generateSpinKeyframes function to produce a simple 20-second revolution.
-            keyframes: this.generateSpinKeyframes(20, Vector3.Up()),
-            // Events are points of interest during the animation. The animating actor will emit a given
-            // named event at the given timestamp with a given string value as an argument.
-            events: [],
-
-            // Optionally, we also repeat the animation infinitely.
-            wrapMode: AnimationWrapMode.Loop
-        });
-
         // Load a glTF model
         const cubePromise = this.context.CreateFromGLTF({
             // at the given URL
@@ -105,43 +88,6 @@ export default class HelloWorld extends Applet {
 
         // Grab that early reference again.
         this.cube = cubePromise;
-
-        // Create some animations on the cube.
-        this.cube.createAnimation('GrowIn', {
-            keyframes: this.growAnimationData,
-            events: []
-        });
-
-        this.cube.createAnimation('ShrinkOut', {
-            keyframes: this.shrinkAnimationData,
-            events: []
-        });
-
-        this.cube.createAnimation('DoAFlip', {
-            keyframes: this.generateSpinKeyframes(1.0, Vector3.Right()),
-            events: []
-        });
-
-        // Now that the text and its animation are all being set up, we can start playing
-        // the animation.
-        this.text.enableAnimation('Spin');
-
-        // Set up cursor interaction. We add the input behavior ButtonBehavior to the cube.
-        // Button behaviors have two pairs of events: hover start/stop, and click start/stop.
-        const buttonBehavior = this.cube.setBehavior(ButtonBehavior);
-
-        // Trigger the grow/shrink animations on hover.
-        buttonBehavior.onHover('enter', (user: User) => {
-            this.cube.enableAnimation('GrowIn');
-        });
-        buttonBehavior.onHover('exit', (user: User) => {
-            this.cube.enableAnimation('ShrinkOut');
-        });
-
-        // When clicked, do a 360 sideways.
-        buttonBehavior.onClick((user: User) => {
-            this.cube.enableAnimation('DoAFlip');
-        });
 
     }
 
@@ -179,43 +125,4 @@ export default class HelloWorld extends Applet {
         });
     }
 
-    /**
-     * Generate keyframe data for a simple spin animation.
-     * @param duration The length of time in seconds it takes to complete a full revolution.
-     * @param axis The axis of rotation in local space.
-     */
-    private generateSpinKeyframes(duration: number, axis: Vector3): AnimationKeyframe[] {
-        return [{
-            time: 0 * duration,
-            value: { transform: { local: { rotation: Quaternion.RotationAxis(axis, 0) } } }
-        }, {
-            time: 0.25 * duration,
-            value: { transform: { local: { rotation: Quaternion.RotationAxis(axis, Math.PI / 2) } } }
-        }, {
-            time: 0.5 * duration,
-            value: { transform: { local: { rotation: Quaternion.RotationAxis(axis, Math.PI) } } }
-        }, {
-            time: 0.75 * duration,
-            value: { transform: { local: { rotation: Quaternion.RotationAxis(axis, 3 * Math.PI / 2) } } }
-        }, {
-            time: 1 * duration,
-            value: { transform: { local: { rotation: Quaternion.RotationAxis(axis, 2 * Math.PI) } } }
-        }];
-    }
-
-    private growAnimationData: AnimationKeyframe[] = [{
-        time: 0,
-        value: { transform: { local: { scale: { x: 0.4, y: 0.4, z: 0.4 } } } }
-    }, {
-        time: 0.3,
-        value: { transform: { local: { scale: { x: 0.5, y: 0.5, z: 0.5 } } } }
-    }];
-
-    private shrinkAnimationData: AnimationKeyframe[] = [{
-        time: 0,
-        value: { transform: { local: { scale: { x: 0.5, y: 0.5, z: 0.5 } } } }
-    }, {
-        time: 0.3,
-        value: { transform: { local: { scale: { x: 0.4, y: 0.4, z: 0.4 } } } }
-    }];
 }
