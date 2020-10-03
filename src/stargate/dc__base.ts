@@ -55,7 +55,7 @@ export abstract class SGDCBase extends SGDialCompLike {
     public registerDC(fqlId: string, location: string) {
         this._gateFQLID = fqlId;
         SGNetwork.registerDialComp(this);
-        this.updateStatus(`Initialized\nAddress: ${this._gateFQLID}\nDial Sequence: ${location}`);
+        this.updateStatus(`Initialized\nLocation: ${this._gateFQLID}\nDial Sequence: ${location}`);
     }
 
     public updateStatus(message: string) {

@@ -54,7 +54,7 @@ export default class SGNetwork {
 
         this.createDBEntry(id);
         this.targets[id].comp = dial;
-        console.info(`Announcing dial computer for ID ${id}`);
+        console.info(`Announcing dial computer for FQLID ${id}`);
     }
 
     public static getGate(id: string): StargateLike {

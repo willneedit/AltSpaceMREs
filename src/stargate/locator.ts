@@ -64,7 +64,6 @@ export default class SGLocator {
             return SGAddressing.lookupGateAddress(location, base, 1).catch((err2) => err);
         });
 
-        console.log(sgld);
         return sgld;
     }
 
