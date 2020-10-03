@@ -67,7 +67,11 @@ export class SGDB {
         await this.db.query('CREATE TABLE IF NOT EXISTS gate_locations (' +
             'id varchar(10) PRIMARY KEY NOT NULL,' +
             'location varchar NOT NULL,' +
-            'locked boolean DEFAULT false)');
+            'locked boolean DEFAULT false)').then(() => {
+                console.log('Creation of gate_location succeeded');
+            }).catch(err => {
+                console.error(`Creation of gate_locations failed, reason=${err}`);
+            });
 
         // Obsolete
         // await this.db.query('create table if not exists object_sids (' +
@@ -78,11 +82,19 @@ export class SGDB {
 
         await this.db.query('CREATE TABLE IF NOT EXISTS admin_access (' +
             'id SERIAL PRIMARY KEY,' +
-            'password TEXT NOT NULL)');
+            'password TEXT NOT NULL)').then(() => {
+                console.log('Creation of admin_access succeeded');
+            }).catch(err => {
+                console.error(`Creation of admin_access failed, reason=${err}`);
+            });
 
         console.log('Creating extension pg_crypto');
 
-        await this.db.query('CREATE EXTENSION IF NOT EXISTS pgcrypto');
+        await this.db.query('CREATE EXTENSION IF NOT EXISTS pgcrypto').then(() => {
+            console.log('Creation of pg_crypto succeeded');
+        }).catch(err => {
+            console.error(`Creation of pg_crypto failed, reason=${err}`);
+        });
 
         console.log('Creating table known_locations...');
 
