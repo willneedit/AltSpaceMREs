@@ -61,6 +61,7 @@ export class SGDB {
     }
 
     public static async init() {
+        console.log('Creating legacy table gate_locations...');
 
         // Obsolete, but still needs to be present for migration code
         await this.db.query('CREATE TABLE IF NOT EXISTS gate_locations (' +
@@ -73,11 +74,17 @@ export class SGDB {
         //     'sid varchar(20) primary key not null,' +
         //     'location varchar not null)');
 
+        console.log('Creating table admin_access');
+
         await this.db.query('CREATE TABLE IF NOT EXISTS admin_access (' +
             'id SERIAL PRIMARY KEY,' +
             'password TEXT NOT NULL)');
 
+        console.log('Creating extension pg_crypto');
+
         await this.db.query('CREATE EXTENSION IF NOT EXISTS pgcrypto');
+
+        console.log('Creating table known_locations...');
 
         await this.db.query('CREATE TABLE known_locations (' +
             'lid BIGINT NOT NULL,' +
@@ -91,6 +98,7 @@ export class SGDB {
                 console.log('Database of V2 format already exists');
             });
 
+        console.log('Database creation finished');
     }
 
     public static async forEachLocation(f: (val: SGDBLocationEntry) => void) {
