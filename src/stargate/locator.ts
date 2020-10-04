@@ -7,10 +7,24 @@ import { User } from "@microsoft/mixed-reality-extension-sdk";
 import got = require("got");
 import SGAddressing, { SGLocationData } from "./addressing";
 
-/**
+/*
  * Provides services for self-location within different realms. So far, only Altspace is supported.
+ *
+ * Discovered location string formats:
+ * Altspace:
+ *  - World: space/<spaceid>
+ *  - World (legacy, with SID): <space_sid>
+ *  - Event: event/<eventid>
+ *  NOTE: Uses plural form (spaces/events) for addressing using URLs (both web and app startup)
+ *        and singular (space/event) when using in-app teleportation
+ *
+ * Sansar:
+ *  - World: experience/<userid>/<spaceid>
+ *  - Event: event/<userid>/<eventid>/<eventinstanceid> (UNVERIFIED)
+ * NOTE: Uses plural form (experiences/events) for addressing using web description URLs,
+ *       singular when using app startup URLs,
+ *       can use app startup URLs for in-app teleportation ( AgentPrivate.Client.TeleportToUri() ) (UNVERIFIED)
  */
-
 export default class SGLocator {
 
     private static locationMap: { [loc: string]: string } = { };
@@ -68,8 +82,8 @@ export default class SGLocator {
     }
 
     /**
-     * Translate the location string to the URL, or commandline parameter, suitable
-     * for starting the targeted application
+     * Returns the URL needed for the app startup for the given world
+     *  - Sansar special case: Also for in-app teleportation
      * @param location In-Galaxy location string
      * @param gid Galaxy ID
      */
@@ -85,6 +99,9 @@ export default class SGLocator {
             return "altspace://account.altvr.com/api/" +
                 location.substr(0, 5) + "s" +
                 location.substr(5);
+        } else if (gid === 2) {
+            // Use as-is and decorate;
+            return "sansar://sansar.com/" + location;
         }
 
         return location;
