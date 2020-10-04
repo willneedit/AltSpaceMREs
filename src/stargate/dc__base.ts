@@ -123,6 +123,9 @@ export abstract class SGDCBase extends SGDialCompLike {
             return; // Busy message already came from the 'gate
         }
 
+        // 'a' on an empty sequence: Do nothing.
+        if(key === 0 && this.sequence.length < 1) return;
+
         this.sequence.push(key);
         const seq = this.listSequence();
 
@@ -148,9 +151,12 @@ export abstract class SGDCBase extends SGDialCompLike {
             if (this.sequence.length > SGAddressing.getRequiredDigits(this.DCNumberBase)) {
                 this.openTime = timestamp;
                 gate.startDialing(this.sequence, this.openTime);
+            } else {
+                this.updateStatus('Sequence deleted.');
             }
 
             this.sequence = [];
+            return;
         }
 
     }
