@@ -69,9 +69,7 @@ export class SGDB {
         await this.db.query('CREATE TABLE IF NOT EXISTS gate_locations (' +
             'id varchar(10) PRIMARY KEY NOT NULL,' +
             'location varchar NOT NULL,' +
-            'locked boolean DEFAULT false)').then(() => {
-                console.debug('Creation of gate_location succeeded');
-            }).catch(err => {
+            'locked boolean DEFAULT false)').catch(err => {
                 console.error(`Creation of gate_locations failed, reason=${err}`);
             });
 
@@ -84,17 +82,13 @@ export class SGDB {
 
         await this.db.query('CREATE TABLE IF NOT EXISTS admin_access (' +
             'id SERIAL PRIMARY KEY,' +
-            'password TEXT NOT NULL)').then(() => {
-                console.debug('Creation of admin_access succeeded');
-            }).catch(err => {
+            'password TEXT NOT NULL)').catch(err => {
                 console.error(`Creation of admin_access failed, reason=${err}`);
             });
 
         console.debug('Creating extension pg_crypto');
 
-        await this.db.query('CREATE EXTENSION IF NOT EXISTS pgcrypto').then(() => {
-            console.debug('Creation of pg_crypto succeeded');
-        }).catch(err => {
+        await this.db.query('CREATE EXTENSION IF NOT EXISTS pgcrypto').catch(err => {
             console.error(`Creation of pg_crypto failed, reason=${err}`);
         });
 
