@@ -181,7 +181,10 @@ export default abstract class Stargate extends StargateLike {
         this.reportStatus(`${this.currentDirection ? 'Incoming w' : 'W'}ormhole active`);
 
         if (!this.currentDirection) {
-            delay(this.whTimeout * 1000).then(() => this.timeOutGate(this.currentTimeStamp));
+            // Variables are evaluated when the closure is evaluated. Using this.currentTimeStamp
+            // within the closure reads the *latest* timestamp at evaluation time, not the current one.
+            const ts = this.currentTimeStamp;
+            delay(this.whTimeout * 1000).then(() => this.timeOutGate(ts));
 
             SGAddressing.lookupDialedTarget(
                 this.currentTargetSequence, this.gateNumberBase, 'altspace'
