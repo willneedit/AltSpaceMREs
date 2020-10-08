@@ -26,8 +26,9 @@ import { ContextLike } from "../frameworks/context/types";
 import SGAddressing, { SGLocationData } from "./addressing";
 import { SGDB } from "./database";
 import SGLocator from "./locator";
+import Applet from "../Applet";
 
-export default abstract class Stargate extends StargateLike {
+export default abstract class Stargate extends Applet implements StargateLike {
 
     private whTimeout = 120; // 120 seconds until the wormhole shuts off. Cut it off by hitting 'a'.
 
@@ -54,6 +55,7 @@ export default abstract class Stargate extends StargateLike {
     public get currentTargetSequence() { return this._currentTargetSequence; }
     public get currentDirection() { return this._currentDirection; }
     public get currentTimeStamp() { return this._connectionTimeStamp; }
+    public abstract get gateNumberBase(): number;
 
     private abortRequested = false;
 
@@ -66,7 +68,7 @@ export default abstract class Stargate extends StargateLike {
 
     public registerGate(id: string) {
         this._gateFQLID = id;
-        SGNetwork.registerGate(this);
+        SGNetwork.announceGate(this);
     }
 
     /**
@@ -125,7 +127,7 @@ export default abstract class Stargate extends StargateLike {
                 console.debug("World with incoming gate falls empty. Deregistering gate, leaving operations untouched");
             }
         }
-        SGNetwork.deregisterGate(this.fqlid);
+        SGNetwork.deannounceGate(this.fqlid);
     }
 
     /**

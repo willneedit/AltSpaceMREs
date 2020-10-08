@@ -11,14 +11,24 @@ import QueryString from 'query-string';
 import { SGDB, SGDBLocationEntry } from './database';
 
 import { ParameterSet } from '@microsoft/mixed-reality-extension-sdk';
+import { eventNames } from 'cluster';
 
 interface TargetReg {
     gate: StargateLike;
     comp: SGDialCompLike;
 }
 
+interface EventData {
+    timestamp: number;
+    resolve: (payload: any) => void;
+    reject: (err: any) => void;
+    promise: Promise<any>;
+}
+
 export default class SGNetwork {
     private static targets: { [id: string]: TargetReg } = { };
+
+    private static pendingEvents: { [fqlid: string]: EventData } = { };
 
     private static createDBEntry(id: string): boolean {
         if (!this.targets[id]) {
@@ -29,7 +39,7 @@ export default class SGNetwork {
         return false;
     }
 
-    public static registerGate(gate: StargateLike) {
+    public static announceGate(gate: StargateLike) {
         const id = gate.fqlid;
 
         this.createDBEntry(id);
@@ -37,7 +47,7 @@ export default class SGNetwork {
         console.info(`Announcing gate for FQLID ${id}`);
     }
 
-    public static deregisterGate(id: string) {
+    public static deannounceGate(id: string) {
         if (!this.targets[id]) return;
 
         this.targets[id].gate = new StargateDespawned();
@@ -119,5 +129,43 @@ export default class SGNetwork {
         const tgtGate = this.getGate(tgtFqlid) || new StargateDespawned();
         srcGate.startSequence(tgtFqlid, tgtSequence, timestamp);
         tgtGate.startSequence(srcFqlid, null, timestamp);
+    }
+
+    /**
+     * Networked event handling
+     */
+
+    private static createEvent(fqlid: string) {
+        if (!this.pendingEvents[fqlid]) {
+            const evt: EventData = {
+                timestamp: new Date().getTime(),
+                promise: null,
+                resolve: null,
+                reject: null
+            };
+            evt.promise = new Promise<any>((resolve, reject) => {
+                evt.resolve = resolve;
+                evt.reject = reject;
+            });
+            this.pendingEvents[fqlid] = evt;
+        }
+    }
+
+    public static postEvent(fqlid: string, payload: any) {
+        this.createEvent(fqlid);
+        this.pendingEvents[fqlid].resolve(payload);
+        setTimeout(() => { this.pendingEvents[fqlid] = undefined;}, 2000);
+    }
+
+    public static waitEvent(fqlid: string, timeout: number): Promise<any> {
+        this.createEvent(fqlid);
+        const reject = this.pendingEvents[fqlid].reject;
+        setTimeout(() => { if(reject) reject("Timeout"); }, timeout);
+
+        return this.pendingEvents[fqlid].promise;
+    }
+
+    public static handledEvent(fqlid: string) {
+        this.pendingEvents[fqlid] = undefined;
     }
 }

@@ -27,8 +27,9 @@ import { ContextLike } from "../frameworks/context/types";
 import SGAddressing from "./addressing";
 import SGLocator from "./locator";
 import { SGDB } from "./database";
+import Applet from "../Applet";
 
-export abstract class SGDCBase extends SGDialCompLike {
+export abstract class SGDCBase extends Applet implements SGDialCompLike {
 
     // tslint:disable-next-line:variable-name
     private _gateFQLID: string;
@@ -42,6 +43,7 @@ export abstract class SGDCBase extends SGDialCompLike {
     private openTime = 0;
 
     public get fqlid() { return this._gateFQLID; }
+    public abstract get DCNumberBase(): number;
 
     public init(context: ContextLike, params: ParameterSet, baseUrl: string) {
         super.init(context, params, baseUrl);
