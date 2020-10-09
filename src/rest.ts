@@ -52,12 +52,12 @@ function translateToURL(req: RS.Request, res: RS.Response, next: RS.Next) {
 
 function listenEvent(req: RS.Request, res: RS.Response, next: RS.Next) {
     SGNetwork.waitEvent(req.params.fqlid, 30000).then((payload) => {
-        res.send(payload);
         SGNetwork.handledEvent(req.params.fqlid);
+        res.send(payload);
         next();
     }).catch((err) => {
-        res.send(408, err);
         SGNetwork.handledEvent(req.params.fqlid);
+        res.send(408, err);
         next();
     });
 }

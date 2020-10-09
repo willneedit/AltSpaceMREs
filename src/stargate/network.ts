@@ -154,7 +154,7 @@ export default class SGNetwork {
     public static postEvent(fqlid: string, payload: any) {
         this.createEvent(fqlid);
         this.pendingEvents[fqlid].resolve(payload);
-        setTimeout(() => { this.pendingEvents[fqlid] = undefined;}, 2000);
+        // setTimeout(() => { this.pendingEvents[fqlid] = undefined;}, 2000);
     }
 
     public static waitEvent(fqlid: string, timeout: number): Promise<any> {
