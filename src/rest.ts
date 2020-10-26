@@ -50,18 +50,6 @@ function translateToURL(req: RS.Request, res: RS.Response, next: RS.Next) {
     next();
 }
 
-function listenEvent(req: RS.Request, res: RS.Response, next: RS.Next) {
-    SGNetwork.waitEvent(req.params.fqlid, 30000).then((payload) => {
-        SGNetwork.handledEvent(req.params.fqlid);
-        res.send(payload);
-        next();
-    }).catch((err) => {
-        SGNetwork.handledEvent(req.params.fqlid);
-        res.send(408, err);
-        next();
-    });
-}
-
 function postEvent(req: RS.Request, res: RS.Response, next: RS.Next) {
     SGNetwork.postEvent(req.params.fqlid, req.query);
     res.send("OK");
@@ -69,14 +57,21 @@ function postEvent(req: RS.Request, res: RS.Response, next: RS.Next) {
 }
 
 function httpGateCtrl(req: RS.Request, res: RS.Response, next: RS.Next) {
-    SGHTTP.control(req).then((payload) => {
+    const command = req.params.command as string;
+    if (command !== 'wait') SGHTTP.control(req);
+
+    let tmo = +req.params.tmo;
+    if (tmo < 500) tmo = 500;
+
+    SGNetwork.waitEvent(req.params.fqlid, tmo).then((payload) => {
         res.send(payload);
         next();
     }).catch((err) => {
-        res.send(err.code, err.payload);
+        res.send(500, "Internal server error, err=" + err);
         next();
     });
 }
+
 export function initReSTServer(port: number): RS.Server {
     const restServer = RS.createServer();
     restServer.use(RS.plugins.queryParser({ mapParams: true }));
@@ -89,12 +84,9 @@ export function initReSTServer(port: number): RS.Server {
     restServer.get('/rest/toURL/:galaxy', translateToURL);
 
     // ?fqlid=<fqlid>
-    restServer.get('/rest/listen', listenEvent);
-
-    // ?fqlid=<fqlid>
     restServer.get('/rest/post', postEvent);
 
-    // ?base=<base>&fqlid=<fqlid>
+    // ?base=<base>&fqlid=<fqlid>&tmo=<timeout>
     restServer.get('/rest/httpctrl', httpGateCtrl);
 
     restServer.listen(port, () => {

@@ -79,7 +79,7 @@ export default class SGHTTP implements StargateLike {
         SGNetwork.postEvent(this.fqlid, {
             command: "lightChevron",
             'index': index,
-            'silent': (silent ? "1" : "0")
+            'silent': silent
         });
     }
 
@@ -99,6 +99,7 @@ export default class SGHTTP implements StargateLike {
 
         SGNetwork.postEvent(this.fqlid, {
             command: "disconnect",
+            'timestamp': oldTs
         });
 
         this._gateStatus = GateStatus.idle;
@@ -116,7 +117,7 @@ export default class SGHTTP implements StargateLike {
         this.registerGate(fqlid);
     }
 
-    public static async control(req: RS.Request): Promise<any> {
+    public static control(req: RS.Request) {
         const myFqlid = req.params.fqlid;
         const gate = SGNetwork.getGate(myFqlid);
         const command = req.params.command as string;
@@ -127,38 +128,54 @@ export default class SGHTTP implements StargateLike {
                 req.params.fqlid,
                 +req.params.base
             );
-            return Promise.resolve("Gate announcement OK");
+            SGNetwork.postEvent(req.params.fqlid, { status: "Gate announcement OK"});
+            return;
         } else if(command === 'deannounce') {
             SGNetwork.deannounceGate(req.params.fqlid);
-            return Promise.resolve("Gate deannouncement OK");
+            SGNetwork.postEvent(req.params.fqlid, { status: "Gate deannouncement OK"});
+            return;
         }
 
-        if(!gate) return Promise.reject({code: 404, payload: "Gate not present"});
+        if(!gate) {
+            SGNetwork.postEvent(req.params.fqlid, { error: "Gate not present"});
+            return;
+        }
 
         // Where the Altspace gates call SGNetwork directly, the client-driven gates need ReST API calls.
-        // In the end, most of the commands are bounced back to the client.
+        // Requests will be bounced back to the clients
         if(command === 'startDialing') {
-            return gate.startDialing(
+            gate.startDialing(
                 SGAddressing.toNumbers(req.params.tgtSequence),
-                new Date().getTime() / 1000).then(() => Promise.resolve("Dialing started")
-            ).catch(() => Promise.reject({ code: 404, payload: "Target not found" }));
+                new Date().getTime() / 1000).then(() => {
+                    // No need for explicit StartDialing announcement, gate comes with StartSequence
+                    // SGNetwork.postEvent(gate.fqlid, { status: "Dialing started"});
+                }
+            ).catch(() => {
+                SGNetwork.postEvent(gate.fqlid, { error: "No target gate under this address"});
+            });
+            return;
         } else if(command === 'lightChevron') {
+            const silent: boolean =
+                (req.params.silent !== "0") &&
+                (req.params.silent !== "false") &&
+                (req.params.silent !== "False");
             SGNetwork.gatesLightChevron(
                 gate.fqlid,
                 gate.currentTargetFqlid,
                 +req.params.index,
-                !!req.params.silent
+                silent
             );
-            return Promise.resolve("OK");
+            return;
         } else if(command === 'connect') {
             SGNetwork.gatesConnect(gate.fqlid, gate.currentTargetFqlid);
-            return Promise.resolve("OK");
+            return;
         } else if(command === 'disconnect') {
             SGNetwork.gatesDisconnect(gate.fqlid, gate.currentTargetFqlid, gate.currentTimeStamp);
-            return Promise.resolve("OK");
+            return;
         }
 
-        return Promise.reject({ code: 400, payload: "Malformed request"});
+        SGNetwork.postEvent(gate.fqlid, { error: "Malformed request"});
+        return;
     }
 
 }

@@ -19,10 +19,10 @@ interface TargetReg {
 }
 
 interface EventData {
-    timestamp: number;
-    resolve: (payload: any) => void;
+    payload: any[];
+    resolve: () => void;
     reject: (err: any) => void;
-    promise: Promise<any>;
+    latch: Promise<void>;
 }
 
 export default class SGNetwork {
@@ -138,34 +138,34 @@ export default class SGNetwork {
     private static createEvent(fqlid: string) {
         if (!this.pendingEvents[fqlid]) {
             const evt: EventData = {
-                timestamp: new Date().getTime(),
-                promise: null,
+                payload: [ ],
+                latch: null,
                 resolve: null,
                 reject: null
             };
-            evt.promise = new Promise<any>((resolve, reject) => {
+            evt.latch = new Promise<void>((resolve, reject) => {
                 evt.resolve = resolve;
                 evt.reject = reject;
             });
+
             this.pendingEvents[fqlid] = evt;
         }
     }
 
     public static postEvent(fqlid: string, payload: any) {
         this.createEvent(fqlid);
-        this.pendingEvents[fqlid].resolve(payload);
-        // setTimeout(() => { this.pendingEvents[fqlid] = undefined;}, 2000);
+        this.pendingEvents[fqlid].payload.push(payload);
+        this.pendingEvents[fqlid].resolve();
     }
 
-    public static waitEvent(fqlid: string, timeout: number): Promise<any> {
+    public static waitEvent(fqlid: string, timeout: number): Promise<any[]> {
         this.createEvent(fqlid);
-        const reject = this.pendingEvents[fqlid].reject;
-        setTimeout(() => { if(reject) reject("Timeout"); }, timeout);
+        const evt = this.pendingEvents[fqlid];
 
-        return this.pendingEvents[fqlid].promise;
-    }
-
-    public static handledEvent(fqlid: string) {
-        this.pendingEvents[fqlid] = undefined;
+        if (evt.payload.length === 0) setTimeout(() => { if(evt.resolve) evt.resolve(); }, timeout);
+        return evt.latch.then(() => {
+            this.pendingEvents[fqlid] = undefined;
+            return evt.payload;
+        });
     }
 }
