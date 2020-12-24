@@ -12,6 +12,8 @@ using System.Linq;
 
 namespace Stargate
 {
+    using RequestParams = Dictionary<string, string>;
+
     public class CtrlDataJSON
     {
         public string status { get; set; }
@@ -37,17 +39,17 @@ namespace Stargate
 
         #endregion
 
-        private string baseUrl = "http://bcb985f4f085.ngrok.io";
+//        private string baseUrl = "https://abf13f2d5b6b.ngrok.io";
+        private string baseUrl = "http://willneedit-mre.ddnsup.com";
 
         private IGate thisGate = null;
 
         private string fqlid = null;
-        private int numberBase = 0;
 
         private bool abortRequested = false;
         private bool running = false;
 
-        private Queue<string> commandQueue = null;
+        private Queue<HttpRequestOptions> commandQueue = null;
 
         private void HandleSGNetworkEvent(JsonSerializationData<CtrlDataJSON[]> obj)
         {
@@ -108,6 +110,7 @@ namespace Stargate
             }
             else
             {
+                Log.Write(LogLevel.Error, "Error while sending request: " + result.Exception + ", " + result.Message);
                 Wait(1);
                 ListenSGEvent();
             }
@@ -130,25 +133,32 @@ namespace Stargate
             if(commandQueue.Count == 0)
             {
                 if (_listenSGN && !thisGate.busy)
-                    QueueSGNCommand("wait", 10000, "");
+                    QueueSGNCommand("wait", 10000, new RequestParams(){ });
                 return;
             }
 
             running = true;
 
-            string req = commandQueue.Dequeue();
+            HttpRequestOptions options = commandQueue.Dequeue();
 
-            HttpRequestOptions options = new HttpRequestOptions();
+            string req = baseUrl + "/rest/httpctrl";
+
+            Log.Write("Sending request to " + req);
             ScenePrivate.HttpClient.Request(req, options, ParseSGEvent);
         }
 
-        public void QueueSGNCommand(string command, int timeout, string payloadString)
+        public void QueueSGNCommand(string command, int timeout, RequestParams payload)
         {
-            string reqline = baseUrl + "/rest/httpctrl?command=" + command + "&tmo=" + timeout + "&fqlid=" + fqlid;
-            if (payloadString.Length > 0)
-                reqline = reqline + "&" + payloadString;
+            // string reqline = baseUrl + "/rest/httpctrl?command=" + command + "&tmo=" + timeout + "&fqlid=" + fqlid;
+            // if (payloadString.Length > 0)
+            //     reqline = reqline + "&" + payloadString;
 
-            commandQueue.Enqueue(reqline);
+            HttpRequestOptions options = new HttpRequestOptions();
+            payload["command"] = command;
+            payload["tmo"] = "" + timeout;
+            payload["fqlid"] = fqlid;
+            options.Parameters = payload;
+            commandQueue.Enqueue(options);
             ListenSGEvent();
         }
 
@@ -163,8 +173,7 @@ namespace Stargate
             }
 
             fqlid = thisGate.fqlid;
-            numberBase = thisGate.numberBase;
-            commandQueue = new Queue<string>();
+            commandQueue = new Queue<HttpRequestOptions>();
 
             abortRequested = false;
             running = false;
@@ -175,8 +184,9 @@ namespace Stargate
 
         private void OnInit()
         {
+            Log.Write(LogLevel.Info, "Announcing gate: FQLID=" + fqlid + ", number base=" + thisGate.numberBase);
             abortRequested = false;
-            QueueSGNCommand("announce", 10000, "base=" + numberBase);
+            QueueSGNCommand("announce", 10000, new RequestParams(){ {"base" , "" + thisGate.numberBase} });
 
         }
 
@@ -184,7 +194,7 @@ namespace Stargate
         {
             // Reset gate (if needed), announce its cessation of operation and stop the listener when everything is done.
             thisGate.reset();
-            QueueSGNCommand("deannounce", 10000, "");
+            QueueSGNCommand("deannounce", 10000, new RequestParams(){ });
             abortRequested = true;
         }
 

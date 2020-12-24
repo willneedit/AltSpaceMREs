@@ -2,8 +2,18 @@
  * Commonly used types throughout the Stargate project
  */
 
+using System.Collections.Generic;
+
 namespace Stargate
 {
+    using RequestParams = Dictionary<string, string>;
+
+    // Mesh name translator
+    public interface ISGMTranslator
+    {
+        string GetRealMeshName(string staticmeshname);
+    }
+
     // Gate Client interface
     public interface IGate
     {
@@ -22,7 +32,7 @@ namespace Stargate
     // Gate Control interface
     public interface IGateControl
     {
-        void QueueSGNCommand(string command, int timeout, string payloadString);
+        void QueueSGNCommand(string command, int timeout, RequestParams payload);
     }
 
 

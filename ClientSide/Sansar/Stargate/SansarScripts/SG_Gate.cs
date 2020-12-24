@@ -6,21 +6,24 @@
 using Sansar.Script;
 using Sansar.Simulation;
 using System.Linq;
+using System.Collections.Generic;
 using Timer = Sansar.Script.Timer;
 
 namespace Stargate
 {
+    using RequestParams = Dictionary<string, string>;
+
+    public struct Light
+    {
+        public MeshComponent lit;
+        public MeshComponent unlit;
+        public bool state;
+    }
 
     [RegisterReflective]
     public class SG_Gate: SceneObjectScript, IGate
     {
         #region EditorProperties
-
-        [Tooltip("Numeric base of this gate, usu. 38")]
-        [DefaultValue(38)]
-        [DisplayName("Numeric Base")]
-        public readonly int _numberBase;
-
 
         [Tooltip("Delay for test")]
         [DefaultValue(1.0)]
@@ -34,7 +37,11 @@ namespace Stargate
         private bool _currentDirection;
         private double _connectionTimeStamp;
 
+        private List<Light> chevrons;
+        private List<Light> symbols;
+
         private IGateControl thisGateControl = null;
+        private ISGMTranslator thisModelTranslator = null;
 
         public string fqlid
         {
@@ -45,12 +52,70 @@ namespace Stargate
             }
         }
 
-        public int numberBase { get { return _numberBase; } }
+        public int numberBase { get; set; }
 
         public bool busy { get; set; }
 
+        public List<Light> GatherLights(Dictionary<string, MeshComponent> meshes, string what, bool defaultState)
+        {
+            uint lightCount = 0;
+            List<Light> lights = new List<Light>();
+
+            while(true)
+            {
+                Light currentLight = new Light();
+
+                if(!meshes.TryGetValue(what + lightCount + "_Lit", out currentLight.lit))
+                    break;
+                
+                if(!meshes.TryGetValue(what + lightCount + "_Unlit", out currentLight.unlit))
+                    break;
+                
+                currentLight.state = defaultState;
+                currentLight.lit.SetIsVisible(defaultState);
+                currentLight.unlit.SetIsVisible(!defaultState);
+                lights.Add(currentLight);
+
+                lightCount++;
+            }
+
+            return lights;
+        }
+
+        public void AnalyzeGateStructure()
+        {
+            uint meshComponentCount = ObjectPrivate.GetComponentCount(ComponentType.MeshComponent);
+            Dictionary<string, MeshComponent> meshes = new Dictionary<string, MeshComponent>();
+            for(uint i = 0; i < meshComponentCount; i++)
+            {
+                MeshComponent mc = (MeshComponent) ObjectPrivate.GetComponent(ComponentType.MeshComponent, i);
+                if(!mc.IsScriptable)
+                    continue;
+
+                string name = thisModelTranslator.GetRealMeshName(mc.Name);
+                Log.Write(LogLevel.Info, "Original mesh name: " + mc.Name, ", translated mesh name: " + name);
+                meshes[name] = mc;
+            }
+
+            chevrons = GatherLights(meshes, "Chevron", false);
+            symbols = GatherLights(meshes, "Symbol", false);
+
+            Log.Write(LogLevel.Info, "Chevrons found:" + chevrons.Count + ", Symbols found: " + symbols.Count);
+
+        }
         public override void Init()
         {
+            thisModelTranslator = ScenePrivate.FindReflective<ISGMTranslator>("Stargate.SGA_Translator").FirstOrDefault();
+
+            if(thisModelTranslator == null)
+            {
+                Log.Write(LogLevel.Error, "Need a gate model specific translator for the mesh names.");
+                return;
+            }
+
+            AnalyzeGateStructure();
+            numberBase = symbols.Count - 1;
+
             busy = false;
             thisGateControl = ScenePrivate.FindReflective<IGateControl>("Stargate.SG_Control").FirstOrDefault();
 
@@ -61,8 +126,22 @@ namespace Stargate
             }
         }
 
+        public Light DoLight(Light which, bool state)
+        {
+            if(state == which.state) return which;
+
+            which.state = state;
+            which.lit.SetIsVisible(state);
+            which.unlit.SetIsVisible(!state);
+
+            return which;
+        }
+
         public void reset()
         {
+            for(int i = 0; i < chevrons.Count; i++)
+                chevrons[i] = DoLight(chevrons[i], false);
+
             // If this gate is dialing out, send a Disconnect request to return it
             // and its counterpart to the idle state.
             if (busy) SendDisconnect();
@@ -74,17 +153,22 @@ namespace Stargate
          */
         private void SendLightChevron(int index, bool silent)
         {
-            thisGateControl.QueueSGNCommand("lightChevron", 10000,"index=" + index + "&silent=" + silent);
+            thisGateControl.QueueSGNCommand("lightChevron", 10000, new RequestParams() {
+                { "index", "" + index },
+                { "silent", silent ? "1" : "0" }
+            });
         }
 
         private void SendConnect()
         {
-            thisGateControl.QueueSGNCommand("connect", 10000, "");
+            thisGateControl.QueueSGNCommand("connect", 10000, new RequestParams(){});
         }
 
         private void SendDisconnect()
         {
-            thisGateControl.QueueSGNCommand("disconnect", 10000, "timestamp=" + _connectionTimeStamp);
+            thisGateControl.QueueSGNCommand("disconnect", 10000, new RequestParams(){
+                { "timestamp", "" + _connectionTimeStamp }
+            });
         }
 
         public void TestSequence(int seq)
@@ -141,6 +225,7 @@ namespace Stargate
         public void lightChevron(int index, bool silent)
         {
             Log.Write(LogLevel.Info, "Received Light Chevron, i=" + index + ", silent=" + silent);
+            chevrons[index] = DoLight(chevrons[index], true);
         }
 
         public void connect(string tgtFqlid)
@@ -152,9 +237,12 @@ namespace Stargate
         {
             Log.Write(LogLevel.Info, "Received Connection Close");
 
+            for(int i = 0; i < chevrons.Count; i++)
+                chevrons[i] = DoLight(chevrons[i], false);
+
             // Restart listener loop, if not already running
             busy = false;
-            thisGateControl.QueueSGNCommand("wait", 0, "");
+            thisGateControl.QueueSGNCommand("wait", 0, new RequestParams(){});
         }
 
 
