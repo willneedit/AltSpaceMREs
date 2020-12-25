@@ -23,7 +23,7 @@ namespace Stargate
 
         void reset();
 
-        void startSequence(string tgtFqlid, string tgtSequence, double timestamp);
+        void startSequence(string tgtFqlid, string tgtSequence, int[] tgtSeqNumbers, double timestamp);
         void lightChevron(int index, bool silent);
         void connect(string tgtFqlid);
         void disconnect(double timestamp);

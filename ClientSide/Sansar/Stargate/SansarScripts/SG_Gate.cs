@@ -30,15 +30,22 @@ namespace Stargate
         [DisplayName("Delay")]
         [Range(0.5,5.0)]
         public readonly double _delay;
+
+        [Tooltip("Translator script for the mesh names (without 'Stargate.') - specific to the gate's mesh")]
+        [DefaultValue("SGA_Translator")]
+        public readonly string _translator_name;
+
         #endregion
 
         private string _currentTargetFQLID;
         private string _currentTargetSequence;
+        private int[] _currentTargetSeqNumbers;
         private bool _currentDirection;
         private double _connectionTimeStamp;
 
         private List<Light> chevrons;
         private List<Light> symbols;
+        private bool[] symbolLitState;
 
         private IGateControl thisGateControl = null;
         private ISGMTranslator thisModelTranslator = null;
@@ -56,7 +63,7 @@ namespace Stargate
 
         public bool busy { get; set; }
 
-        public List<Light> GatherLights(Dictionary<string, MeshComponent> meshes, string what, bool defaultState)
+        public List<Light> GatherLights(Dictionary<string, MeshComponent> meshes, string what)
         {
             uint lightCount = 0;
             List<Light> lights = new List<Light>();
@@ -71,9 +78,9 @@ namespace Stargate
                 if(!meshes.TryGetValue(what + lightCount + "_Unlit", out currentLight.unlit))
                     break;
                 
-                currentLight.state = defaultState;
-                currentLight.lit.SetIsVisible(defaultState);
-                currentLight.unlit.SetIsVisible(!defaultState);
+                currentLight.state = false;
+                currentLight.unlit.SetIsVisible(true);
+                currentLight.lit.SetIsVisible(false);
                 lights.Add(currentLight);
 
                 lightCount++;
@@ -93,19 +100,20 @@ namespace Stargate
                     continue;
 
                 string name = thisModelTranslator.GetRealMeshName(mc.Name);
-                Log.Write(LogLevel.Info, "Original mesh name: " + mc.Name, ", translated mesh name: " + name);
                 meshes[name] = mc;
             }
 
-            chevrons = GatherLights(meshes, "Chevron", false);
-            symbols = GatherLights(meshes, "Symbol", false);
+            chevrons = GatherLights(meshes, "Chevron");
+            symbols = GatherLights(meshes, "Symbol");
+            symbolLitState = new bool[symbols.Count];
+            FlushLights();
 
             Log.Write(LogLevel.Info, "Chevrons found:" + chevrons.Count + ", Symbols found: " + symbols.Count);
 
         }
         public override void Init()
         {
-            thisModelTranslator = ScenePrivate.FindReflective<ISGMTranslator>("Stargate.SGA_Translator").FirstOrDefault();
+            thisModelTranslator = ScenePrivate.FindReflective<ISGMTranslator>("Stargate." + _translator_name).FirstOrDefault();
 
             if(thisModelTranslator == null)
             {
@@ -126,21 +134,34 @@ namespace Stargate
             }
         }
 
-        public Light DoLight(Light which, bool state)
+        public void FlushLights()
         {
-            if(state == which.state) return which;
+            for(int i = 0; i < chevrons.Count; i++)
+                DoLight(chevrons, i, false);
+            
+            for(int i = 0; i < symbols.Count; i++)
+            {
+                DoLight(symbols, i, false);
+                symbolLitState[i] = false;
+            }
+        }
+
+        public void DoLight(List<Light> lights, int index, bool state)
+        {
+            Light which = lights[index];
+
+            if(state == which.state) return;
 
             which.state = state;
             which.lit.SetIsVisible(state);
             which.unlit.SetIsVisible(!state);
 
-            return which;
+            lights[index] = which;
         }
 
         public void reset()
         {
-            for(int i = 0; i < chevrons.Count; i++)
-                chevrons[i] = DoLight(chevrons[i], false);
+            FlushLights();
 
             // If this gate is dialing out, send a Disconnect request to return it
             // and its counterpart to the idle state.
@@ -161,7 +182,7 @@ namespace Stargate
 
         private void SendConnect()
         {
-            thisGateControl.QueueSGNCommand("connect", 10000, new RequestParams(){});
+            thisGateControl.QueueSGNCommand("connect", 10000, null);
         }
 
         private void SendDisconnect()
@@ -171,61 +192,73 @@ namespace Stargate
             });
         }
 
-        public void TestSequence(int seq)
+        // DialSequenceStep. Started with DialSequenceStep(0,0,1) to run the dialup for the given sequence
+        public void DialSequenceStep(int seqIndex, int currentLit, int direction)
         {
-            Log.Write(LogLevel.Info, "Chaining request " + seq);
-            switch(seq)
+            // If we ran through the sequence, open up.
+            if(seqIndex == _currentTargetSeqNumbers.Length)
             {
-                case 1:
-                    SendLightChevron(1, false);
-                    break;
-                case 2:
-                    SendLightChevron(2, false);
-                    break;
-                case 3:
-                    SendLightChevron(3, false);
-                    break;
-                case 4:
-                    SendLightChevron(4, true);
-                    break;
-                case 5:
-                    SendConnect();
-                    break;
-                case 6:
-                    SendDisconnect();
-                    break;
+                // TODO: Wormhole establishment
+                reset();
+                return;
             }
 
-            if (seq < 6)
-                Timer.Create(_delay, () => { TestSequence(seq + 1); });
+            // Target symbol for this chevron reached, light corresponding chevron, advance with next chevron.
+            // Or open the gate if we got finished.
+            if (currentLit == _currentTargetSeqNumbers[seqIndex])
+            {
+                symbolLitState[currentLit] = true;
+                SendLightChevron(seqIndex, false);
+                Timer.Create(1.0, () => { DialSequenceStep(seqIndex + 1, currentLit, -direction); });
+                return;
+            }
+
+            // Return old light to previous state (not off - it might have been already on for a previous chevron)
+            DoLight(symbols, currentLit, symbolLitState[currentLit]);
+
+            // Select the 'next' symbol, according to direction, wrap around
+            currentLit += direction;
+            if(currentLit < 0) currentLit = symbols.Count - 1;
+            else if(currentLit >= symbols.Count) currentLit = 0;
+
+            DoLight(symbols, currentLit, true);
+
+            // And continue spinning.
+            Timer.Create(0.3, () => { DialSequenceStep(seqIndex, currentLit, direction); });
         }
 
         /*
          * Listener side: Receive events from a remote gate, routed by SGNetwork
          */
 
-        public void startSequence(string tgtFqlid, string tgtSequence, double timestamp)
+        public void startSequence(string tgtFqlid, string tgtSequence, int[] tgtSeqNumbers, double timestamp)
         {
             _currentTargetFQLID = tgtFqlid;
             _currentTargetSequence = tgtSequence;
+            _currentTargetSeqNumbers = tgtSeqNumbers;
             _connectionTimeStamp = timestamp;
 
             _currentDirection = (tgtSequence == null);
+
+            Log.Write(LogLevel.Info, "Received sequence start, tgt=" + tgtFqlid + ", seq=" + tgtSequence + ", initiate test");
 
             if(!_currentDirection)
             {
                 Log.Write(LogLevel.Info, "Gate is dialing out, set to busy state");
                 busy = true;
+                // Start dialing, sequence is given in _currentTargetSeqNumbers
+                DialSequenceStep(0,0,1);
             }
-
-            Log.Write(LogLevel.Info, "Received sequence start, tgt=" + tgtFqlid + ", seq=" + tgtSequence + ", initiate test");
-            TestSequence(1);
+            else
+            {
+                Log.Write(LogLevel.Info, "Gate is receiving wormhole, remains in slave mode");
+            }
         }
 
         public void lightChevron(int index, bool silent)
         {
             Log.Write(LogLevel.Info, "Received Light Chevron, i=" + index + ", silent=" + silent);
-            chevrons[index] = DoLight(chevrons[index], true);
+            DoLight(chevrons, index, true);
         }
 
         public void connect(string tgtFqlid)
@@ -237,12 +270,12 @@ namespace Stargate
         {
             Log.Write(LogLevel.Info, "Received Connection Close");
 
-            for(int i = 0; i < chevrons.Count; i++)
-                chevrons[i] = DoLight(chevrons[i], false);
-
-            // Restart listener loop, if not already running
+            // Remove busy state before resetting the gate to not to have the reset announce itself to the network.
             busy = false;
-            thisGateControl.QueueSGNCommand("wait", 0, new RequestParams(){});
+            reset();
+
+            // And restart the idle wait loop.
+            thisGateControl.QueueSGNCommand("wait", 0, null);
         }
 
 

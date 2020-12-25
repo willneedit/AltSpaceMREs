@@ -21,6 +21,7 @@ namespace Stargate
         public string command { get; set; }
         public string tgtFqlid { get; set; }
         public string tgtSequence { get; set; }
+        public int[] tgtSeqNumbers { get; set; }
         public double timestamp { get; set; }
         public int index { get; set; }
         public bool silent { get; set; }
@@ -66,7 +67,7 @@ namespace Stargate
                 }
                 else if (jdi.command == "startSequence")
                 {
-                    thisGate.startSequence(jdi.tgtFqlid, jdi.tgtSequence, jdi.timestamp);
+                    thisGate.startSequence(jdi.tgtFqlid, jdi.tgtSequence, jdi.tgtSeqNumbers, jdi.timestamp);
                 }
                 else if (jdi.command == "lightChevron")
                 {
@@ -96,9 +97,9 @@ namespace Stargate
 
             if (result.Success)
             {
-                Log.Write(LogLevel.Info, "SGNetwork event received: " + result.Response.Body);
                 try
                 {
+                    Log.Write(LogLevel.Info, "SGNetwork event received: " + result.Response.Body);
                     JsonSerializer.Deserialize<CtrlDataJSON[]>(result.Response.Body, HandleSGNetworkEvent);
                 }
                 catch (Exception e)
@@ -133,7 +134,7 @@ namespace Stargate
             if(commandQueue.Count == 0)
             {
                 if (_listenSGN && !thisGate.busy)
-                    QueueSGNCommand("wait", 10000, new RequestParams(){ });
+                    QueueSGNCommand("wait", 10000, null);
                 return;
             }
 
@@ -143,7 +144,6 @@ namespace Stargate
 
             string req = baseUrl + "/rest/httpctrl";
 
-            Log.Write("Sending request to " + req);
             ScenePrivate.HttpClient.Request(req, options, ParseSGEvent);
         }
 
@@ -154,6 +154,9 @@ namespace Stargate
             //     reqline = reqline + "&" + payloadString;
 
             HttpRequestOptions options = new HttpRequestOptions();
+
+            if(payload == null) payload = new RequestParams();
+
             payload["command"] = command;
             payload["tmo"] = "" + timeout;
             payload["fqlid"] = fqlid;
@@ -186,7 +189,9 @@ namespace Stargate
         {
             Log.Write(LogLevel.Info, "Announcing gate: FQLID=" + fqlid + ", number base=" + thisGate.numberBase);
             abortRequested = false;
-            QueueSGNCommand("announce", 10000, new RequestParams(){ {"base" , "" + thisGate.numberBase} });
+            QueueSGNCommand("announce", 10000, new RequestParams(){
+                { "base" , "" + thisGate.numberBase }
+            });
 
         }
 
@@ -194,7 +199,7 @@ namespace Stargate
         {
             // Reset gate (if needed), announce its cessation of operation and stop the listener when everything is done.
             thisGate.reset();
-            QueueSGNCommand("deannounce", 10000, new RequestParams(){ });
+            QueueSGNCommand("deannounce", 10000, null);
             abortRequested = true;
         }
 

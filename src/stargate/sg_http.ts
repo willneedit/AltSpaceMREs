@@ -69,6 +69,7 @@ export default class SGHTTP implements StargateLike {
             srcFqlid: this.fqlid,
             'tgtFqlid': tgtFqlid,
             'tgtSequence': tgtSequence,
+            'tgtSeqNumbers' : SGAddressing.toNumbers(tgtSequence),
             'timestamp': timestamp
         });
     }
