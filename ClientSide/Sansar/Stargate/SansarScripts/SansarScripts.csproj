@@ -39,8 +39,10 @@
   </PropertyGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="Stargate.json" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="SGA_Translator.cs" />
     <Compile Include="SG_Control.cs" />
     <Compile Include="SG_Gate.cs" />
     <Compile Include="SG_Types.cs" />

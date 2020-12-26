@@ -73,14 +73,21 @@ namespace Stargate
                 Light currentLight = new Light();
 
                 if(!meshes.TryGetValue(what + lightCount + "_Lit", out currentLight.lit))
-                    break;
+                    currentLight.lit = null;
                 
                 if(!meshes.TryGetValue(what + lightCount + "_Unlit", out currentLight.unlit))
-                    break;
+                    currentLight.unlit = null;
                 
+                if(currentLight.lit == null && currentLight.unlit == null)
+                    break;
+
                 currentLight.state = false;
-                currentLight.unlit.SetIsVisible(true);
-                currentLight.lit.SetIsVisible(false);
+                if(currentLight.unlit != null)
+                    currentLight.unlit.SetIsVisible(true);
+
+                if(currentLight.lit != null)
+                    currentLight.lit.SetIsVisible(false);
+
                 lights.Add(currentLight);
 
                 lightCount++;
@@ -153,8 +160,11 @@ namespace Stargate
             if(state == which.state) return;
 
             which.state = state;
-            which.lit.SetIsVisible(state);
-            which.unlit.SetIsVisible(!state);
+            if(which.lit != null)
+                which.lit.SetIsVisible(state);
+            
+            if(which.unlit != null)
+                which.unlit.SetIsVisible(!state);
 
             lights[index] = which;
         }
@@ -224,7 +234,7 @@ namespace Stargate
             DoLight(symbols, currentLit, true);
 
             // And continue spinning.
-            Timer.Create(0.3, () => { DialSequenceStep(seqIndex, currentLit, direction); });
+            Timer.Create(0.2, () => { DialSequenceStep(seqIndex, currentLit, direction); });
         }
 
         /*
