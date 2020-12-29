@@ -49,10 +49,10 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Sansar.Script">
-      <HintPath>..\..\Assemblies\Sansar.Script.dll</HintPath>
+      <HintPath>..\Assemblies\Sansar.Script.dll</HintPath>
     </Reference>
     <Reference Include="Sansar.Simulation">
-      <HintPath>..\..\Assemblies\Sansar.Simulation.dll</HintPath>
+      <HintPath>..\Assemblies\Sansar.Simulation.dll</HintPath>
     </Reference>
     <Reference Include="System" />
   </ItemGroup>

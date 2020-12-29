@@ -1,3 +1,4 @@
 /.vs
-/SansarScripts/bin
-/SansarScripts/obj
+/bin
+/obj
+Stargate.sln
