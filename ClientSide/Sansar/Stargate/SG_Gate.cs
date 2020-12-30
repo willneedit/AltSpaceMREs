@@ -25,11 +25,11 @@ namespace Stargate
     {
         #region EditorProperties
 
-        [Tooltip("Delay for test")]
-        [DefaultValue(1.0)]
-        [DisplayName("Delay")]
-        [Range(0.5,5.0)]
-        public readonly double _delay;
+        [Tooltip("Duration (in seconds) the wormhole stays open at maximum.")]
+        [DisplayName("Wormhole duration")]
+        [DefaultValue(120.0)]
+        [Range(10.0, 240.0)]
+        public readonly double _wormhole_duration;
 
         [Tooltip("Translator script for the mesh names (without 'Stargate.') - specific to the gate's mesh")]
         [DefaultValue("SGA_Translator")]
@@ -47,6 +47,7 @@ namespace Stargate
         private List<Light> symbols;
         private bool[] symbolLitState;
 
+        private IEventHorizon thisEventHorizon = null;
         private IGateControl thisGateControl = null;
         private ISGMTranslator thisModelTranslator = null;
 
@@ -121,7 +122,6 @@ namespace Stargate
         public override void Init()
         {
             thisModelTranslator = ScenePrivate.FindReflective<ISGMTranslator>("Stargate." + _translator_name).FirstOrDefault();
-
             if(thisModelTranslator == null)
             {
                 Log.Write(LogLevel.Error, "Need a gate model specific translator for the mesh names.");
@@ -130,15 +130,19 @@ namespace Stargate
 
             AnalyzeGateStructure();
             numberBase = symbols.Count - 1;
-
             busy = false;
-            thisGateControl = ScenePrivate.FindReflective<IGateControl>("Stargate.SG_Control").FirstOrDefault();
 
+            thisGateControl = ScenePrivate.FindReflective<IGateControl>("Stargate.SG_Control").FirstOrDefault();
             if(thisGateControl == null)
             {
                 Log.Write(LogLevel.Error, "Gate Controller not found in scene.");
                 return;
             }
+
+            thisEventHorizon = ScenePrivate.FindReflective<IEventHorizon>("Stargate.SG_EventHorizon").FirstOrDefault();
+            if(thisEventHorizon == null)
+                Log.Write(LogLevel.Warning, "Gate will not establish an event horizon. Object or script missing.");
+
         }
 
         public void FlushLights()
@@ -172,6 +176,9 @@ namespace Stargate
         public void reset()
         {
             FlushLights();
+
+            if(thisEventHorizon != null)
+                thisEventHorizon.Close();
 
             // If this gate is dialing out, send a Disconnect request to return it
             // and its counterpart to the idle state.
@@ -208,8 +215,7 @@ namespace Stargate
             // If we ran through the sequence, open up.
             if(seqIndex == _currentTargetSeqNumbers.Length)
             {
-                // TODO: Wormhole establishment
-                reset();
+                SendConnect();
                 return;
             }
 
@@ -235,6 +241,14 @@ namespace Stargate
 
             // And continue spinning.
             Timer.Create(0.2, () => { DialSequenceStep(seqIndex, currentLit, direction); });
+        }
+
+        public void timeoutGate(double oldTs)
+        {
+            // Only time out if we're not already superseded by a later connection.
+            if(oldTs != _connectionTimeStamp) return;
+
+            SendDisconnect();
         }
 
         /*
@@ -274,6 +288,21 @@ namespace Stargate
         public void connect(string tgtFqlid)
         {
             Log.Write(LogLevel.Info, "Received Connection Open to " + tgtFqlid);
+            if(thisEventHorizon != null)
+            {
+                if(!_currentDirection)
+                    thisEventHorizon.Open(tgtFqlid);
+                else
+                    thisEventHorizon.Open(null);
+            }
+
+            // If it's an outgoing gate, time out after the given duration.
+            // Incoming gates are timed out by their counterpart.
+            if(!_currentDirection)
+            {
+                double oldTs = _connectionTimeStamp;
+                Timer.Create(_wormhole_duration, () => { timeoutGate(oldTs); });
+            }                
         }
 
         public void disconnect(double timestamp)

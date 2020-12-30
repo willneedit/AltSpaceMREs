@@ -107,4 +107,13 @@ export default class SGLocator {
         return location;
 
     }
+
+    // NOTE: Shamelessly duplicated and ported in...
+    //  * ClientSide/Sansar/SG_Types.cs
+    public static translateFQLIDToURL(fqlid: string) {
+        const pos = fqlid.indexOf('/');
+        const galaxy = fqlid.substr(0,pos);
+        const location = fqlid.substr(pos+1);
+        return this.translateToURL(location, SGAddressing.getGalaxyDigit(galaxy));
+    }
 }

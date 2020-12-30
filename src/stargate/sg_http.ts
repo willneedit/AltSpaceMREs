@@ -7,6 +7,7 @@ import RS from 'restify';
 import { StargateLike, GateStatus } from "./types";
 import SGNetwork from "./network";
 import SGAddressing, { SGLocationData } from './addressing';
+import { delay } from '../helpers';
 
 export default class SGHTTP implements StargateLike {
     // tslint:disable:variable-name
@@ -45,6 +46,7 @@ export default class SGHTTP implements StargateLike {
 
         });
     }
+
 
     // --------------------------------------------------------------------------------------------
     /*
@@ -93,6 +95,9 @@ export default class SGHTTP implements StargateLike {
         });
 
         this._gateStatus = GateStatus.engaged;
+
+        // Timing out the gate is handled by the client object.
+
     }
 
     public disconnect(oldTs: number): void {
@@ -115,6 +120,7 @@ export default class SGHTTP implements StargateLike {
         const pos = fqlid.indexOf('/');
         this._gateGalaxy = fqlid.substr(0,pos);
         this._gateNumberBase = base;
+        this._gateStatus = GateStatus.idle;
         this.registerGate(fqlid);
     }
 

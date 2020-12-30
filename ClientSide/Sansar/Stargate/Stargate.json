@@ -3,6 +3,7 @@
     "SG_Control.cs",
     "SG_Gate.cs",
     "SG_Types.cs",
-    "SGA_Translator.cs"
+    "SGA_Translator.cs",
+    "SG_EventHorizon.cs"
   ]
 }

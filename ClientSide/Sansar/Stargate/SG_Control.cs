@@ -49,6 +49,7 @@ namespace Stargate
 
         private bool abortRequested = false;
         private bool running = false;
+        private bool announced = false;
 
         private Queue<HttpRequestOptions> commandQueue = null;
 
@@ -59,7 +60,13 @@ namespace Stargate
             {
                 if (jdi.status != null)
                 {
-                    Log.Write(LogLevel.Info, "SGNetwork status response: " + jdi.status);
+                    if(jdi.status == "Gate announcement OK")
+                    {
+                        Log.Write(LogLevel.Info, "Server responded to gate announcement, we're online.");
+                        announced = true;
+                    }
+                    else
+                        Log.Write(LogLevel.Info, "SGNetwork status response: " + jdi.status);
                 }
                 else if(jdi.error != null)
                 {
@@ -111,7 +118,14 @@ namespace Stargate
             }
             else
             {
-                Log.Write(LogLevel.Error, "Error while sending request: " + result.Exception + ", " + result.Message);
+                if(announced)
+                {
+                    Log.Write(LogLevel.Warning, "Connection presumed lost, removing announcement state");
+                    announced = false;
+                }
+                else
+                    Log.Write(LogLevel.Error, "Error while sending request: " + result.Exception + ", " + result.Message);
+
                 Wait(1);
                 ListenSGEvent();
             }
@@ -133,8 +147,16 @@ namespace Stargate
             // If there's nothing in line, queue in the listener, and let it loop back in here.
             if(commandQueue.Count == 0)
             {
-                if (_listenSGN && !thisGate.busy)
+                if (!announced)
+                {
+                    Log.Write(LogLevel.Info, "Announcing gate: FQLID=" + fqlid + ", number base=" + thisGate.numberBase);
+                    QueueSGNCommand("announce", 10000, new RequestParams(){
+                        { "base" , "" + thisGate.numberBase }
+                    });
+                }
+                else if (_listenSGN && !thisGate.busy)
                     QueueSGNCommand("wait", 10000, null);
+
                 return;
             }
 
@@ -187,12 +209,8 @@ namespace Stargate
 
         private void OnInit()
         {
-            Log.Write(LogLevel.Info, "Announcing gate: FQLID=" + fqlid + ", number base=" + thisGate.numberBase);
             abortRequested = false;
-            QueueSGNCommand("announce", 10000, new RequestParams(){
-                { "base" , "" + thisGate.numberBase }
-            });
-
+            ListenSGEvent();
         }
 
         private void OnShutdown()
@@ -200,6 +218,7 @@ namespace Stargate
             // Reset gate (if needed), announce its cessation of operation and stop the listener when everything is done.
             thisGate.reset();
             QueueSGNCommand("deannounce", 10000, null);
+            announced = false;
             abortRequested = true;
         }
 
