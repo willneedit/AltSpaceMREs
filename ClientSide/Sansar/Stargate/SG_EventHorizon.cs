@@ -11,12 +11,6 @@ using System.Linq;
 
 namespace Stargate
 {
-    public interface IEventHorizon
-    {
-        void Open(string target);
-        void Close();
-    }
-
     [RegisterReflective]
     public class SG_EventHorizon : SceneObjectScript, IEventHorizon
     {

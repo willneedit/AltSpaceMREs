@@ -11,7 +11,6 @@ using Timer = Sansar.Script.Timer;
 
 namespace Stargate
 {
-    using RequestParams = Dictionary<string, string>;
 
     public struct Light
     {
@@ -20,7 +19,6 @@ namespace Stargate
         public bool state;
     }
 
-    [RegisterReflective]
     public class SG_Gate: SceneObjectScript, IGate
     {
         #region EditorProperties
@@ -51,12 +49,18 @@ namespace Stargate
         private IGateControl thisGateControl = null;
         private ISGMTranslator thisModelTranslator = null;
 
+        private GateState idleState = GateState.Idle;
+
         public string fqlid
         {
             get
             {
                 SceneInfo info = ScenePrivate.SceneInfo;
-                return "sansar/" + info.AvatarId + "/" + info.LocationHandle;
+                //string location = info.SansarUri;
+                //if (location.Substring(0, 9) == "sansar://")
+                //    location = location.Substring(9);
+                //return "sansar/" + location;
+                return "sansar/experience/" + info.AvatarId + "/" + info.LocationHandle;
             }
         }
 
@@ -143,6 +147,7 @@ namespace Stargate
             if(thisEventHorizon == null)
                 Log.Write(LogLevel.Warning, "Gate will not establish an event horizon. Object or script missing.");
 
+            thisGateControl.ConnectGate(this);
         }
 
         public void FlushLights()
@@ -183,6 +188,7 @@ namespace Stargate
             // If this gate is dialing out, send a Disconnect request to return it
             // and its counterpart to the idle state.
             if (busy) SendDisconnect();
+            else thisGateControl.DoReportState(idleState);
         }
 
         /*
@@ -268,15 +274,13 @@ namespace Stargate
 
             if(!_currentDirection)
             {
-                Log.Write(LogLevel.Info, "Gate is dialing out, set to busy state");
                 busy = true;
                 // Start dialing, sequence is given in _currentTargetSeqNumbers
                 DialSequenceStep(0,0,1);
+                thisGateControl.DoReportState(GateState.Dialing);
             }
             else
-            {
-                Log.Write(LogLevel.Info, "Gate is receiving wormhole, remains in slave mode");
-            }
+                thisGateControl.DoReportState(GateState.Incoming);
         }
 
         public void lightChevron(int index, bool silent)
@@ -302,7 +306,9 @@ namespace Stargate
             {
                 double oldTs = _connectionTimeStamp;
                 Timer.Create(_wormhole_duration, () => { timeoutGate(oldTs); });
-            }                
+            }
+
+            thisGateControl.DoReportState(GateState.Connected);
         }
 
         public void disconnect(double timestamp)
@@ -312,6 +318,8 @@ namespace Stargate
             // Remove busy state before resetting the gate to not to have the reset announce itself to the network.
             busy = false;
             reset();
+
+            thisGateControl.DoReportState(idleState);
 
             // And restart the idle wait loop.
             thisGateControl.QueueSGNCommand("wait", 0, null);

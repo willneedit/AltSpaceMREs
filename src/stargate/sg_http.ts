@@ -8,6 +8,8 @@ import { StargateLike, GateStatus } from "./types";
 import SGNetwork from "./network";
 import SGAddressing, { SGLocationData } from './addressing';
 import { delay } from '../helpers';
+import SGLocator from './locator';
+import { SGDB } from './database';
 
 export default class SGHTTP implements StargateLike {
     // tslint:disable:variable-name
@@ -71,7 +73,7 @@ export default class SGHTTP implements StargateLike {
             srcFqlid: this.fqlid,
             'tgtFqlid': tgtFqlid,
             'tgtSequence': tgtSequence,
-            'tgtSeqNumbers' : SGAddressing.toNumbers(tgtSequence),
+            'tgtSeqNumbers' : (tgtSequence != null) ? SGAddressing.toNumbers(tgtSequence) : null,
             'timestamp': timestamp
         });
     }
@@ -135,7 +137,19 @@ export default class SGHTTP implements StargateLike {
                 req.params.fqlid,
                 +req.params.base
             );
-            SGNetwork.postEvent(req.params.fqlid, { status: "Gate announcement OK"});
+            SGLocator.lookupFQLID(req.params.fqlid, +req.params.base).then((res: SGLocationData) => {
+                if(res.lastseen === "unknown") {
+                    SGNetwork.postEvent(req.params.fqlid, {
+                        status: "Gate announcement OK, but gate is unregistered",
+                        status_data1: res.seq_string
+                    });
+                } else {
+                    SGNetwork.postEvent(req.params.fqlid, {
+                        status: "Gate announcement OK",
+                        status_data1: res.seq_string
+                    });
+                }
+            });
             return;
         } else if(command === 'deannounce') {
             SGNetwork.deannounceGate(req.params.fqlid);
@@ -145,6 +159,38 @@ export default class SGHTTP implements StargateLike {
 
         if(!gate) {
             SGNetwork.postEvent(req.params.fqlid, { error: "Gate not present"});
+            return;
+        }
+
+        if(command === 'register') {
+            SGLocator.lookupFQLID(gate.fqlid, gate.gateNumberBase).then((res: SGLocationData) => {
+                SGDB.registerLocation(res.lid, res.gid, res.location).then(() => {
+                    SGNetwork.postEvent(req.params.fqlid, {
+                        status: "Gate registration successful",
+                        status_data1: res.seq_string
+                    });
+                }).catch((err2) => {
+                    SGNetwork.postEvent(req.params.fqlid, {
+                        error: "Gate registration failed",
+                        status_data1: res.seq_string
+                    });
+                });
+            });
+            return;
+        } else if(command === 'deregister') {
+            SGLocator.lookupFQLID(gate.fqlid, gate.gateNumberBase).then((res: SGLocationData) => {
+                SGDB.deleteLocation(res.gid, res.location).then(() => {
+                    SGNetwork.postEvent(req.params.fqlid, {
+                        status: "Gate deregistration successful",
+                        status_data1: res.seq_string
+                    });
+                }).catch((err2) => {
+                    SGNetwork.postEvent(req.params.fqlid, {
+                        error: "Gate deregistration failed",
+                        status_data1: res.seq_string
+                    });
+                });
+            });
             return;
         }
 

@@ -6,7 +6,23 @@ using System.Collections.Generic;
 
 namespace Stargate
 {
-    using RequestParams = Dictionary<string, string>;
+
+    public class RequestParams : Dictionary<string, string>
+    {
+
+    }
+
+    // Used for visually reporting the state of the gate, not to maintain
+    // the internal state machine.
+    public enum GateState
+    {
+        Offline = 0,            // Gate is offline, no no connection to the network
+        Unregistered,           // Gate is not registered to the network
+        Idle,                   // Idle, awaiting commands or incoming connections
+        Dialing,                // Dialing out
+        Incoming,               // Establishing incoming connection
+        Connected               // Connected, wormhole open
+    }
 
     // Mesh name translator
     public interface ISGMTranslator
@@ -14,6 +30,18 @@ namespace Stargate
         string GetRealMeshName(string staticmeshname);
     }
 
+    // Event Horizon interface
+    public interface IEventHorizon
+    {
+        void Open(string target); // FQLID for outgoing connection, null for incoming.
+        void Close();
+    }
+
+    // DHD Interface
+    public interface IDHD
+    {
+        void ReportState(GateState state);
+    }
     // Gate Client interface
     public interface IGate
     {
@@ -32,7 +60,11 @@ namespace Stargate
     // Gate Control interface
     public interface IGateControl
     {
+        void ConnectGate(IGate gate);
+        void ConnectDHD(IDHD dhd);
         void QueueSGNCommand(string command, int timeout, RequestParams payload);
+        void DoGateDisconnect();
+        void DoReportState(GateState state);
     }
 
     // See addressing.ts and locator.ts.

@@ -44,6 +44,8 @@
   <ItemGroup>
     <Compile Include="SGA_Translator.cs" />
     <Compile Include="SG_Control.cs" />
+    <Compile Include="SG_DHD.cs" />
+    <Compile Include="SG_EventHorizon.cs" />
     <Compile Include="SG_Gate.cs" />
     <Compile Include="SG_Types.cs" />
   </ItemGroup>

@@ -1,6 +1,7 @@
 {
   "source": [
     "SG_Control.cs",
+    "SG_DHD.cs",
     "SG_Gate.cs",
     "SG_Types.cs",
     "SGA_Translator.cs",

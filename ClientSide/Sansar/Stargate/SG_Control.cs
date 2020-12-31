@@ -12,11 +12,11 @@ using System.Linq;
 
 namespace Stargate
 {
-    using RequestParams = Dictionary<string, string>;
 
     public class CtrlDataJSON
     {
         public string status { get; set; }
+        public string status_data1 { get; set; }
         public string error { get; set; }
         public string command { get; set; }
         public string tgtFqlid { get; set; }
@@ -38,20 +38,21 @@ namespace Stargate
         [DisplayName("Listen to SGNetwork")]
         public readonly bool _listenSGN;
 
+        [Tooltip("Base URL of the Stargate network server (default: Debug metwork)")]
+        [DefaultValue("http://willneedit-mre.ddnsup.com")]
+        [DisplayName("Server URL")]
+        public readonly string baseUrl;
+
         #endregion
 
-//        private string baseUrl = "https://abf13f2d5b6b.ngrok.io";
-        private string baseUrl = "http://willneedit-mre.ddnsup.com";
-
         private IGate thisGate = null;
-
-        private string fqlid = null;
+        private IDHD thisDHD = null;
 
         private bool abortRequested = false;
         private bool running = false;
         private bool announced = false;
 
-        private Queue<HttpRequestOptions> commandQueue = null;
+        private Queue<HttpRequestOptions> commandQueue = new Queue<HttpRequestOptions>();
 
         private void HandleSGNetworkEvent(JsonSerializationData<CtrlDataJSON[]> obj)
         {
@@ -62,8 +63,25 @@ namespace Stargate
                 {
                     if(jdi.status == "Gate announcement OK")
                     {
-                        Log.Write(LogLevel.Info, "Server responded to gate announcement, we're online.");
+                        Log.Write(LogLevel.Info, "Server responded to gate announcement, we're online. Own address=" + jdi.status_data1);
+                        DoReportState(GateState.Idle);
                         announced = true;
+                    }
+                    else if(jdi.status == "Gate announcement OK, but gate is unregistered")
+                    {
+                        Log.Write(LogLevel.Info, "Server responded to gate announcement, we're online, but the gate is unregistered. Own address=" + jdi.status_data1);
+                        DoReportState(GateState.Unregistered);
+                        announced = true;
+                    }
+                    else if(jdi.status == "Gate registration successful")
+                    {
+                        Log.Write(LogLevel.Info, "Received registration response, scheduling for reannouncement");
+                        announced = false;
+                    }
+                    else if(jdi.status == "Gate deregistration successful")
+                    {
+                        Log.Write(LogLevel.Info, "Received deregistration response, scheduling for reannouncement");
+                        announced = false;
                     }
                     else
                         Log.Write(LogLevel.Info, "SGNetwork status response: " + jdi.status);
@@ -118,14 +136,8 @@ namespace Stargate
             }
             else
             {
-                if(announced)
-                {
-                    Log.Write(LogLevel.Warning, "Connection presumed lost, removing announcement state");
-                    announced = false;
-                }
-                else
-                    Log.Write(LogLevel.Error, "Error while sending request: " + result.Exception + ", " + result.Message);
-
+                announced = false;
+                DoReportState(GateState.Offline);
                 Wait(1);
                 ListenSGEvent();
             }
@@ -149,7 +161,7 @@ namespace Stargate
             {
                 if (!announced)
                 {
-                    Log.Write(LogLevel.Info, "Announcing gate: FQLID=" + fqlid + ", number base=" + thisGate.numberBase);
+                    Log.Write(LogLevel.Info, "Announcing gate: FQLID=" + thisGate.fqlid + ", number base=" + thisGate.numberBase);
                     QueueSGNCommand("announce", 10000, new RequestParams(){
                         { "base" , "" + thisGate.numberBase }
                     });
@@ -171,44 +183,54 @@ namespace Stargate
 
         public void QueueSGNCommand(string command, int timeout, RequestParams payload)
         {
-            // string reqline = baseUrl + "/rest/httpctrl?command=" + command + "&tmo=" + timeout + "&fqlid=" + fqlid;
-            // if (payloadString.Length > 0)
-            //     reqline = reqline + "&" + payloadString;
-
             HttpRequestOptions options = new HttpRequestOptions();
 
             if(payload == null) payload = new RequestParams();
 
             payload["command"] = command;
             payload["tmo"] = "" + timeout;
-            payload["fqlid"] = fqlid;
+            payload["fqlid"] = thisGate.fqlid;
             options.Parameters = payload;
             commandQueue.Enqueue(options);
             ListenSGEvent();
         }
 
+        public void DoGateDisconnect()
+        {
+            if (thisGate != null) thisGate.reset();
+        }
+
+        public void DoReportState(GateState state)
+        {
+            if (thisDHD != null) thisDHD.ReportState(state);
+        }
+
         public override void Init()
         {
-            thisGate = ScenePrivate.FindReflective<IGate>("Stargate.SG_Gate").FirstOrDefault();
-
-            if(thisGate == null)
-            {
-                Log.Write(LogLevel.Error, "Gate not found in scene.");
-                return;
-            }
-
-            fqlid = thisGate.fqlid;
-            commandQueue = new Queue<HttpRequestOptions>();
-
-            abortRequested = false;
-            running = false;
-
             ScenePrivate.User.Subscribe(User.AddUser, OnUserJoin);
             ScenePrivate.User.Subscribe(User.RemoveUser, OnUserLeave);
         }
 
+        public void ConnectGate(IGate gate)
+        {
+            thisGate = gate;
+        }
+
+        public void ConnectDHD(IDHD dhd)
+        {
+            thisDHD = dhd;
+        }
+
         private void OnInit()
         {
+            if(thisGate == null)
+            {
+                // Delay initialization if the gate hasn't announced itself yet.
+                if(!abortRequested)
+                    Timer.Create(1.0, OnInit);
+                return;
+            }
+
             abortRequested = false;
             ListenSGEvent();
         }
@@ -216,21 +238,23 @@ namespace Stargate
         private void OnShutdown()
         {
             // Reset gate (if needed), announce its cessation of operation and stop the listener when everything is done.
-            thisGate.reset();
-            QueueSGNCommand("deannounce", 10000, null);
+            if(thisGate != null)
+            {
+                thisGate.reset();
+                QueueSGNCommand("deannounce", 10000, null);
+            }
+
             announced = false;
             abortRequested = true;
         }
 
         private void OnUserJoin(UserData user)
         {
-            Log.Write(LogLevel.Info, "Agent entered, now " + ScenePrivate.AgentCount);
             if (ScenePrivate.AgentCount == 1) OnInit();
         }
 
         private void OnUserLeave(UserData user)
         {
-            Log.Write(LogLevel.Info, "Agent leaving, now " + ScenePrivate.AgentCount);
             if (ScenePrivate.AgentCount == 0) OnShutdown();
         }
     }

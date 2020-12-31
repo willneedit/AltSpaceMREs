@@ -6,6 +6,7 @@
 import { User } from "@microsoft/mixed-reality-extension-sdk";
 import got = require("got");
 import SGAddressing, { SGLocationData } from "./addressing";
+import { error } from "util";
 
 /*
  * Provides services for self-location within different realms. So far, only Altspace is supported.
@@ -50,27 +51,18 @@ export default class SGLocator {
     }
 
     /**
-     * Returns the Altspace's numeric space ID when called with an entering user
+     * Try to find the location data for the object seen by the specific Altspace user or
+     * return the preliminary address (usable for registration) when it's not in the network
      * @param user The user object, as seen in onUserJoined()
+     * @param base Number base of the gate (e.g. SG1: 38, SGA: 35)
      */
-    public static locateInAltspace(user: User) {
+    public static async lookupMeInAltspace(user: User, base: number): Promise<SGLocationData> {
         let location = '';
         if (user.properties["altspacevr-event-id"]) {
             location = 'event/' + user.properties["altspacevr-event-id"];
         } else if (user.properties["altspacevr-space-id"]) {
             location = 'space/' + user.properties["altspacevr-space-id"];
         }
-
-        return location;
-    }
-
-    /**
-     * Try to find the location data for the object seen by the specific Altspace user or
-     * return the preliminary address (usable for registration) when it's not in the network
-     * @param user The user object, as seen in onUserJoined()
-     */
-    public static async lookupMeInAltspace(user: User, base: number): Promise<SGLocationData> {
-        let location = this.locateInAltspace(user);
         const sgld = await SGAddressing.lookupGateAddress(location, base, 1).catch(async (err) => {
             // Save the location string in the error response, in case even the legacy lookup fails
             err.location = location;
@@ -79,6 +71,23 @@ export default class SGLocator {
         });
 
         return sgld;
+    }
+
+    /**
+     * Analyze the FQLID and returns the address data as given in the database or the preliminary data based
+     * on the location.
+     * @param fqlid FQLID of the given object
+     * @param base Number base of the gate (e.g. SG1: 38, SGA: 35)
+     */
+    public static async lookupFQLID(fqlid: string, base: number): Promise<SGLocationData> {
+        const pos = fqlid.indexOf('/');
+        const galaxy = fqlid.substr(0,pos);
+        const location = fqlid.substr(pos+1);
+
+        return SGAddressing.lookupGateAddress(location, base, galaxy).catch((err) => {
+            err.location = location;
+            return err;
+        });
     }
 
     /**
