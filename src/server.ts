@@ -5,7 +5,7 @@
 
 import { WebHost, Permissions } from '@microsoft/mixed-reality-extension-sdk';
 import { resolve as resolvePath } from 'path';
-import { dispatch, dispatchControl, dispatchStartup } from './dispatch';
+import { dispatch, dispatchStartup } from './dispatch';
 
 import Http from 'http';
 import HttpProxy from 'http-proxy';
@@ -52,13 +52,6 @@ function initServer() {
         new RawContext(context), params, server.baseUrl));
 
     console.debug("Initialized Multipeer server");
-
-    // Start a remote control server to maintain connection between the server and the Altspace Enclosure items
-    // const controlserver = new websocket.server({ port: controlport });
-
-    // controlserver.on('connection', (ws) => {
-    //     ws.on('message', (payload) => dispatchcontrol(ws, payload as string));
-    // });
 
     // Yet another server that delays an incoming request and then denies it.
     // const banserver = http.createserver((req: http.incomingmessage, res: http.serverresponse) => {

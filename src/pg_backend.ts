@@ -30,7 +30,7 @@ export default class PGBackend {
                 ssl: { rejectUnauthorized: false }, // New with pg8: Trouble with Heroku's self-signed cert
             });
         } else {
-            console.debug('No database parameteres passed, usine local config');
+            console.debug('No database parameters passed, using local config');
             // Running locally, for testing purposes
             // DATABASE MOVED, to ease use of Heroku's pg:push and pg:pull
             // Used with:

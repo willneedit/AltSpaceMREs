@@ -71,33 +71,6 @@ export default class SGNetwork {
         return this.targets[id] && this.targets[id].comp;
     }
 
-    public static async sgAdmin(ws: WebSocket, data: ParameterSet) {
-        const okAdmin = await SGNetwork.isAdminLevelReq(data);
-
-        if (data.command === 'delete') {
-            // FIXME: Rework web admin panel?
-            // if (okAdmin) SGDB.deleteLocation(data.id as string);
-            data.command = 'getlist';
-        }
-
-        if (data.command === 'getlist') {
-            const result: SGDBLocationEntry[] = [ ];
-
-            await SGDB.forEachLocation((val) => {
-                result.push(val);
-            });
-
-            ws.send(JSON.stringify({ isAdmin: okAdmin, response: 'getlist', lines: result }));
-        }
-    }
-
-    private static async isAdminLevelReq(data: ParameterSet) {
-        const query = QueryString.parseUrl(data.url as string);
-        const okAdmin = query.query.pw &&
-            await SGDB.isAdmin(query.query.pw as string).then(() => true).catch(() => false);
-        return okAdmin;
-    }
-
     /*
      * Common entry points to sync the operations of source and target gates, irrespective of their target platform
      */

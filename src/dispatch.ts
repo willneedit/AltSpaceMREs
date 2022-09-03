@@ -60,14 +60,6 @@ const registry: { [key: string]: () => Applet } = {
 };
 
 /**
- * Contains the names and the static functions for the control connections to be routed to
- */
-const registryControl: { [key: string]: (ws: WebSocket, data: ParameterSet) => void } = {
-    sg_admin: (ws: WebSocket, data: ParameterSet) => SGNetwork.sgAdmin(ws, data),
-    hb: () => { }
-};
-
-/**
  * Contains a list of functions needed to call before the service goes online.
  */
 const registryStartup: { [key: string]: () => void } = {
@@ -147,28 +139,6 @@ export function dispatch(context: ContextLike, parameter: ParameterSet, baseUrl:
 
         applet().init(context, parameter, baseUrl);
 
-    } catch (e) {
-        console.error(e.message);
-    }
-}
-
-export function dispatchControl(ws: WebSocket, payload: string) {
-    try {
-        const data: ParameterSet = JSON.parse(payload);
-
-        if (!data.name) {
-            console.error(`Incoming request -- no name given`);
-            return;
-        }
-
-        const name = data.name as string;
-
-        const cnt = registryControl[name];
-        if (!cnt) {
-            console.error(`Unrecognized control request for ${name}`);
-        } else {
-            cnt(ws, data);
-        }
     } catch (e) {
         console.error(e.message);
     }
