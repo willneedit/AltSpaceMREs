@@ -34,7 +34,6 @@ function initServer() {
     const publicPort = Number(process.env.PORT || 3901);
     const mrePort = publicPort + 1;
     const restPort = publicPort + 2;
-    const controlPort = publicPort + 3;
 
     // Start listening for connections, and serve static files
     const server = new WebHost({
@@ -49,22 +48,12 @@ function initServer() {
 
     console.debug("Initialized Multipeer server");
 
-    // Yet another server that delays an incoming request and then denies it.
-    // const banserver = http.createserver((req: http.incomingmessage, res: http.serverresponse) => {
-    //     settimeout(() => {
-    //         res.writehead(403, { 'content-type': 'text/plain'});
-    //         res.write('banned! your ip address sent too many bogus requests that it had to be blacklisteed.');
-    //         res.end();
-    //     }, 50000);
-    // }).listen(banport);
-
     const restServer = initReSTServer(restPort);
     console.debug("Initialized ReST server");
 
     // Use a lean HTTP proxy to multiplex the connections onto a single port, as follows:
-    // http://rest/.* --> localhost:3905 (the ReST accessor)
+    // http://rest/.* --> localhost:3903 (the ReST accessor)
     // http://.* --> localhost:3902 (the MRE WebHost)
-    // ws://control --> localhost:3903 (the control connection)
     // ws://.* --> localhost:3902 (the MRE webHost)
     const proxy = HttpProxy.createProxyServer({
     });
@@ -82,16 +71,12 @@ function initServer() {
         (req, socket, head) => {
             const query = QueryString.parseUrl(req.url);
             const address = forwarded(req, req.headers);
-            {
-                if ((query.url as string) === '/control') {
-                    proxy.ws(req, socket, head, { target: `ws://localhost:${controlPort}` });
-                } else {
-                    if (!req.headers['x-forwarded-for']) {
-                        req.headers['x-forwarded-for'] = address.ip;
-                    }
-                    proxy.ws(req, socket, head, { target: `ws://localhost:${mrePort}` });
-                }
+
+            if (!req.headers['x-forwarded-for']) {
+                req.headers['x-forwarded-for'] = address.ip;
             }
+            proxy.ws(req, socket, head, { target: `ws://localhost:${mrePort}` });
+
         });
 
     // Listen to the given port (as defined per environment like Heroku)
