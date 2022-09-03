@@ -21,8 +21,6 @@ import {
 import Applet from "../Applet";
 import { ContextLike } from '../frameworks/context/types';
 
-import DoorGuard from '../DoorGuard';
-
 /**
  * The main class of this app. All the logic goes here.
  */
@@ -100,7 +98,6 @@ export default class DragNDropTest extends Applet {
 
     private userjoined = (user: User) => {
         console.debug(`Connection request by ${user.name} from ${user.properties.remoteAddress}`);
-        DoorGuard.greeted(user.properties.remoteAddress);
     }
 
     private handleAction(user: User, modechange: number) {

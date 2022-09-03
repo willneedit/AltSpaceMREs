@@ -21,8 +21,6 @@ import {
 
 import SGNetwork from "./network";
 
-import DoorGuard from "../DoorGuard";
-
 import { ContextLike } from "../frameworks/context/types";
 import SGAddressing from "./addressing";
 import SGLocator from "./locator";
@@ -207,7 +205,6 @@ export abstract class SGDCBase extends Applet implements SGDialCompLike {
 
     private userjoined = (user: User) => {
         console.debug(`Connection request by ${user.id} (${user.name}) from ${user.properties.remoteAddress}`);
-        DoorGuard.greeted(user.properties.remoteAddress);
         if (this.initstatus === InitStatus.initializing) {
             this.initstatus = InitStatus.initialized;
 

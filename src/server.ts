@@ -10,9 +10,6 @@ import { dispatch, dispatchStartup } from './dispatch';
 import Http from 'http';
 import HttpProxy from 'http-proxy';
 import QueryString from 'query-string';
-import WebSocket from 'ws';
-
-import DoorGuard from './DoorGuard';
 
 import { RawContext } from './frameworks/context/rawcontext';
 
@@ -38,7 +35,6 @@ function initServer() {
     const mrePort = publicPort + 1;
     const restPort = publicPort + 2;
     const controlPort = publicPort + 3;
-    const banPort = publicPort + 4;
 
     // Start listening for connections, and serve static files
     const server = new WebHost({
@@ -86,19 +82,16 @@ function initServer() {
         (req, socket, head) => {
             const query = QueryString.parseUrl(req.url);
             const address = forwarded(req, req.headers);
-            DoorGuard.isAdmitted(address.ip).then(() => {
+            {
                 if ((query.url as string) === '/control') {
                     proxy.ws(req, socket, head, { target: `ws://localhost:${controlPort}` });
                 } else {
                     if (!req.headers['x-forwarded-for']) {
                         req.headers['x-forwarded-for'] = address.ip;
                     }
-                    DoorGuard.rung(address.ip);
                     proxy.ws(req, socket, head, { target: `ws://localhost:${mrePort}` });
                 }
-            }).catch(() => {
-                proxy.ws(req, socket, head, { target: `http://localhost:${banPort}` });
-            });
+            }
         });
 
     // Listen to the given port (as defined per environment like Heroku)

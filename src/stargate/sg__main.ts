@@ -20,8 +20,6 @@ import {
 import { delay } from "../helpers";
 import SGNetwork from "./network";
 
-import DoorGuard from "../DoorGuard";
-
 import { ContextLike } from "../frameworks/context/types";
 import SGAddressing, { SGLocationData } from "./addressing";
 import { SGDB } from "./database";
@@ -95,7 +93,6 @@ export default abstract class Stargate extends Applet implements StargateLike {
 
     private userjoined = (user: User) => {
         console.debug(`Connection request by ${user.id} (${user.name}) from ${user.properties.remoteAddress}`);
-        DoorGuard.greeted(user.properties.remoteAddress);
         if (this.initstatus === InitStatus.initializing) {
             this.initstatus = InitStatus.initialized;
 

@@ -12,7 +12,6 @@ import {
 import Applet from "./Applet";
 import { single_param } from "./helpers";
 
-import WebSocket from 'ws';
 
 import BlastDoor from "./blastdoor/blastdoor_main";
 import DemonGate from "./demongate/demongate_main";
@@ -20,12 +19,9 @@ import HelloWorld from "./helloworld";
 import SGDCDHD from "./stargate/dc_dhd";
 import StargateSG1 from "./stargate/sg_sg1";
 
-import SGNetwork from "./stargate/network";
-
 import ShowGLTF from "./gltf/gltf_main";
 import ShowKitObj from "./kit/kit_main";
 
-import DoorGuard from "./DoorGuard";
 import SGDCElven from "./stargate/dc_elven";
 import StargateElven from "./stargate/sg_elven";
 
@@ -64,7 +60,6 @@ const registry: { [key: string]: () => Applet } = {
  */
 const registryStartup: { [key: string]: () => void } = {
     sgnetwork: async () => await SGDB.init(),
-    DoorGuard: async () => await DoorGuard.init(),
 };
 
 function reportDispatchError(context: ContextLike, baseUrl: string, errortxt: string) {

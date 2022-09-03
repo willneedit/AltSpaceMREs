@@ -11,7 +11,6 @@ import {
 } from "@microsoft/mixed-reality-extension-sdk";
 
 import Applet from "../Applet";
-import DoorGuard from "../DoorGuard";
 
 import { ContextLike } from "../frameworks/context/types";
 
@@ -25,7 +24,6 @@ export default class ShowGLTF extends Applet {
 
     private userjoined = async (user: User) => {
         console.debug(`Connection request by ${user.name} from ${user.properties.remoteAddress}`);
-        DoorGuard.greeted(user.properties.remoteAddress);
         this.started();
     }
 
