@@ -5,7 +5,6 @@
 
 import RS from 'restify';
 import SGAddressing, { SGLocationData } from './stargate/addressing';
-import { SGDB, SGDBLocationEntry } from './stargate/database';
 import SGLocator from './stargate/locator';
 import SGNetwork from './stargate/network';
 import SGHTTP from './stargate/sg_http';

@@ -3,10 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import pgescape from 'pg-escape';
-import PGBackend from "../pg_backend";
-
-import { QueryResult } from 'pg';
+import { SGDBpg } from './database_pg';
+import { SGDBlite } from './database_sqlite';
 
 export interface SGDBLocationEntry {
     lid: number;
@@ -15,88 +13,63 @@ export interface SGDBLocationEntry {
     lastseen: string;
 }
 
+export interface SGDBLike {
+    init() : Promise<void>;
+    getLocationData(lid: number | string, gid: number): Promise<SGDBLocationEntry>;
+    updateTimestamp(lid: number | string, gid: number): Promise<void>;
+    registerLocation(lid: number, gid: number, location: string) : void;
+    deleteLocation(gid: number, location: string) : void;
+}
+
+const databaseEngines: { [key: string]: () => SGDBLike } = {
+    PostgresQL: () => new SGDBpg(),
+    SQLite: () => new SGDBlite()
+};
+
 export class SGDB {
-    private static db: PGBackend = null;
+    private static dbBackend : SGDBLike = null;
 
-    public static async init() {
-        console.debug('Looking for DB backend...');
-        this.db = PGBackend.instance;
-
-        console.debug('Creating table known_locations...');
-
-        await this.db.query('CREATE TABLE IF NOT EXISTS known_locations (' +
-            'lid BIGINT NOT NULL,' +
-            'gid INTEGER NOT NULL,' +
-            'location VARCHAR NOT NULL,' +
-            'lastseen TIMESTAMP NOT NULL,' +
-            'PRIMARY KEY (lid,gid) )').then((res: QueryResult) => {
-                console.debug('Database of V2 format created');
-            }).catch(err => {
-                console.debug('Database of V2 format already exists');
-            });
-
-        console.debug('Database creation finished');
-    }
-
-    public static async forEachLocation(f: (val: SGDBLocationEntry) => void) {
-        const str = 'SELECT lid, gid, location, lastseen FROM known_locations';
-        const res = await this.db.query(str);
-
-        for (const line of res.rows) {
-            line.lid = +line.lid;
-            line.gid = +line.gid;
-            f(line);
-        }
-    }
-
-    /**
-     * Retrieve the location database entry for the given location
-     * @param lid numerical location ID or in-galaxy location
-     * @param gid Galaxy ID
-     */
-    public static async getLocationData(lid: number | string, gid: number): Promise<SGDBLocationEntry> {
-        const str = this.getWhereClause(lid, gid);
-
-        return this.db.query('SELECT lid, gid, location, lastseen FROM known_locations' + str
-            ).then((res: QueryResult) => {
-                if (res.rowCount === 0) return Promise.reject('Empty result');
-
-                res.rows[0].lid = +res.rows[0].lid;
-                res.rows[0].gid = +res.rows[0].gid;
-
-                return Promise.resolve(res.rows[0]);
+    public static async init() : Promise<void> {
+        for ( const key in databaseEngines) {
+            if (databaseEngines.hasOwnProperty(key)) {
+                if (this.dbBackend !== null) {
+                    break;
+                }
+                console.debug (`Initializing ${key}...`);
+                const eng = databaseEngines[key]();
+                await eng.init()
+                .then(() => {
+                    console.debug (`Initializing ${key} done.`);
+                    this.dbBackend = eng;
+                    return;
+                })
+                .catch((err) => {
+                    console.debug (`Initializing ${key} failed, err=${err}.`);
+                });
             }
-        );
-    }
 
-    public static async updateTimestamp(lid: number | string, gid: number): Promise<void> {
-        const str = this.getWhereClause(lid, gid);
-
-        this.db.query("UPDATE known_locations SET lastseen = now()" + str);
-    }
-
-    private static getWhereClause(lid: string | number, gid: number) {
-        if (typeof lid === 'number') {
-            return pgescape(' WHERE (lid=%L AND gid=%L)', lid.toString(), gid.toString());
-        } else {
-            return pgescape(' WHERE (location=%L AND gid=%L)', lid, gid.toString());
         }
+        if (this.dbBackend !== null) {
+            return Promise.resolve();
+        }
+        return Promise.reject("No database found, giving up.");
+
+    }
+
+
+    public static async getLocationData(lid: number | string, gid: number): Promise<SGDBLocationEntry> {
+        return this.dbBackend.getLocationData(lid, gid);
     }
 
     public static async registerLocation(lid: number, gid: number, location: string) {
-        const str = pgescape('INSERT INTO known_locations (lid,gid,location,lastseen) VALUES (%L, %L, %L, %L)',
-            lid.toString(),
-            gid.toString(),
-            location,
-            "now()");
-
-        return this.db.query(str);
+        return this.dbBackend.registerLocation(lid, gid, location);
     }
 
-    public static deleteLocation(gid: number, location: string) {
-        return this.db.query(pgescape('DELETE FROM known_locations WHERE (gid=%L AND location=%L)',
-            gid.toString(),
-            location));
+    public static async updateTimestamp(lid: number | string, gid: number): Promise<void> {
+        return this.dbBackend.updateTimestamp(lid,gid);
     }
 
+    public static async deleteLocation(gid: number, location: string) {
+        return this.dbBackend.deleteLocation(gid, location);
+    }
 }

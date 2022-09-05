@@ -3,15 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import WebSocket from 'ws';
 import { SGDialCompLike, StargateDespawned, StargateLike } from "./types";
-
-import QueryString from 'query-string';
-
-import { SGDB, SGDBLocationEntry } from './database';
-
-import { ParameterSet } from '@microsoft/mixed-reality-extension-sdk';
-import { eventNames } from 'cluster';
 
 interface TargetReg {
     gate: StargateLike;

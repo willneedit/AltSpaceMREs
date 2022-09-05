@@ -4,6 +4,7 @@
  */
 
 import { Client as PG, QueryResult } from 'pg';
+import { inherits } from 'util';
 
 export default class PGBackend {
     // tslint:disable-next-line:variable-name
@@ -17,11 +18,18 @@ export default class PGBackend {
         if (!this._instance) {
             console.debug('Creating PGBackend...');
             this._instance = new PGBackend();
+            this._instance.init()
+            .then(() => {
+                console.debug('Creating PGBackend done.');
+            }).catch((err) => {
+                this._instance = null;
+            });
+
         }
         return this._instance;
     }
 
-    constructor() {
+    public async init() {
         if (!!process.env.DATABASE_URL) {
             // Running in Heroku, using provided information
             console.debug('Starting with provided database parameters');
@@ -45,15 +53,17 @@ export default class PGBackend {
             });
         }
 
-        this.dbConn.connect().catch(err => {
+        await this.dbConn.connect().catch(err => {
             console.error(`DATABASE CONNECTION FAILED, err=${err}`);
+            throw err;
+            // return Promise.reject(err);
         });
 
         // Test the connection, throw an error if it fails.
-        this.dbConn.query('SELECT table_schema,table_name FROM information_schema.tables', (err, res) => {
+        await this.dbConn.query('SELECT table_schema,table_name FROM information_schema.tables', (err, res) => {
             if (err) {
                 console.error(`ERROR WITH DATABASE CONNECTION, err=${err}`);
-                throw err;
+                return Promise.reject(err);
             }
         });
     }
