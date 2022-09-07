@@ -97,7 +97,7 @@ export default class DragNDropTest extends Applet {
     }
 
     private userjoined = (user: User) => {
-        console.debug(`Connection request by ${user.name} from ${user.properties.remoteAddress}`);
+        console.debug(`Connection request by ${user.id} (${user.name}) from ${user.properties.remoteAddress}`);
     }
 
     private handleAction(user: User, modechange: number) {
