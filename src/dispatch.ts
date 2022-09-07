@@ -58,7 +58,7 @@ const registry: { [key: string]: () => Applet } = {
 /**
  * Contains a list of functions needed to call before the service goes online.
  */
-const registryStartup: { [key: string]: () => void } = {
+const registryStartup: { [key: string]: () => Promise<void> } = {
     sgnetwork: async () => await SGDB.init(),
 };
 
@@ -143,8 +143,13 @@ export async function dispatchStartup() {
     for ( const key in registryStartup) {
         if (registryStartup.hasOwnProperty(key)) {
             console.debug(`Starting ${key}...`);
-            await registryStartup[key]();
-            console.debug(`Startup ${key} succeeded`);
+            await registryStartup[key]()
+            .then(() => {
+                console.debug(`Startup ${key} succeeded`);
+            })
+            .catch((err) => {
+                console.debug(`Startup ${key} failed, err=${err}`);
+            });
         }
     }
 }
