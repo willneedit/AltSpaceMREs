@@ -30,12 +30,12 @@ export class SGDBlite implements SGDBLike {
 
             result = this.simpleDBRun(
                 'CREATE TABLE IF NOT EXISTS known_locations (' +
-                'lid TEXT NOT NULL,' +
+                'lid BIGINT NOT NULL,' +
                 'gid INTEGER NOT NULL,' +
-                'location TEXT NOT NULL,' +
-                'lastseen TEXT NOT NULL,' +
+                'location VARCHAR NOT NULL,' +
+                'lastseen TIMESTAMP NOT NULL,' +
                 'PRIMARY KEY (lid,gid) )'
-            );
+        );
         }).catch((err) => {
 
         });
