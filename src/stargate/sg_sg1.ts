@@ -217,7 +217,7 @@ export default class StargateSG1 extends Stargate {
         // await delay(rotAnimFrames[rotAnimFrames.length - 1].time * 1000 + 200);
         this.soundGateTurning.pause();
 
-        rotAnim.delete();
+        // rotAnim.delete();
 
         this.gateRingAngle = tgtAngle;
     }
