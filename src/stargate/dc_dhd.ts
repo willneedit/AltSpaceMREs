@@ -119,7 +119,7 @@ export default class SGDCDHD extends SGDCBase {
                 ? Quaternion.RotationAxis(Vector3.Forward(), 180 * DegreesToRadians)
                 : Quaternion.RotationAxis(Vector3.Forward(), 0);
 
-            this.context.CreateEmpty({
+            await this.context.CreateEmpty({
                 actor: {
                     parentId: letterRotRoot.id,
                     transform: {
@@ -136,7 +136,7 @@ export default class SGDCDHD extends SGDCBase {
                 }
             });
 
-            const collider = this.context.CreatePrimitive({
+            const collider = await this.context.CreatePrimitive({
                     definition: {
                         shape: PrimitiveShape.Box,
                         dimensions: new Vector3(letterHeight, letterHeight, 0.002)
@@ -152,7 +152,7 @@ export default class SGDCDHD extends SGDCBase {
                     }
                 });
 
-            collider.setBehavior(ButtonBehavior).onClick(this.makeKeyCallback(i));
+            await collider.setBehavior(ButtonBehavior).onClick(this.makeKeyCallback(i));
         }
 
         const button = this.context.CreatePrimitive({
@@ -171,7 +171,7 @@ export default class SGDCDHD extends SGDCBase {
                 }
             });
 
-        button.setBehavior(ButtonBehavior).onClick(this.makeKeyCallback(0));
+        await button.setBehavior(ButtonBehavior).onClick(this.makeKeyCallback(0));
 
     }
 }
