@@ -44,7 +44,7 @@ function initServer() {
 
     // Handle new application sessions
     server.adapter.onConnection((context, params) => dispatch(
-        new RawContext(context), params, server.baseUrl));
+        new RawContext(context), params, "/"));
 
     console.debug("Initialized Multipeer server");
 

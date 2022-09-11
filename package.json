@@ -19,6 +19,7 @@
     "npm": ">=6.4.1"
   },
   "scripts": {
+    "bootstrap": "cd submodules/mixed-reality-extension-sdk/packages/sdk && npm install && tsc --build && npm pack",
     "test": "echo \"Error: no test specified\" && exit 1",
     "clean": "tsc --build --clean",
     "build": "tsc --build",
@@ -35,7 +36,7 @@
     "tsutils": "^3.17.1"
   },
   "dependencies": {
-    "@microsoft/mixed-reality-extension-sdk": "^0.20.0",
+    "@microsoft/mixed-reality-extension-sdk": "file:submodules/mixed-reality-extension-sdk/packages/sdk/microsoft-mixed-reality-extension-sdk-0.21.0.tgz",
     "@types/got": "^9.4.1",
     "@types/http-proxy": "^1.16.2",
     "@types/node": "^10.3.1",

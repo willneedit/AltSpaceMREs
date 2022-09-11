@@ -1,0 +1,10 @@
+.gitmodules
+submodules/
+
+tsconfig.json
+tsconfig.tsbuildinfo
+.vscode
+Dockerfile
+web.config
+
+src/

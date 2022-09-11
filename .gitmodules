@@ -1,0 +1,3 @@
+[submodule "submodules/mixed-reality-extension-sdk"]
+	path = submodules/mixed-reality-extension-sdk
+	url = https://github.com/willneedit/mixed-reality-extension-sdk.git
