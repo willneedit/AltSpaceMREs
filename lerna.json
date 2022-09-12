@@ -1,0 +1,15 @@
+{
+  "lerna": "3.2.0",
+  "loglevel": "verbose",
+  "packages": [
+    "submodules/mixed-reality-extension-sdk/packages/common",
+    "submodules/mixed-reality-extension-sdk/packages/sdk",
+    "."
+  ],
+  "command": {
+    "bootstrap": {
+      "nohoist": true
+    }
+  },
+  "version": "independent"
+}
