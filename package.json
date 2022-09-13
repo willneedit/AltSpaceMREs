@@ -1,0 +1,38 @@
+{
+  "name": "mre-collection",
+  "private": true,
+  "version": "0.1.0",
+  "description": "The HRE collection",
+  "main": "index.js",
+  "author": "willneedit",
+  "license": "MIT",
+  "keywords": [
+    "mixed reality",
+    "virtual reality",
+    "vr",
+    "sdk",
+    "altspacevr",
+    "gltf",
+    "node"
+  ],
+  "engines": {
+    "node": ">=10.13.0",
+    "npm": ">=6.4.1"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "bootstrap": "lerna bootstrap",
+    "postinstall": "npm run bootstrap",
+    "clean": "tsc --build --clean",
+    "build-lint": "tsc --build && eslint --ext .ts packages",
+    "build": "lerna exec -- tsc --build",
+    "start": "node ./packages/main"
+  },
+  "devDependencies": {
+    "lerna": "^3.22.1",
+    "typescript": "^3.7.2"
+  },
+  "dependencies": {
+    "tslint": "^5.20.1"
+  }
+}
