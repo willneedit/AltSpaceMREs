@@ -27,9 +27,11 @@
     "build-lint": "tsc --build && eslint --ext .ts packages",
     "build": "lerna exec -- tsc --build",
     "start": "node ./packages/main",
-    "debug": "node --nolazy --inspect-brk=9229 ./packages/main"
+    "debug": "node --nolazy --inspect-brk=9229 ./packages/main",
+    "pack-all": "cross-var lerna exec -- npm pack --pack-destination $INIT_CWD"
   },
   "devDependencies": {
+    "cross-var": "^1.1.0",
     "lerna": "^3.22.1",
     "typescript": "^3.7.2"
   },
