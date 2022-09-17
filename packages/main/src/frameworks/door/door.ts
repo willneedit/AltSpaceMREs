@@ -5,7 +5,7 @@
 
 import { DoorPart, DoorStructure } from "./types";
 
-import got = require("got");
+import got from "got";
 import { ContextLike } from "../context/types";
 
 import {
@@ -92,9 +92,9 @@ export default class BasicDoor {
 
         // Else create a new entry and wait for it to be filled
         BasicDoor.cache[source].struct = new Promise<DoorStructure>((resolve, reject) => {
-            got(source, {json: true })
+            got(source, {responseType: 'json', resolveBodyOnly: true})
             .then((response) => {
-                const ds: DoorStructure = response.body as DoorStructure;
+                const ds = response as DoorStructure;
                 this.translateDSRotations(ds);
                 resolve(ds);
             })

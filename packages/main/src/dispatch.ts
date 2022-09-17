@@ -94,9 +94,9 @@ function parseDispatchMulti(context: ContextLike, baseUrl: string, initData: any
 }
 
 function dispatchMulti(context: ContextLike, parameter: ParameterSet, baseUrl: string) {
-    got(parameter.url as string, { json: true })
+    got(parameter.url as string, {responseType: 'json', resolveBodyOnly: true})
     .then(response => {
-        parseDispatchMulti(context, baseUrl, response.body);
+        parseDispatchMulti(context, baseUrl, response as any[]);
 
         // Do this because we at least missed the OnStarted() since we run asynchronously.
         context.announceSelf();

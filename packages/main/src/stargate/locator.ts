@@ -4,7 +4,7 @@
  */
 
 import { User } from "@microsoft/mixed-reality-extension-sdk";
-import got = require("got");
+import got from "got";
 import SGAddressing, { SGLocationData } from "./addressing";
 import { error } from "util";
 
@@ -41,9 +41,9 @@ export default class SGLocator {
 
         const apiURL = 'http://account.altvr.com/api/spaces/' +
             location.substr(5);
-        const spaceSid = await got(apiURL, { json: true }).then(response => {
+        const spaceSid = await got(apiURL, {responseType: 'json', resolveBodyOnly: true}).then(response => {
             // FIXME: Gratious assumption about the returned structure
-            return response.body.spaces[0].space_sid;
+            return (response as any).spaces[0].space_sid;
         }).catch(err => '');
 
         this.locationMap[location] = spaceSid;
