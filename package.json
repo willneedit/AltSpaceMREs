@@ -20,10 +20,9 @@
     "npm": ">=6.4.1"
   },
   "scripts": {
-    "_test": "echo \"Error: no test specified\" && exit 1",
+    "postinstall": "pnpm --filter=!./ i",
     "test": "cd submodules/mixed-reality-extension-sdk && npm run start",
     "clean": "pnpm -r exec tsc --build --clean",
-    "build-lint": "tsc --build && eslint --ext .ts packages",
     "build": "pnpm -r exec tsc --build",
     "start": "node ./packages/main",
     "debug": "node --nolazy --inspect-brk=9229 ./packages/main",
@@ -31,8 +30,7 @@
   },
   "devDependencies": {
     "cross-var": "^1.1.0",
-    "pnpm": "^7.11.0",
-    "typescript": "^3.7.2"
+    "pnpm": "^7.11.0"
   },
   "dependencies": {
     "tslint": "^5.20.1"
