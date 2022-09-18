@@ -1,4 +1,3 @@
 packages:
-  - 'submodules/mixed-reality-extension-sdk/packages/common'
-  - 'submodules/mixed-reality-extension-sdk/packages/sdk'
+  - 'submodules/mixed-reality-extension-sdk/packages/*'
   - 'packages/main'

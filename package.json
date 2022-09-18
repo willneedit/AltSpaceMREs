@@ -20,7 +20,8 @@
     "npm": ">=6.4.1"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "_test": "echo \"Error: no test specified\" && exit 1",
+    "test": "cd submodules/mixed-reality-extension-sdk && npm run start",
     "clean": "pnpm -r exec tsc --build --clean",
     "build-lint": "tsc --build && eslint --ext .ts packages",
     "build": "pnpm -r exec tsc --build",
