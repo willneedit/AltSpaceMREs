@@ -26,7 +26,8 @@
     "build": "pnpm -r exec tsc --build",
     "start": "node ./packages/main",
     "debug": "node --nolazy --inspect-brk=9229 ./packages/main",
-    "pack-all": "cross-var pnpm -r exec npm pack --pack-destination $INIT_CWD"
+    "pack-all": "cross-var pnpm -r exec npm pack --pack-destination $INIT_CWD",
+    "build-all": "npm i && npm run build && npm run pack-all"
   },
   "devDependencies": {
     "cross-var": "^1.1.0",
