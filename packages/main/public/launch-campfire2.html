@@ -1,0 +1,18 @@
+<html>
+    <head>
+        <title>Launch Campfire</title>
+    </head>
+    <body>
+        <script>
+            function tryToLaunchClient() {
+                if (window.altspace && window.altspace.inClient) {
+                    window.Alt.HtmlView.FollowAltspaceLink('altspace://account.altvr.com/api/spaces/campfire-lobby');
+                } else {
+                    window.open('altspace://account.altvr.com/api/spaces/campfire-lobby', '_self');
+                }
+            }
+        </script>
+        <button onclick="tryToLaunchClient()">Go to Campfire 2</button>
+        <script>window.addEventListener('load', tryToLaunchClient, false);</script>
+    </body>
+</html>

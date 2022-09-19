@@ -1,0 +1,24 @@
+[
+	{
+		"name": "sg_elven_dhd",
+		"transform": {
+			"position": { "x": 0.0, "y": 0.0, "z": 0.0 }
+		}
+	},
+	{
+		"name": "sg_elven",
+		"transform": {
+			"position": { "x": 0.0, "y": 0.0, "z": -10.0 },
+			"rotation": { "x": 0.0, "y": 180.0, "z": 0.0 }
+		}
+	},
+	{
+		"name": "kit",
+		"params": {
+			"kit": "artifact:1142823848597520821"
+		},
+		"transform": {
+			"position": { "x": 5.2719, "y": -1.2485, "z": -0.4678 }
+		}
+	}
+]
