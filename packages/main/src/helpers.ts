@@ -4,22 +4,22 @@
  */
 
 import {
-    Actor,
-    AssetContainer,
-    MediaInstance,
-    SetAudioStateOptions,
+	Actor,
+	AssetContainer,
+	MediaInstance,
+	SetAudioStateOptions,
 } from "@microsoft/mixed-reality-extension-sdk";
 
 /**
  * Return a single string param, either the param itself or the first one listed
  * @param param the value of one param in a ParameterSet
  */
-export function single_param(param: string | string[]): string {
-    if (Array.isArray(param) && param.length > 0) {
-        return param[0];
-    } else {
-        return param as string;
-    }
+export function singleParam(param: string | string[]): string {
+	if (Array.isArray(param) && param.length > 0) {
+		return param[0];
+	} else {
+		return param as string;
+	}
 }
 
 /**
@@ -27,9 +27,9 @@ export function single_param(param: string | string[]): string {
  * @param milliseconds Time to wait
  */
 export function delay(milliseconds: number): Promise<void> {
-    return new Promise<void>((resolve) => {
-        setTimeout(() => resolve(), milliseconds);
-    });
+	return new Promise<void>((resolve) => {
+		setTimeout(() => resolve(), milliseconds);
+	});
 }
 
 /**
@@ -37,13 +37,13 @@ export function delay(milliseconds: number): Promise<void> {
  * @param actors The actor(s) to remove.
  */
 export function destroyActors(actors: Actor | Actor[]): Actor[] {
-    if (!Array.isArray(actors)) {
-        actors = [actors];
-    }
-    for (const actor of actors) {
-        actor.destroy();
-    }
-    return [];
+	if (!Array.isArray(actors)) {
+		actors = [actors];
+	}
+	for (const actor of actors) {
+		actor.destroy();
+	}
+	return [];
 }
 
 /**
@@ -53,24 +53,24 @@ export function destroyActors(actors: Actor | Actor[]): Actor[] {
  * @param sssoOvr Partial set of SetSoundStateOptions to deviate from common standards
  */
 export function initSound(
-    assets: AssetContainer,
-    actor: Actor, url: string, sssoOvr?: Partial<SetAudioStateOptions>): MediaInstance {
+	assets: AssetContainer,
+	actor: Actor, url: string, sssoOvr?: Partial<SetAudioStateOptions>): MediaInstance {
 
-    const soundAsset = assets.createSound('default', {
-        uri: url
-    });
+	const soundAsset = assets.createSound('default', {
+		uri: url
+	});
 
-    const sssoDefaults: SetAudioStateOptions = {
-        volume: 0.5,
-        looping: false,
-        doppler: 1.0,
-        rolloffStartDistance: 2.0
-    };
+	const sssoDefaults: SetAudioStateOptions = {
+		volume: 0.5,
+		looping: false,
+		doppler: 1.0,
+		rolloffStartDistance: 2.0
+	};
 
-    const si = actor.startSound(soundAsset.id, { ...sssoDefaults, ...(sssoOvr || { })});
-    si.pause();
+	const si = actor.startSound(soundAsset.id, { ...sssoDefaults, ...(sssoOvr || { })});
+	si.pause();
 
-    return si;
+	return si;
 }
 
 /**
@@ -79,12 +79,12 @@ export function initSound(
  * @param sssoOvr Optional: SoundStateOptions to override
  */
 export function restartSound(si: MediaInstance, sssoOvr?: Partial<SetAudioStateOptions>) {
-    const sssoDefaults: SetAudioStateOptions = {
-        volume: 0.5,
-        looping: false,
-        doppler: 1.0,
-        rolloffStartDistance: 2.0
-    };
-    si.stop();
-    si.start({ ...sssoDefaults, ...(sssoOvr || { })});
+	const sssoDefaults: SetAudioStateOptions = {
+		volume: 0.5,
+		looping: false,
+		doppler: 1.0,
+		rolloffStartDistance: 2.0
+	};
+	si.stop();
+	si.start({ ...sssoDefaults, ...(sssoOvr || { })});
 }

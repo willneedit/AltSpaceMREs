@@ -6,131 +6,131 @@
 import { SGDialCompLike, StargateDespawned, StargateLike } from "./types";
 
 interface TargetReg {
-    gate: StargateLike;
-    comp: SGDialCompLike;
+	gate: StargateLike;
+	comp: SGDialCompLike;
 }
 
 interface EventData {
-    payload: any[];
-    resolve: () => void;
-    reject: (err: any) => void;
-    latch: Promise<void>;
+	payload: any[];
+	resolve: () => void;
+	reject: (err: any) => void;
+	latch: Promise<void>;
 }
 
 export default class SGNetwork {
-    private static targets: { [id: string]: TargetReg } = { };
+	private static targets: { [id: string]: TargetReg } = { };
 
-    private static pendingEvents: { [fqlid: string]: EventData } = { };
+	private static pendingEvents: { [fqlid: string]: EventData } = { };
 
-    private static createDBEntry(id: string): boolean {
-        if (!this.targets[id]) {
-            this.targets[id] = { gate: null, comp: null };
-            return true;
-        }
+	private static createDBEntry(id: string): boolean {
+		if (!this.targets[id]) {
+			this.targets[id] = { gate: null, comp: null };
+			return true;
+		}
 
-        return false;
-    }
+		return false;
+	}
 
-    public static announceGate(gate: StargateLike) {
-        const id = gate.fqlid;
+	public static announceGate(gate: StargateLike) {
+		const id = gate.fqlid;
 
-        this.createDBEntry(id);
-        this.targets[id].gate = gate;
-        console.info(`Announcing gate for FQLID ${id}`);
-    }
+		this.createDBEntry(id);
+		this.targets[id].gate = gate;
+		console.info(`Announcing gate for FQLID ${id}`);
+	}
 
-    public static deannounceGate(id: string) {
-        if (!this.targets[id]) return;
+	public static deannounceGate(id: string) {
+		if (!this.targets[id]) return;
 
-        this.targets[id].gate = new StargateDespawned();
+		this.targets[id].gate = new StargateDespawned();
 
-        console.info(`Removing gate for FQLID ${id}`);
-    }
+		console.info(`Removing gate for FQLID ${id}`);
+	}
 
-    public static registerDialComp(dial: SGDialCompLike) {
-        const id = dial.fqlid;
+	public static registerDialComp(dial: SGDialCompLike) {
+		const id = dial.fqlid;
 
-        this.createDBEntry(id);
-        this.targets[id].comp = dial;
-        console.info(`Announcing dial computer for FQLID ${id}`);
-    }
+		this.createDBEntry(id);
+		this.targets[id].comp = dial;
+		console.info(`Announcing dial computer for FQLID ${id}`);
+	}
 
-    public static getGate(id: string): StargateLike {
-        return this.targets[id] && this.targets[id].gate;
-    }
+	public static getGate(id: string): StargateLike {
+		return this.targets[id] && this.targets[id].gate;
+	}
 
-    public static getDialComp(id: string) {
-        return this.targets[id] && this.targets[id].comp;
-    }
+	public static getDialComp(id: string) {
+		return this.targets[id] && this.targets[id].comp;
+	}
 
-    /*
-     * Common entry points to sync the operations of source and target gates, irrespective of their target platform
-     */
+	/*
+	 * Common entry points to sync the operations of source and target gates, irrespective of their target platform
+	 */
 
-    public static async gatesLightChevron(srcFqlid: string, tgtFqlid: string, chevron: number, silent: boolean) {
-        const srcGate = this.getGate(srcFqlid) || new StargateDespawned();
-        const tgtGate = this.getGate(tgtFqlid) || new StargateDespawned();
-        await srcGate.lightChevron(chevron, silent);
-        tgtGate.lightChevron(chevron, silent);
-    }
+	public static gatesLightChevron(srcFqlid: string, tgtFqlid: string, chevron: number, silent: boolean) {
+		const srcGate = this.getGate(srcFqlid) || new StargateDespawned();
+		const tgtGate = this.getGate(tgtFqlid) || new StargateDespawned();
+		srcGate.lightChevron(chevron, silent);
+		tgtGate.lightChevron(chevron, silent);
+	}
 
-    public static async gatesConnect(srcFqlid: string, tgtFqlid: string) {
-        const srcGate = this.getGate(srcFqlid) || new StargateDespawned();
-        const tgtGate = this.getGate(tgtFqlid) || new StargateDespawned();
-        srcGate.connect();
-        tgtGate.connect();
-    }
+	public static gatesConnect(srcFqlid: string, tgtFqlid: string) {
+		const srcGate = this.getGate(srcFqlid) || new StargateDespawned();
+		const tgtGate = this.getGate(tgtFqlid) || new StargateDespawned();
+		srcGate.connect();
+		tgtGate.connect();
+	}
 
-    public static async gatesDisconnect(srcFqlid: string, tgtFqlid: string, timestamp: number) {
-        const srcGate = this.getGate(srcFqlid) || new StargateDespawned();
-        const tgtGate = this.getGate(tgtFqlid) || new StargateDespawned();
-        srcGate.disconnect(timestamp);
-        tgtGate.disconnect(timestamp);
-    }
+	public static gatesDisconnect(srcFqlid: string, tgtFqlid: string, timestamp: number) {
+		const srcGate = this.getGate(srcFqlid) || new StargateDespawned();
+		const tgtGate = this.getGate(tgtFqlid) || new StargateDespawned();
+		srcGate.disconnect(timestamp);
+		tgtGate.disconnect(timestamp);
+	}
 
-    public static async gatesStartSequence(srcFqlid: string, tgtFqlid: string,
-                                           tgtSequence: string, timestamp: number) {
-        const srcGate = this.getGate(srcFqlid) || new StargateDespawned();
-        const tgtGate = this.getGate(tgtFqlid) || new StargateDespawned();
-        srcGate.startSequence(tgtFqlid, tgtSequence, timestamp);
-        tgtGate.startSequence(srcFqlid, null, timestamp);
-    }
+	public static gatesStartSequence(srcFqlid: string, tgtFqlid: string,
+		tgtSequence: string, timestamp: number) {
+		const srcGate = this.getGate(srcFqlid) || new StargateDespawned();
+		const tgtGate = this.getGate(tgtFqlid) || new StargateDespawned();
+		srcGate.startSequence(tgtFqlid, tgtSequence, timestamp);
+		tgtGate.startSequence(srcFqlid, null, timestamp);
+	}
 
-    /**
-     * Networked event handling
-     */
+	/**
+	 * Networked event handling
+	 */
 
-    private static createEvent(fqlid: string) {
-        if (!this.pendingEvents[fqlid]) {
-            const evt: EventData = {
-                payload: [ ],
-                latch: null,
-                resolve: null,
-                reject: null
-            };
-            evt.latch = new Promise<void>((resolve, reject) => {
-                evt.resolve = resolve;
-                evt.reject = reject;
-            });
+	private static createEvent(fqlid: string) {
+		if (!this.pendingEvents[fqlid]) {
+			const evt: EventData = {
+				payload: [ ],
+				latch: null,
+				resolve: null,
+				reject: null
+			};
+			evt.latch = new Promise<void>((resolve, reject) => {
+				evt.resolve = resolve;
+				evt.reject = reject;
+			});
 
-            this.pendingEvents[fqlid] = evt;
-        }
-    }
+			this.pendingEvents[fqlid] = evt;
+		}
+	}
 
-    public static postEvent(fqlid: string, payload: any) {
-        this.createEvent(fqlid);
-        this.pendingEvents[fqlid].payload.push(payload);
-        this.pendingEvents[fqlid].resolve();
-    }
+	public static postEvent(fqlid: string, payload: any) {
+		this.createEvent(fqlid);
+		this.pendingEvents[fqlid].payload.push(payload);
+		this.pendingEvents[fqlid].resolve();
+	}
 
-    public static waitEvent(fqlid: string, timeout: number): Promise<any[]> {
-        this.createEvent(fqlid);
-        const evt = this.pendingEvents[fqlid];
+	public static waitEvent(fqlid: string, timeout: number): Promise<any[]> {
+		this.createEvent(fqlid);
+		const evt = this.pendingEvents[fqlid];
 
-        if (evt.payload.length === 0) setTimeout(() => { if(evt.resolve) evt.resolve(); }, timeout);
-        return evt.latch.then(() => {
-            this.pendingEvents[fqlid] = undefined;
-            return evt.payload;
-        });
-    }
+		if (evt.payload.length === 0) setTimeout(() => { if(evt.resolve) evt.resolve(); }, timeout);
+		return evt.latch.then(() => {
+			this.pendingEvents[fqlid] = undefined;
+			return evt.payload;
+		});
+	}
 }

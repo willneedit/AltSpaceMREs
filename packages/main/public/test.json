@@ -1,12 +1,12 @@
 [
 	{
-		"name": "sg_elven_dhd",
+		"name": "stargate",
 		"transform": {
-			"position": { "x": 0.0, "y": 0.0, "z": 0.0 }
+			"position": { "x": 0.0, "y": 3.0, "z": 0.0 }
 		}
 	},
 	{
-		"name": "sg_elven",
+		"name": "sgdialcomp",
 		"transform": {
 			"position": { "x": 0.0, "y": 0.0, "z": -10.0 },
 			"rotation": { "x": 0.0, "y": 180.0, "z": 0.0 }

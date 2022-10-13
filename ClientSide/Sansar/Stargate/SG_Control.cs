@@ -16,7 +16,7 @@ namespace Stargate
     public class CtrlDataJSON
     {
         public string status { get; set; }
-        public string status_data1 { get; set; }
+        public string statusData1 { get; set; }
         public string error { get; set; }
         public string command { get; set; }
         public string tgtFqlid { get; set; }
@@ -63,13 +63,13 @@ namespace Stargate
                 {
                     if(jdi.status == "Gate announcement OK")
                     {
-                        Log.Write(LogLevel.Info, "Server responded to gate announcement, we're online. Own address=" + jdi.status_data1);
+                        Log.Write(LogLevel.Info, "Server responded to gate announcement, we're online. Own address=" + jdi.statusData1);
                         DoReportState(GateState.Idle);
                         announced = true;
                     }
                     else if(jdi.status == "Gate announcement OK, but gate is unregistered")
                     {
-                        Log.Write(LogLevel.Info, "Server responded to gate announcement, we're online, but the gate is unregistered. Own address=" + jdi.status_data1);
+                        Log.Write(LogLevel.Info, "Server responded to gate announcement, we're online, but the gate is unregistered. Own address=" + jdi.statusData1);
                         DoReportState(GateState.Unregistered);
                         announced = true;
                     }

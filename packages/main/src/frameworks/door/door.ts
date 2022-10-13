@@ -9,195 +9,194 @@ import got from "got";
 import { ContextLike } from "../context/types";
 
 import {
-    Actor,
-    ActorLike,
-    AnimationEaseCurves,
-    ButtonBehavior,
-    DegreesToRadians,
-    MediaInstance,
-    Quaternion,
-    User,
-    Guid,
+	Actor,
+	ActorLike,
+	AnimationEaseCurves,
+	ButtonBehavior,
+	DegreesToRadians,
+	MediaInstance,
+	Quaternion,
+	User,
+	Guid,
 } from "@microsoft/mixed-reality-extension-sdk";
 
 import { delay, initSound, restartSound } from "../../helpers";
 
 export default class BasicDoor {
-    private static cache: { [url: string]: { time: number, struct: Promise<DoorStructure> } } = { };
+	private static cache: { [url: string]: { time: number; struct: Promise<DoorStructure> } } = { };
 
-    private context: ContextLike = null;
-    private doorstate: DoorStructure = null;
-    // tslint:disable:variable-name
-    private _locked = false;
-    private _open = false;
-    // tslint:enable:variable-name
+	private context: ContextLike = null;
+	private doorstate: DoorStructure = null;
 
-    public get locked() { return this._locked; }
-    public set locked(toLocked: boolean) { this.updateDoorState(this._open, toLocked); }
+	private _locked = false;
+	private _open = false;
 
-    public get open() { return this._open; }
-    public set open(toOpen: boolean) { this.updateDoorState(toOpen, this._locked); }
+	public get locked() { return this._locked; }
+	public set locked(toLocked: boolean) { this.updateDoorState(this._open, toLocked); }
 
-    private doorRoot: Actor = null;
+	public get open() { return this._open; }
+	public set open(toOpen: boolean) { this.updateDoorState(toOpen, this._locked); }
 
-    private openSoundFX: MediaInstance = null;
-    private closeSoundFX: MediaInstance = null;
-    private lockedSoundFX: MediaInstance = null;
+	private doorRoot: Actor = null;
 
-    private translateRotations(dp: DoorPart) {
-        if (dp.closed && dp.closed.rotation) {
-            dp.closed.rotation = Quaternion.RotationYawPitchRoll(
-                dp.closed.rotation.y * DegreesToRadians,
-                dp.closed.rotation.x * DegreesToRadians,
-                dp.closed.rotation.z * DegreesToRadians
-            );
-        }
+	private openSoundFX: MediaInstance = null;
+	private closeSoundFX: MediaInstance = null;
+	private lockedSoundFX: MediaInstance = null;
 
-        if (dp.open && dp.open.rotation) {
-            dp.open.rotation = Quaternion.RotationYawPitchRoll(
-                dp.open.rotation.y * DegreesToRadians,
-                dp.open.rotation.x * DegreesToRadians,
-                dp.open.rotation.z * DegreesToRadians
-            );
-        }
+	private translateRotations(dp: DoorPart) {
+		if (dp.closed && dp.closed.rotation) {
+			dp.closed.rotation = Quaternion.RotationYawPitchRoll(
+				dp.closed.rotation.y * DegreesToRadians,
+				dp.closed.rotation.x * DegreesToRadians,
+				dp.closed.rotation.z * DegreesToRadians
+			);
+		}
 
-        if (dp.parts) {
-            dp.parts.forEach((dp2: DoorPart) => { this.translateRotations(dp2); });
-        } else dp.parts = [ ];
-    }
+		if (dp.open && dp.open.rotation) {
+			dp.open.rotation = Quaternion.RotationYawPitchRoll(
+				dp.open.rotation.y * DegreesToRadians,
+				dp.open.rotation.x * DegreesToRadians,
+				dp.open.rotation.z * DegreesToRadians
+			);
+		}
 
-    private translateDSRotations(ds: DoorStructure) {
-        ds.parts.forEach((dp: DoorPart) => { this.translateRotations(dp); });
-    }
+		if (dp.parts) {
+			dp.parts.forEach((dp2: DoorPart) => { this.translateRotations(dp2); });
+		} else dp.parts = [ ];
+	}
 
-    private async loadDoorStructure(source: string | DoorStructure): Promise<DoorStructure> {
+	private translateDSRotations(ds: DoorStructure) {
+		ds.parts.forEach((dp: DoorPart) => { this.translateRotations(dp); });
+	}
 
-        const currentTime = new Date().getTime() / 1000;
+	private async loadDoorStructure(source: string | DoorStructure): Promise<DoorStructure> {
 
-        // Return a structure as-is
-        if (typeof source !== 'string') {
-            const ds: DoorStructure = source as DoorStructure;
-            this.translateDSRotations(ds);
-            return ds;
-        }
+		const currentTime = new Date().getTime() / 1000;
 
-        if (BasicDoor.cache[source] && BasicDoor.cache[source].time < currentTime) {
-            BasicDoor.cache[source] = undefined;
-        }
+		// Return a structure as-is
+		if (typeof source !== 'string') {
+			const ds: DoorStructure = source;
+			this.translateDSRotations(ds);
+			return ds;
+		}
 
-        // If we already have something cached, or waiting for the cache, return the Promise
-        if (BasicDoor.cache[source]) return BasicDoor.cache[source].struct;
+		if (BasicDoor.cache[source] && BasicDoor.cache[source].time < currentTime) {
+			BasicDoor.cache[source] = undefined;
+		}
 
-        BasicDoor.cache[source] = { time: currentTime + 10, struct: null };
+		// If we already have something cached, or waiting for the cache, return the Promise
+		if (BasicDoor.cache[source]) return BasicDoor.cache[source].struct;
 
-        // Else create a new entry and wait for it to be filled
-        BasicDoor.cache[source].struct = new Promise<DoorStructure>((resolve, reject) => {
-            got(source, {responseType: 'json', resolveBodyOnly: true})
-            .then((response) => {
-                const ds = response as DoorStructure;
-                this.translateDSRotations(ds);
-                resolve(ds);
-            })
-            .catch((err) => { reject(err); });
-        });
+		BasicDoor.cache[source] = { time: currentTime + 10, struct: null };
 
-        return BasicDoor.cache[source].struct;
-    }
+		// Else create a new entry and wait for it to be filled
+		BasicDoor.cache[source].struct = new Promise<DoorStructure>((resolve, reject) => {
+			got(source, {responseType: 'json', resolveBodyOnly: true})
+			.then((response) => {
+				const ds = response as DoorStructure;
+				this.translateDSRotations(ds);
+				resolve(ds);
+			})
+			.catch((err) => { reject(err); });
+		});
 
-    public started(ctx: ContextLike, source: string | DoorStructure) {
-        this.context = ctx;
-        this.loadDoorStructure(source).then((ds: DoorStructure) => { this.initDoor(ds); });
-    }
+		return BasicDoor.cache[source].struct;
+	}
 
-    public stopped = async () => {
-    }
+	public started(ctx: ContextLike, source: string | DoorStructure) {
+		this.context = ctx;
+		this.loadDoorStructure(source).then((ds: DoorStructure) => { this.initDoor(ds); });
+	}
 
-    private updateDoorPart(pid: Guid, dp: DoorPart, updateopenstate: boolean, updatelockstate: boolean) {
-        if (!dp.actor || updatelockstate) {
-            const actorDef: Partial<ActorLike> = {
-                parentId: pid
-            };
+	public stopped = async () => {
+	}
 
-            actorDef.transform = this._open && dp.open
-                ? { local: dp.open }
-                : { local: dp.closed };
+	private updateDoorPart(pid: Guid, dp: DoorPart, updateopenstate: boolean, updatelockstate: boolean) {
+		if (!dp.actor || updatelockstate) {
+			const actorDef: Partial<ActorLike> = {
+				parentId: pid
+			};
 
-            if (dp.actor) dp.actor.destroy();
+			actorDef.transform = this._open && dp.open
+				? { local: dp.open }
+				: { local: dp.closed };
 
-            dp.actor = this.context.CreateFromLibrary({
-                resourceId: this._locked && dp.lockedprefabid ? dp.lockedprefabid : dp.prefabid,
-                actor: actorDef
-            });
+			if (dp.actor) dp.actor.destroy();
 
-            if (dp.isHandle) {
-                dp.actor.setBehavior(ButtonBehavior).onClick((user: User) => { this.handlePressed(user); } );
-            }
-        } else if (updateopenstate) {
-            if (this._open && dp.open) {
-                setTimeout(() => {
-                    dp.actor.animateTo({
-                        transform: { local: dp.open }
-                    }, dp.openduration, AnimationEaseCurves.EaseInOutSine);
-                }, (dp.opendelay || 0) * 1000);
-            } else {
-                setTimeout(() => {
-                    dp.actor.animateTo({
-                        transform: { local: dp.closed }
-                    }, dp.closeduration, AnimationEaseCurves.EaseInOutSine);
-                }, (dp.closedelay || 0) * 1000);
-            }
-        }
+			dp.actor = this.context.CreateFromLibrary({
+				resourceId: this._locked && dp.lockedprefabid ? dp.lockedprefabid : dp.prefabid,
+				actor: actorDef
+			});
 
-        dp.parts.forEach((dp2: DoorPart) => {
-            this.updateDoorPart(dp.actor.id, dp2, updateopenstate, updatelockstate);
-        });
-    }
+			if (dp.isHandle) {
+				dp.actor.setBehavior(ButtonBehavior).onClick((user: User) => { this.handlePressed(user); } );
+			}
+		} else if (updateopenstate) {
+			if (this._open && dp.open) {
+				setTimeout(() => {
+					dp.actor.animateTo({
+						transform: { local: dp.open }
+					}, dp.openduration, AnimationEaseCurves.EaseInOutSine);
+				}, (dp.opendelay || 0) * 1000);
+			} else {
+				setTimeout(() => {
+					dp.actor.animateTo({
+						transform: { local: dp.closed }
+					}, dp.closeduration, AnimationEaseCurves.EaseInOutSine);
+				}, (dp.closedelay || 0) * 1000);
+			}
+		}
 
-    private initDoor(ds: DoorStructure) {
-        this.doorRoot = this.context.CreateEmpty();
+		dp.parts.forEach((dp2: DoorPart) => {
+			this.updateDoorPart(dp.actor.id, dp2, updateopenstate, updatelockstate);
+		});
+	}
 
-        if (ds.opensound) this.openSoundFX = initSound(this.context.assets, this.doorRoot, ds.opensound);
-        if (ds.closesound) this.closeSoundFX = initSound(this.context.assets, this.doorRoot, ds.closesound);
-        if (ds.lockedsound) this.lockedSoundFX = initSound(this.context.assets, this.doorRoot, ds.closesound);
+	private initDoor(ds: DoorStructure) {
+		this.doorRoot = this.context.CreateEmpty();
 
-        // Deep clone the door structure to avoid backscatter into the cache
-        this.doorstate = JSON.parse(JSON.stringify(ds));
-        this.doorstate.parts.forEach((dp: DoorPart) => {
-            this.updateDoorPart(this.doorRoot.id, dp, false, false);
-        });
-    }
+		if (ds.opensound) this.openSoundFX = initSound(this.context.assets, this.doorRoot, ds.opensound);
+		if (ds.closesound) this.closeSoundFX = initSound(this.context.assets, this.doorRoot, ds.closesound);
+		if (ds.lockedsound) this.lockedSoundFX = initSound(this.context.assets, this.doorRoot, ds.closesound);
 
-    private updateDoorState(toOpen: boolean, toLocked: boolean) {
-        let updatelockstate = false;
-        let updateopenstate = false;
+		// Deep clone the door structure to avoid backscatter into the cache
+		this.doorstate = JSON.parse(JSON.stringify(ds));
+		this.doorstate.parts.forEach((dp: DoorPart) => {
+			this.updateDoorPart(this.doorRoot.id, dp, false, false);
+		});
+	}
 
-        if (toOpen !== this.open) updateopenstate = true;
-        if (toLocked !== this.locked) updatelockstate = true;
+	private updateDoorState(toOpen: boolean, toLocked: boolean) {
+		let updatelockstate = false;
+		let updateopenstate = false;
 
-        if (!updateopenstate && !updatelockstate) return;
+		if (toOpen !== this.open) updateopenstate = true;
+		if (toLocked !== this.locked) updatelockstate = true;
 
-        this._locked = toLocked;
+		if (!updateopenstate && !updatelockstate) return;
 
-        if (this.locked && updateopenstate) {
-            restartSound(this.lockedSoundFX);
-            updateopenstate = false;
-        }
+		this._locked = toLocked;
 
-        if (updateopenstate) {
-            this._open = toOpen;
-            restartSound(toOpen ? this.openSoundFX : this.closeSoundFX);
-        }
+		if (this.locked && updateopenstate) {
+			restartSound(this.lockedSoundFX);
+			updateopenstate = false;
+		}
 
-        this.doorstate.parts.forEach((dp: DoorPart) => {
-            this.updateDoorPart(this.doorRoot.id, dp, updateopenstate, updatelockstate);
-        });
+		if (updateopenstate) {
+			this._open = toOpen;
+			restartSound(toOpen ? this.openSoundFX : this.closeSoundFX);
+		}
 
-        if (this._open && this.doorstate.opentime) {
-            delay(this.doorstate.opentime * 1000).then(() => { this.updateDoorState(false, toLocked); });
-        }
-    }
+		this.doorstate.parts.forEach((dp: DoorPart) => {
+			this.updateDoorPart(this.doorRoot.id, dp, updateopenstate, updatelockstate);
+		});
 
-    private handlePressed(user: User) {
-        this.open = !this.open;
-    }
+		if (this._open && this.doorstate.opentime) {
+			delay(this.doorstate.opentime * 1000).then(() => { this.updateDoorState(false, toLocked); });
+		}
+	}
+
+	private handlePressed(user: User) {
+		this.open = !this.open;
+	}
 }
