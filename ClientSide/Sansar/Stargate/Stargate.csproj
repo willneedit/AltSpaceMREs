@@ -50,11 +50,16 @@
     <Compile Include="SG_Types.cs" />
   </ItemGroup>
   <ItemGroup>
+    <!-- Kudos to https://stackoverflow.com/questions/15666618/csproj-multiple-hint-paths-for-an-assembly ! -->
     <Reference Include="Sansar.Script">
-      <HintPath>..\Assemblies\Sansar.Script.dll</HintPath>
+      <HintPath Condition="Exists('\Program Files (x86)\Steam\steamapps\common\Sansar\Client\ScriptApi\Assemblies')">\Program Files (x86)\Steam\steamapps\common\Sansar\Client\ScriptApi\Assemblies\Sansar.Script.dll</HintPath>
+      <HintPath Condition="Exists('\SteamLibrary\steamapps\common\Sansar\Client\ScriptApi\Assemblies')">\SteamLibrary\steamapps\common\Sansar\Client\ScriptApi\Assemblies\Sansar.Script.dll</HintPath>
+      <HintPath Condition="Exists('..\Assemblies')">..\Assemblies\Sansar.Script.dll</HintPath>
     </Reference>
     <Reference Include="Sansar.Simulation">
-      <HintPath>..\Assemblies\Sansar.Simulation.dll</HintPath>
+      <HintPath Condition="Exists('\Program Files (x86)\Steam\steamapps\common\Sansar\Client\ScriptApi\Assemblies')">\Program Files (x86)\Steam\steamapps\common\Sansar\Client\ScriptApi\Assemblies\Sansar.Simulation.dll</HintPath>
+      <HintPath Condition="Exists('\SteamLibrary\steamapps\common\Sansar\Client\ScriptApi\Assemblies')">\SteamLibrary\steamapps\common\Sansar\Client\ScriptApi\Assemblies\Sansar.Simulation.dll</HintPath>
+      <HintPath Condition="Exists('..\Assemblies')">..\Assemblies\Sansar.Simulation.dll</HintPath>
     </Reference>
     <Reference Include="System" />
   </ItemGroup>
