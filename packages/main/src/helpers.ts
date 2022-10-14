@@ -64,13 +64,11 @@ export function initSound(
 		volume: 0.5,
 		looping: false,
 		doppler: 1.0,
-		rolloffStartDistance: 2.0
+		rolloffStartDistance: 2.0,
+		paused: true
 	};
 
-	const si = actor.startSound(soundAsset.id, { ...sssoDefaults, ...(sssoOvr || { })});
-	si.pause();
-
-	return si;
+	return actor.startSound(soundAsset.id, { ...sssoDefaults, ...(sssoOvr || { })});
 }
 
 /**
@@ -83,8 +81,18 @@ export function restartSound(si: MediaInstance, sssoOvr?: Partial<SetAudioStateO
 		volume: 0.5,
 		looping: false,
 		doppler: 1.0,
-		rolloffStartDistance: 2.0
+		rolloffStartDistance: 2.0,
+		time: 0.0
 	};
-	si.stop();
-	si.start({ ...sssoDefaults, ...(sssoOvr || { })});
+
+	const sssoCurrent: SetAudioStateOptions = { ...sssoDefaults, ...(sssoOvr || { })};
+
+	// HACK: One-Shot media instances falls off the truck once they're completed.
+	// No need to bother about the stale MediaInstance, just gather the information to recreate.
+	if (!sssoCurrent.looping) {
+		si.actor.startSound(si.mediaAssetId, sssoCurrent);
+	} else {
+		si.start(sssoCurrent);
+	}
+
 }
