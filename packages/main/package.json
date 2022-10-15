@@ -40,7 +40,7 @@
     "typescript": "^3.7.2"
   },
   "dependencies": {
-    "@microsoft/mixed-reality-extension-sdk": "*",
+    "@microsoft/mixed-reality-extension-sdk": ">=0.30.0",
     "big-integer": "^1.6.40",
     "forwarded-for": "^1.0.1",
     "got": "11",

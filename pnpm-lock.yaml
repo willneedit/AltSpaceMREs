@@ -4,7 +4,7 @@ importers:
 
   packages/main:
     specifiers:
-      '@microsoft/mixed-reality-extension-sdk': '*'
+      '@microsoft/mixed-reality-extension-sdk': '>=0.30.0'
       '@types/http-proxy': ^1.16.2
       '@types/node': ^10.3.1
       '@types/pg': ^8.6.5
@@ -64,7 +64,7 @@ importers:
       typedoc: ^0.16.8
       typescript: ^3.7.2
     dependencies:
-      '@microsoft/mixed-reality-extension-sdk': link:../sdk
+      '@microsoft/mixed-reality-extension-sdk': 0.21.0
     devDependencies:
       '@types/mime-types': 2.1.1
       '@types/node': 10.17.60
@@ -111,7 +111,7 @@ importers:
     dependencies:
       '@microsoft/gltf-gen': link:../gltf-gen
       '@microsoft/mixed-reality-extension-altspacevr-extras': link:../altspacevr-extras
-      '@microsoft/mixed-reality-extension-sdk': link:../sdk
+      '@microsoft/mixed-reality-extension-sdk': 0.21.0
       '@types/dotenv': 6.1.1
       '@types/node': 10.17.60
       '@types/restify': 7.2.12
@@ -256,6 +256,36 @@ packages:
     transitivePeerDependencies:
       - encoding
       - supports-color
+    dev: false
+
+  /@microsoft/mixed-reality-extension-common/0.21.0:
+    resolution: {integrity: sha512-aZHDuUcWJc+R9CYItSPrDh6kCjgyQPst0vEkJ9M7WQczs19Wwmyyq8veI6avS1YDjWiJl491SwL7sMlfrmTAKQ==}
+    engines: {node: '>=10.13.0', npm: '>=6.4.1'}
+    dependencies:
+      '@types/node': 10.17.60
+    dev: false
+
+  /@microsoft/mixed-reality-extension-sdk/0.21.0:
+    resolution: {integrity: sha512-p3E2+SjSdk5wlPWLMZBw6nSfIeUgxfbhz6HZqjG288Df2EtZorDgRpZaot00a6Mx69um8kv/4zEPT7/+0uxE3A==}
+    engines: {node: '>=10.13.0', npm: '>=6.4.1'}
+    dependencies:
+      '@microsoft/mixed-reality-extension-common': 0.21.0
+      '@types/node': 10.17.60
+      debug: 4.3.4
+      deepmerge: 2.2.1
+      etag: 1.8.1
+      forwarded-for: 1.1.0
+      jsonschema: 1.4.1
+      query-string: 6.14.1
+      restify: 8.6.1
+      restify-errors: 8.0.2
+      semver: 5.7.1
+      uuid: 3.4.0
+      ws: 6.2.2
+    transitivePeerDependencies:
+      - bufferutil
+      - supports-color
+      - utf-8-validate
     dev: false
 
   /@netflix/nerror/1.1.3:
