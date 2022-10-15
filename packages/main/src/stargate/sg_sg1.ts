@@ -12,6 +12,8 @@ import {
 	Vector3,
 	ActorPath,
 	AnimationEaseCurves,
+	AssetContainer,
+	AnimationWrapMode,
 } from "@microsoft/mixed-reality-extension-sdk";
 
 import {
@@ -204,7 +206,11 @@ export default class StargateSG1 extends Stargate {
 		const tgtAngle = (this.chevronAngles[chevron] + (symbol * 360 / 39)) % 360;
 		const srcAngle = this.gateRingAngle;
 
-		const rotAnimData = this.context.assets.createAnimationData('rotation',{
+		// Animation.delete() leaves asset data behind, so we create temporary asset containers
+		// just for the animation.
+		const ac = new AssetContainer(this.context.baseContext);
+
+		const rotAnimData = ac.createAnimationData('rotation',{
 			tracks: [{
 				target: ActorPath('ring').transform.local.rotation,
 				keyframes: this.generateRotationKeyFrames(srcAngle, tgtAngle, dialDirection),
@@ -212,19 +218,20 @@ export default class StargateSG1 extends Stargate {
 			}]
 		});
 
-		const rotAnim = await rotAnimData.bind({ ring: this.gateRing });
-		rotAnim.play();
+		const rotAnim = await rotAnimData.bind({ ring: this.gateRing }, {
+			isPlaying: true,
+			wrapMode: AnimationWrapMode.Once
+		});
+
 		this.soundGateTurning.resume();
 		await rotAnim.finished();
-		// await delay(rotAnimFrames[rotAnimFrames.length - 1].time * 1000 + 200);
 		this.soundGateTurning.pause();
-
-		// FIXME: MRESDK Bug
-		//rotAnim.delete();
 
 		await delay(1000);
 
 		this.gateRingAngle = tgtAngle;
+
+		ac.unload();
 	}
 
 }
