@@ -18,7 +18,7 @@ import {
 	GateStatus,
 } from "./types";
 
-import { delay, initSound, restartSound } from "../helpers";
+import { delay, initSound } from "../helpers";
 
 import Stargate from "./sg__main";
 
@@ -185,7 +185,7 @@ export default class StargateSG1 extends Stargate {
 		if (this.gateStatus !== GateStatus.dialing) return;
 
 		this.replaceChevron(index, true);
-		restartSound(this.soundChevronLock);
+		this.soundChevronLock.restart();
 
 		if (!silent) this.reportStatus(`${this.currentDirection ? 'Incoming! ' : ''} Chevron ${index + 1} locked in.`);
 

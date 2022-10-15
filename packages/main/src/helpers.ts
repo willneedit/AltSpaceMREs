@@ -70,29 +70,3 @@ export function initSound(
 
 	return actor.startSound(soundAsset.id, { ...sssoDefaults, ...(sssoOvr || { })});
 }
-
-/**
- * Restarts the sound from the start or a given offset
- * @param si Sound instance to start over
- * @param sssoOvr Optional: SoundStateOptions to override
- */
-export function restartSound(si: MediaInstance, sssoOvr?: Partial<SetAudioStateOptions>) {
-	const sssoDefaults: SetAudioStateOptions = {
-		volume: 0.5,
-		looping: false,
-		doppler: 1.0,
-		rolloffStartDistance: 2.0,
-		time: 0.0
-	};
-
-	const sssoCurrent: SetAudioStateOptions = { ...sssoDefaults, ...(sssoOvr || { })};
-
-	// HACK: One-Shot media instances falls off the truck once they're completed.
-	// No need to bother about the stale MediaInstance, just gather the information to recreate.
-	if (!sssoCurrent.looping) {
-		si.actor.startSound(si.mediaAssetId, sssoCurrent);
-	} else {
-		si.start(sssoCurrent);
-	}
-
-}

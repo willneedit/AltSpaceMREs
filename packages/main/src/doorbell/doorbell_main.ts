@@ -13,7 +13,7 @@ import Applet from "../Applet";
 
 import { ContextLike } from "../frameworks/context/types";
 
-import { initSound, restartSound } from "../helpers";
+import { initSound } from "../helpers";
 
 export default class Doorbell extends Applet {
 
@@ -69,8 +69,6 @@ export default class Doorbell extends Applet {
 			if (this.burstCount++ > this.maxBurst) return;
 		}
 
-		restartSound(this.soundFX, {
-			rolloffStartDistance: this.distance
-		});
+		this.soundFX.restart();
 	}
 }

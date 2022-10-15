@@ -16,7 +16,7 @@ import {
 	GateStatus,
 } from "./types";
 
-import { delay, destroyActors, initSound, restartSound } from "../helpers";
+import { delay, destroyActors, initSound } from "../helpers";
 
 import Stargate from "./sg__main";
 
@@ -149,9 +149,14 @@ export default class StargateElven extends Stargate {
 		if (this.gateStatus !== GateStatus.dialing) return;
 
 		await this.replaceChevron(index, true);
-		restartSound(this.chevronData[index].si, {
-			pitch: this.chevronData[index].pitch
-		});
+
+		// That's a roundabout way to play in varying pitches, not just rewind and replay.
+		// this.chevronData[index].si = this.chevronData[index].si.restart();
+		// this.chevronData[index].si.setState({ pitch: this.chevronData[index].pitch });
+
+		// More closely related to the functional-test.
+		const si: MediaInstance = this.chevronData[index].si;
+		si.actor.startSound(si.mediaAssetId, { pitch: this.chevronData[index].pitch });
 
 		await delay(1000);
 

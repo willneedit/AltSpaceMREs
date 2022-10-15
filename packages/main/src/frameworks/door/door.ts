@@ -20,7 +20,7 @@ import {
 	Guid,
 } from "@microsoft/mixed-reality-extension-sdk";
 
-import { delay, initSound, restartSound } from "../../helpers";
+import { delay, initSound } from "../../helpers";
 
 export default class BasicDoor {
 	private static cache: { [url: string]: { time: number; struct: Promise<DoorStructure> } } = { };
@@ -178,13 +178,13 @@ export default class BasicDoor {
 		this._locked = toLocked;
 
 		if (this.locked && updateopenstate) {
-			restartSound(this.lockedSoundFX);
+			this.lockedSoundFX.restart();
 			updateopenstate = false;
 		}
 
 		if (updateopenstate) {
 			this._open = toOpen;
-			restartSound(toOpen ? this.openSoundFX : this.closeSoundFX);
+			(toOpen ? this.openSoundFX : this.closeSoundFX).restart();
 		}
 
 		this.doorstate.parts.forEach((dp: DoorPart) => {

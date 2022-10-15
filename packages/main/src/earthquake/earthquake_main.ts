@@ -23,7 +23,7 @@ import Applet from "../Applet";
 
 import { ContextLike } from "../frameworks/context/types";
 
-import { initSound, restartSound } from "../helpers";
+import { initSound } from "../helpers";
 
 export default class Earthquake extends Applet {
 	private eqgIdleId = 'artifact:1411071212997575195';
@@ -276,7 +276,7 @@ export default class Earthquake extends Applet {
 
 		this.rotUpperAnim.play();
 
-		restartSound(this.humSound, { looping: true });
+		this.humSound.restart();
 
 		setTimeout(() => this.activateStage2(), 16000);
 	}
@@ -300,7 +300,7 @@ export default class Earthquake extends Applet {
 			}
 		});
 
-		restartSound(this.laserSound, { looping: true });
+		this.laserSound.restart();
 
 		setTimeout(() => this.activateStage4(), 4000);
 	}
