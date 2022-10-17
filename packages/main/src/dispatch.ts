@@ -20,7 +20,6 @@ import SGDCDHD from "./stargate/dc_dhd";
 import StargateSG1 from "./stargate/sg_sg1";
 
 import ShowGLTF from "./gltf/gltf_main";
-import ShowKitObj from "./kit/kit_main";
 
 import SGDCElven from "./stargate/dc_elven";
 import StargateElven from "./stargate/sg_elven";
@@ -49,7 +48,7 @@ const registry: { [key: string]: () => Applet } = {
 	sgdialcomp: (): Applet => new SGDCDHD(),
 	sg_elven_dhd: (): Applet => new SGDCElven(),
 	gltf: (): Applet => new ShowGLTF(),
-	kit: (): Applet => new ShowKitObj(),
+	kit: (): Applet => new ShowGLTF(), // Legacy, unified with the glTF object
 	demongate: (): Applet => new DemonGate(),
 	blastdoor: (): Applet => new BlastDoor(),
 	door: (): Applet => new GenericDoor(),
