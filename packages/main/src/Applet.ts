@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ParameterSet } from "@microsoft/mixed-reality-extension-sdk";
+import { ParameterSet } from "@willneedit/mixed-reality-extension-sdk";
 
 import { ContextLike } from "./frameworks/context/types";
 

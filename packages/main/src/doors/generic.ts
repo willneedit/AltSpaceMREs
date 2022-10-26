@@ -12,7 +12,7 @@ import Applet from "../Applet";
 
 import { ContextLike } from "../frameworks/context/types";
 
-import { ParameterSet, User } from "@microsoft/mixed-reality-extension-sdk";
+import { ParameterSet, User } from "@willneedit/mixed-reality-extension-sdk";
 
 import BasicDoor from "../frameworks/door/door";
 

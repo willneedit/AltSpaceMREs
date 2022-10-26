@@ -9,7 +9,7 @@ import {
 	Actor,
 	Context,
 	TransformLike
-} from "@microsoft/mixed-reality-extension-sdk";
+} from "@willneedit/mixed-reality-extension-sdk";
 
 export class ProxyContext extends RawContext {
 	constructor(

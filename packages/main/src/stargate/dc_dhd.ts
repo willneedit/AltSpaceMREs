@@ -11,7 +11,7 @@ import {
 	Quaternion,
 	TextAnchorLocation,
 	Vector3,
-} from "@microsoft/mixed-reality-extension-sdk";
+} from "@willneedit/mixed-reality-extension-sdk";
 
 import SGAddressing from "./addressing";
 import { SGDCBase } from "./dc__base";

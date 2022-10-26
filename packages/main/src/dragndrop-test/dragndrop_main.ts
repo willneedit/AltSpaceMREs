@@ -5,7 +5,7 @@
 
 /**
   * This is an extended Hello World sample, derived from the one found in
-  * @microsoft/mixed-reality-extension-sdk-samples, courtesy of Microsoft.
+  * @willneedit/mixed-reality-extension-sdk-samples, courtesy of Microsoft.
   */
 import {
 	Actor,
@@ -14,7 +14,7 @@ import {
 	PrimitiveShape,
 	TextAnchorLocation,
 	User,
-} from '@microsoft/mixed-reality-extension-sdk';
+} from '@willneedit/mixed-reality-extension-sdk';
 
 import Applet from "../Applet";
 import { ContextLike } from '../frameworks/context/types';

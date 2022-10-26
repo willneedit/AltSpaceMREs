@@ -4,7 +4,6 @@ importers:
 
   packages/main:
     specifiers:
-      '@microsoft/mixed-reality-extension-sdk': '>=0.30.0'
       '@types/http-proxy': ^1.16.2
       '@types/node': ^10.3.1
       '@types/pg': ^8.6.5
@@ -14,6 +13,7 @@ importers:
       '@types/sha1': ^1.1.1
       '@types/sqlite3': ^3.1.8
       '@types/ws': ^6.0.1
+      '@willneedit/mixed-reality-extension-sdk': '>=0.30.0'
       big-integer: ^1.6.40
       forwarded-for: ^1.0.1
       got: '11'
@@ -28,7 +28,7 @@ importers:
       tsutils: ^3.17.1
       typescript: ^3.7.2
     dependencies:
-      '@microsoft/mixed-reality-extension-sdk': link:../../submodules/mixed-reality-extension-sdk/packages/sdk
+      '@willneedit/mixed-reality-extension-sdk': link:../../submodules/mixed-reality-extension-sdk/packages/sdk
       big-integer: 1.6.51
       forwarded-for: 1.1.0
       got: 11.8.5
@@ -55,16 +55,16 @@ importers:
 
   submodules/mixed-reality-extension-sdk/packages/altspacevr-extras:
     specifiers:
-      '@microsoft/mixed-reality-extension-sdk': ^0.30.0
       '@types/mime-types': ^2.1.0
       '@types/node': ^10.12.0
       '@typescript-eslint/eslint-plugin': ^2.6.1
       '@typescript-eslint/parser': ^2.6.1
+      '@willneedit/mixed-reality-extension-sdk': ^0.30.0
       eslint: ^6.6.0
       typedoc: ^0.16.8
       typescript: ^3.7.2
     dependencies:
-      '@microsoft/mixed-reality-extension-sdk': link:../sdk
+      '@willneedit/mixed-reality-extension-sdk': link:../sdk
     devDependencies:
       '@types/mime-types': 2.1.1
       '@types/node': 10.17.60
@@ -93,14 +93,14 @@ importers:
 
   submodules/mixed-reality-extension-sdk/packages/functional-tests:
     specifiers:
-      '@microsoft/gltf-gen': ^0.21.0
-      '@microsoft/mixed-reality-extension-altspacevr-extras': ^0.21.0
-      '@microsoft/mixed-reality-extension-sdk': ^0.30.0
       '@types/dotenv': ^6.1.0
       '@types/node': ^10.3.1
       '@types/restify': ^7.2.0
       '@typescript-eslint/eslint-plugin': ^2.6.1
       '@typescript-eslint/parser': ^2.6.1
+      '@willneedit/gltf-gen': ^0.21.0
+      '@willneedit/mixed-reality-extension-altspacevr-extras': ^0.21.0
+      '@willneedit/mixed-reality-extension-sdk': ^0.30.0
       concurrently: ^5.2.0
       dotenv: ^6.2.0
       eslint: ^6.6.0
@@ -109,12 +109,12 @@ importers:
       tslib: 1.9.3
       typescript: ^3.7.2
     dependencies:
-      '@microsoft/gltf-gen': link:../gltf-gen
-      '@microsoft/mixed-reality-extension-altspacevr-extras': link:../altspacevr-extras
-      '@microsoft/mixed-reality-extension-sdk': link:../sdk
       '@types/dotenv': 6.1.1
       '@types/node': 10.17.60
       '@types/restify': 7.2.12
+      '@willneedit/gltf-gen': link:../gltf-gen
+      '@willneedit/mixed-reality-extension-altspacevr-extras': link:../altspacevr-extras
+      '@willneedit/mixed-reality-extension-sdk': link:../sdk
       dotenv: 6.2.0
       restify: 8.6.1
       tslib: 1.9.3
@@ -128,11 +128,11 @@ importers:
 
   submodules/mixed-reality-extension-sdk/packages/gltf-gen:
     specifiers:
-      '@microsoft/mixed-reality-extension-common': ^0.21.0
       '@types/mime-types': ^2.1.0
       '@types/node': ^10.12.0
       '@typescript-eslint/eslint-plugin': ^2.6.1
       '@typescript-eslint/parser': ^2.6.1
+      '@willneedit/mixed-reality-extension-common': ^0.21.0
       eslint: ^6.6.0
       gltf-typescript-generator: ^0.0.3
       gltf-validator: ^2.0.0-dev.2.5
@@ -140,7 +140,7 @@ importers:
       typedoc: ^0.16.8
       typescript: ^3.7.2
     dependencies:
-      '@microsoft/mixed-reality-extension-common': link:../common
+      '@willneedit/mixed-reality-extension-common': link:../common
       mime-types: 2.1.35
     devDependencies:
       '@types/mime-types': 2.1.1
@@ -155,7 +155,6 @@ importers:
 
   submodules/mixed-reality-extension-sdk/packages/sdk:
     specifiers:
-      '@microsoft/mixed-reality-extension-common': ^0.21.0
       '@types/debug': ^0.0.31
       '@types/deepmerge': ^2.1.0
       '@types/etag': ^1.8.0
@@ -168,6 +167,7 @@ importers:
       '@types/ws': ^6.0.1
       '@typescript-eslint/eslint-plugin': ^2.6.1
       '@typescript-eslint/parser': ^2.6.1
+      '@willneedit/mixed-reality-extension-common': ^0.21.0
       debug: ^4.1.0
       deepmerge: ^2.1.1
       eslint: ^6.6.0
@@ -183,8 +183,8 @@ importers:
       uuid: ^3.2.1
       ws: ^6.1.2
     dependencies:
-      '@microsoft/mixed-reality-extension-common': link:../common
       '@types/node': 10.17.60
+      '@willneedit/mixed-reality-extension-common': link:../common
       debug: 4.3.4
       deepmerge: 2.2.1
       etag: 1.8.1

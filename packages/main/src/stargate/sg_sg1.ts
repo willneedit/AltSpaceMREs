@@ -14,7 +14,7 @@ import {
 	AnimationEaseCurves,
 	AssetContainer,
 	AnimationWrapMode,
-} from "@microsoft/mixed-reality-extension-sdk";
+} from "@willneedit/mixed-reality-extension-sdk";
 
 import {
 	GateStatus,

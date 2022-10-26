@@ -18,7 +18,7 @@ import {
 	Quaternion,
 	User,
 	Guid,
-} from "@microsoft/mixed-reality-extension-sdk";
+} from "@willneedit/mixed-reality-extension-sdk";
 
 import { delay, initSound } from "../../helpers";
 

@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { User } from "@microsoft/mixed-reality-extension-sdk";
+import { User } from "@willneedit/mixed-reality-extension-sdk";
 import got from "got";
 import SGAddressing, { SGLocationData } from "./addressing";
 

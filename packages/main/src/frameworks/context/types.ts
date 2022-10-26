@@ -12,7 +12,7 @@ import {
 	User,
 	Prefab,
 	Guid,
-} from "@microsoft/mixed-reality-extension-sdk";
+} from "@willneedit/mixed-reality-extension-sdk";
 
 export interface ContextLike {
 	readonly baseContext: Context;

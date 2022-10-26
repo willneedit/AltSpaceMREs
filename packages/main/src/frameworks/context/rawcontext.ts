@@ -10,7 +10,7 @@ import {
 	AssetContainer,
 	Context,
 	User,
-} from "@microsoft/mixed-reality-extension-sdk";
+} from "@willneedit/mixed-reality-extension-sdk";
 import { AssetManager } from "./assetmgmt";
 
 export class RawContext implements ContextLike {

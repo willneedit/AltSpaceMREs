@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Actor, ScaledTransform } from "@microsoft/mixed-reality-extension-sdk";
+import { Actor, ScaledTransform } from "@willneedit/mixed-reality-extension-sdk";
 
 export interface DoorPart {
 	prefabid: string;                   // Kit ID

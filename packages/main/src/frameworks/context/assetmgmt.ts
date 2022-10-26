@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AssetContainer, Context } from "@microsoft/mixed-reality-extension-sdk";
+import { AssetContainer, Context } from "@willneedit/mixed-reality-extension-sdk";
 
 export class AssetManager {
 	private static contexts: { [id: string]: AssetContainer } = { };

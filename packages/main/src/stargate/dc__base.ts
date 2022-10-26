@@ -11,7 +11,7 @@ import {
 	User,
 	Guid,
 	ButtonEventData,
-} from "@microsoft/mixed-reality-extension-sdk";
+} from "@willneedit/mixed-reality-extension-sdk";
 
 import {
 	GateStatus,

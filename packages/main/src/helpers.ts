@@ -8,7 +8,7 @@ import {
 	AssetContainer,
 	MediaInstance,
 	SetAudioStateOptions,
-} from "@microsoft/mixed-reality-extension-sdk";
+} from "@willneedit/mixed-reality-extension-sdk";
 
 /**
  * Return a single string param, either the param itself or the first one listed

@@ -17,7 +17,7 @@ import {
 	TextAnchorLocation,
 	User,
 	Vector3,
-} from "@microsoft/mixed-reality-extension-sdk";
+} from "@willneedit/mixed-reality-extension-sdk";
 
 import Applet from "../Applet";
 

@@ -7,7 +7,7 @@ import {
 	Actor,
 	Context,
 	TextAnchorLocation
-} from "@microsoft/mixed-reality-extension-sdk";
+} from "@willneedit/mixed-reality-extension-sdk";
 import { delay } from "./helpers";
 
 export default class Message {

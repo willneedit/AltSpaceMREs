@@ -7,7 +7,7 @@ import {
 	Actor,
 	MediaInstance,
 	ParameterSet,
-	User} from "@microsoft/mixed-reality-extension-sdk";
+	User} from "@willneedit/mixed-reality-extension-sdk";
 
 import Applet from "../Applet";
 

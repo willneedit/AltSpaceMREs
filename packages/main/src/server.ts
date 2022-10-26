@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { WebHost, Permissions } from '@microsoft/mixed-reality-extension-sdk';
+import { WebHost, Permissions } from '@willneedit/mixed-reality-extension-sdk';
 import { resolve as resolvePath } from 'path';
 import { dispatch, dispatchStartup } from './dispatch';
 
@@ -16,7 +16,7 @@ import { RawContext } from './frameworks/context/rawcontext';
 import { initReSTServer } from './rest';
 
 /*
-import { log } from '@microsoft/mixed-reality-extension-sdk/built/log';
+import { log } from '@willneedit/mixed-reality-extension-sdk/built/log';
 
 // Enable network logging
 log.enable('network');
